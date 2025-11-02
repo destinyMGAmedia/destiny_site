@@ -4,6 +4,9 @@ function VideoGallery() {
   // ⚠️ IMPORTANT: Replace with your actual YouTube channel ID
   const YOUTUBE_CHANNEL_ID = "UCH3uj1-ubXiKKhj4WZskflw"
   
+  // Live stream embed URL (will show live stream when active, or latest video when offline)
+  const liveStreamUrl = `https://www.youtube.com/embed/live_stream?channel=${YOUTUBE_CHANNEL_ID}`
+  
   // Add your recent videos here - Get video IDs from YouTube URLs
   // Example: youtube.com/watch?v=VIDEO_ID_HERE
   const recentVideos = [
@@ -73,12 +76,53 @@ function VideoGallery() {
         </div>
       </section>
 
-      {/* Main Video Player */}
+      {/* Live Stream Section */}
       <section className="bg-white py-20">
         <div className="container mx-auto px-6">
           <div className="max-w-6xl mx-auto">
-            {/* Large Video Player */}
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-red-600 rounded-full animate-pulse"></div>
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+                  Live Stream
+                </h2>
+              </div>
+            </div>
+            <div className="h-1 w-24 bg-purple-600 mx-auto mb-8"></div>
+            
+            {/* Live Stream Player */}
             <div className="bg-gray-100 rounded-xl p-6 shadow-lg mb-8">
+              <div className="relative pb-[56.25%] h-0 overflow-hidden rounded-lg">
+                <iframe
+                  className="absolute top-0 left-0 w-full h-full"
+                  src={liveStreamUrl}
+                  title="DMGA Live Stream"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                ></iframe>
+              </div>
+              <div className="mt-4 text-center">
+                <p className="text-gray-600 text-sm">
+                  🔴 When we&apos;re live, the stream will appear above. When offline, you&apos;ll see our most recent video.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Main Video Player */}
+      <section className="bg-gray-100 py-20">
+        <div className="container mx-auto px-6">
+          <div className="max-w-6xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-center">
+              Selected Video
+            </h2>
+            <div className="h-1 w-24 bg-purple-600 mx-auto mb-8"></div>
+            
+            {/* Large Video Player */}
+            <div className="bg-white rounded-xl p-6 shadow-lg mb-8">
               <div className="relative pb-[56.25%] h-0 overflow-hidden rounded-lg">
                 <iframe
                   key={mainVideoId} // Force re-render when video changes

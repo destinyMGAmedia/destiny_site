@@ -2,8 +2,8 @@ function Home() {
   // YouTube channel ID - same as used in Gallery page
   const YOUTUBE_CHANNEL_ID = "UCH3uj1-ubXiKKhj4WZskflw"
   
-  // Show channel uploads by default (better than live_stream which errors when not live)
-  const homeVideoUrl = `https://www.youtube.com/embed?listType=playlist&list=UU${YOUTUBE_CHANNEL_ID.substring(2)}`
+  // Live stream embed URL (will show live stream when active, or latest video when offline)
+  const homeVideoUrl = `https://www.youtube.com/embed/live_stream?channel=${YOUTUBE_CHANNEL_ID}`
 
   return (
     <>
@@ -105,11 +105,16 @@ function Home() {
                 <iframe
                   className="absolute top-0 left-0 w-full h-full"
                   src={homeVideoUrl}
-                  title="DMGA Channel Videos"
+                  title="DMGA Live Stream"
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
                 ></iframe>
+              </div>
+              <div className="mt-3 text-center">
+                <p className="text-gray-600 text-sm">
+                  🔴 Live when we&apos;re streaming • Latest video when offline
+                </p>
               </div>
             </div>
 
