@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-// import logo from '../assets/images/logo.png' // Uncomment and add your logo
+import logo from '../assets/DMGA_logo.png'
 
 function Navbar({ scrolled }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -25,15 +25,20 @@ function Navbar({ scrolled }) {
     }`}>
       <div className="container mx-auto px-6">
       <div className="flex items-center justify-between">
-        <Link to="/" className={`text-2xl md:text-3xl font-bold hover:opacity-80 transition duration-300 ${
-          scrolled ? 'text-purple-900' : 'text-white'
-        }`}>
-          {/* Uncomment below to use logo instead of text */}
-          {/* <img src={logo} alt="Destiny Mission Global Assembly" className="h-12 w-auto" /> */}
-          <span className="block">Destiny Mission</span>
-          <span className={`block text-lg md:text-xl font-semibold ${
-            scrolled ? 'text-purple-600' : 'text-purple-200'
-          }`}>Global Assembly</span>
+        <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition duration-300">
+          <img 
+            src={logo} 
+            alt="Destiny Mission Global Assembly" 
+            className="h-12 md:h-14 w-auto"
+          />
+          <div className={`transition duration-300 ${
+            scrolled ? 'text-purple-900' : 'text-white'
+          }`}>
+            <span className="block text-xl md:text-2xl font-bold leading-tight">Destiny Mission</span>
+            <span className={`block text-sm md:text-base font-semibold ${
+              scrolled ? 'text-purple-600' : 'text-purple-200'
+            }`}>Global Assembly</span>
+          </div>
         </Link>
         
         {/* Desktop Menu */}
