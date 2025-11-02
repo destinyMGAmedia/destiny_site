@@ -2,8 +2,8 @@ function Home() {
   // YouTube channel ID - same as used in Gallery page
   const YOUTUBE_CHANNEL_ID = "UCH3uj1-ubXiKKhj4WZskflw"
   
-  // Live stream embed URL (will show live stream when active, or latest video when offline)
-  const homeVideoUrl = `https://www.youtube.com/embed/live_stream?channel=${YOUTUBE_CHANNEL_ID}`
+  // Shows all uploaded videos with playlist sidebar visible
+  const homeVideoUrl = `https://www.youtube.com/embed/videoseries?list=UU${YOUTUBE_CHANNEL_ID.substring(2)}`
 
   return (
     <>
@@ -113,7 +113,7 @@ function Home() {
               </div>
               <div className="mt-3 text-center">
                 <p className="text-gray-600 text-sm">
-                  🔴 Live when we&apos;re streaming • Latest video when offline
+                  📺 Browse our latest messages and saved live streams
                 </p>
               </div>
             </div>
