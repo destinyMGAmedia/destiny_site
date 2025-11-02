@@ -21,24 +21,16 @@ function Navbar({ scrolled }) {
     <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${
       scrolled 
         ? 'bg-white shadow-lg py-4' 
-        : 'bg-purple-900 bg-opacity-90 backdrop-blur-md py-6'
+        : 'bg-white bg-opacity-95 backdrop-blur-md py-6 shadow-md'
     }`}>
       <div className="container mx-auto px-6">
       <div className="flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition duration-300">
+        <Link to="/" className="hover:opacity-80 transition duration-300">
           <img 
             src={logo} 
             alt="Destiny Mission Global Assembly" 
-            className="h-12 md:h-14 w-auto"
+            className="h-20 md:h-24 w-auto"
           />
-          <div className={`transition duration-300 ${
-            scrolled ? 'text-purple-900' : 'text-white'
-          }`}>
-            <span className="block text-xl md:text-2xl font-bold leading-tight">Destiny Mission</span>
-            <span className={`block text-sm md:text-base font-semibold ${
-              scrolled ? 'text-purple-600' : 'text-purple-200'
-            }`}>Global Assembly</span>
-          </div>
         </Link>
         
         {/* Desktop Menu */}
@@ -48,13 +40,9 @@ function Navbar({ scrolled }) {
               key={link.path}
               to={link.path}
               className={`transition duration-300 ${
-                scrolled
-                  ? isActive(link.path)
-                    ? 'text-purple-900 font-semibold'
-                    : 'text-gray-700 hover:text-purple-900'
-                  : isActive(link.path)
-                    ? 'text-white font-semibold'
-                    : 'text-purple-100 hover:text-white'
+                isActive(link.path)
+                  ? 'text-purple-900 font-semibold'
+                  : 'text-gray-700 hover:text-purple-900'
               }`}
             >
               {link.label}
@@ -64,7 +52,7 @@ function Navbar({ scrolled }) {
 
         {/* Mobile Menu Button */}
         <button 
-          className={`md:hidden ${scrolled ? 'text-purple-900' : 'text-white'}`}
+          className="md:hidden text-purple-900"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           aria-label="Toggle menu"
         >
@@ -80,22 +68,16 @@ function Navbar({ scrolled }) {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className={`md:hidden mt-4 space-y-4 ${
-          scrolled ? 'bg-white shadow-lg' : 'bg-purple-900 bg-opacity-95'
-        } rounded-lg p-4`}>
+        <div className="md:hidden mt-4 space-y-4 bg-white shadow-lg rounded-lg p-4">
           {navLinks.map((link) => (
             <Link
               key={link.path}
               to={link.path}
               onClick={() => setIsMenuOpen(false)}
               className={`block transition duration-300 ${
-                scrolled
-                  ? isActive(link.path)
-                    ? 'text-purple-900 font-semibold'
-                    : 'text-gray-700 hover:text-purple-900'
-                  : isActive(link.path)
-                    ? 'text-white font-semibold'
-                    : 'text-purple-100 hover:text-white'
+                isActive(link.path)
+                  ? 'text-purple-900 font-semibold'
+                  : 'text-gray-700 hover:text-purple-900'
               }`}
             >
               {link.label}
