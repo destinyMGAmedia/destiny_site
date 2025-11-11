@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Destiny Missions Global Assembly</title>
+    <link rel="stylesheet" href="styles.css" />
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Font Awesome Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <script src="script.js" defer></script>
+    <script src="./home-live.js" defer></script>
+  </head>
+  <body>
+    <!-- HEADER -->
+    <header class="header">
+      <div class="container">
+        <div class="logo">
+          <img src="./images/logo.png" alt="DMGA Logo" />
+        </div>
+        <nav class="nav">
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="live.html" class="active">Live</a></li>
+            <li><a href="gallery.html">Gallery</a></li>
+            <li><a href="testimony.html">Testimonies</a></li>
+            <li><a href="events.html">Events</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="contact.html">Contact</a></li>
+          </ul>
+          <div class="mobile-toggle">☰</div>
+        </nav>
+      </div>
+    </header>
+
+    <!-- HERO -->
+    <section id="home" class="hero">
+      <div class="hero-overlay"></div>
+      <div class="container hero-content">
+        <img src="./images/favicon.png" alt="DMGA Logo" class="hero-logo" />
+        <h1>Welcome to Destiny Missions Global Assembly</h1>
+        <p class="tagline">Igniting Faith. Transforming Lives.</p>
+        <div class="hero-buttons">
+          <a href="./live.html" class="btn btn-primary">Watch Live</a>
+          <a href="#give" class="btn btn-secondary">Give Now</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- QUICK ACTIONS -->
+    <section class="quick-actions">
+      <div class="container grid">
+        <a href="./live.html" class="action-card">
+          <i class="fas fa-play-circle"></i>
+          <h3>Live Stream</h3>
+        </a>
+        <a href="#give" class="action-card">
+          <i class="fas fa-heart"></i>
+          <h3>Give Online</h3>
+        </a>
+        <a href="#prayer" class="action-card">
+          <i class="fas fa-praying-hands"></i>
+          <h3>Submit Prayer</h3>
+        </a>
+        <a href="#testimonies" class="action-card">
+          <i class="fas fa-lightbulb"></i>
+          <h3>Share Testimony</h3>
+        </a>
+      </div>
+    </section>
+
+    <!-- LIVE STREAM SECTION -->
+    <section id="live" class="live-section section">
+      <div class="container">
+        <h2 class="section-title">Watch Live</h2>
+        <div class="video-container">
+          <iframe
+            src="https://www.youtube.com/embed/LIVE_STREAM_ID?autoplay=1&mute=0"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+          >
+          </iframe>
+        </div>
+        <p class="offline">Next Service: <strong>Sunday 9:00 AM WAT</strong></p>
+      </div>
+    </section>
+
+    <!-- GIVING SECTION -->
+    <section id="give" class="give-section section">
+      <div class="container">
+        <h2 class="section-title">Give Securely</h2>
+        <p class="scripture">
+          “Bring the whole tithe into the storehouse...” – Malachi 3:10
+        </p>
+
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="one-time">One-Time</button>
+          <button class="tab-btn" data-tab="recurring">Recurring</button>
+        </div>
+
+        <form class="give-form" id="one-time">
+          <div class="amounts">
+            <button type="button" class="amount-btn">$10</button>
+            <button type="button" class="amount-btn">$50</button>
+            <button type="button" class="amount-btn">$100</button>
+            <input type="number" placeholder="Custom" class="custom-amount" />
+          </div>
+          <select>
+            <option>Tithe</option>
+            <option>Offering</option>
+            <option>Missions</option>
+          </select>
+          <input type="email" placeholder="Email" required />
+          <input type="text" placeholder="Full Name" />
+          <button type="submit" class="btn btn-primary">Give Now</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- PRAYER REQUEST -->
+    <section id="prayer" class="prayer-section section">
+      <div class="container">
+        <h2 class="section-title">Submit Prayer Request</h2>
+        <form class="prayer-form">
+          <input type="text" placeholder="Your Name (optional)" />
+          <input type="email" placeholder="Email (for follow-up)" required />
+          <textarea
+            placeholder="Share your prayer need..."
+            rows="5"
+            required
+          ></textarea>
+          <label><input type="checkbox" /> Keep anonymous</label>
+          <button type="submit" class="btn btn-primary">Send Prayer</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- TESTIMONIES -->
+    <section id="testimonies" class="testimonies-section section">
+      <div class="container">
+        <h2 class="section-title">Testimonies of Faith</h2>
+        <div class="testimony-grid">
+          <!-- Sample Testimony -->
+          <div class="testimony-card">
+            <img src="./images/userPlaceHolder.jpg" alt="Testimony" />
+            <h4>From Addiction to Freedom</h4>
+            <p class="author">— Sarah K., Lagos</p>
+            <p>
+              I was lost in drugs for 7 years...
+              <span class="read-more">Read More</span>
+            </p>
+          </div>
+        </div>
+    
+        <div class="testimony-controls">
+          <button id="shareBtn" class="btn btn-secondary">Share Yours</button>
+        </div>
+    
+        <!-- Hidden Testimony Form -->
+        <div id="testimonyForm" class="testimony-form hidden">
+          <h3>Share Your Testimony</h3>
+          <form action="#" method="post">
+            <div class="form-group">
+              <label for="name">Full Name</label>
+              <input type="text" id="name" name="name" required />
+            </div>
+    
+            <div class="form-group">
+              <label for="location">Location</label>
+              <input type="text" id="location" name="location" />
+            </div>
+    
+            <div class="form-group">
+              <label for="testimony">Your Testimony</label>
+              <textarea id="testimony" name="testimony" rows="5" required></textarea>
+            </div>
+    
+            <div class="form-group">
+              <label for="photo">Upload a Photo (optional)</label>
+              <input type="file" id="photo" name="photo" accept="image/*" />
+            </div>
+    
+            <button type="submit" class="btn btn-primary">Submit Testimony</button>
+            <button type="button" id="cancelBtn" class="btn btn-outline">Cancel</button>
+          </form>
+        </div>
+      </div>
+    </section>
+    
+
+    <!-- FEATURED TESTIMONY CAROUSEL -->
+    <section class="testimony-carousel-section">
+      <div class="container">
+        <h2 class="section-title">Testimonies of Transformation</h2>
+        <div class="carousel-container">
+          <div class="carousel-track">
+            <!-- Slide 1 -->
+            <div class="carousel-slide active">
+              <div class="testimony-slide">
+                <img
+                  src="./images/userPlaceHolder.jpg"
+                  alt="Sarah"
+                  class="testimony-avatar"
+                />
+                <blockquote>
+                  “I was bound by addiction for 7 years. Through prayer at
+                  Destiny Missions Global Assembly, God set me free!”
+                </blockquote>
+                <p class="testimony-name">— Sarah K., Lagos</p>
+                <a href="#testimonies" class="read-more-link"
+                  >Read Full Story →</a
+                >
+              </div>
+            </div>
+
+            <!-- Slide 2 -->
+            <div class="carousel-slide">
+              <div class="testimony-slide">
+                <img
+                  src="./images/userPlaceHolder.jpg"
+                  alt="John & Mary"
+                  class="testimony-avatar"
+                />
+                <blockquote>
+                  “My marriage was restored after attending the Couples Retreat.
+                  God is faithful!”
+                </blockquote>
+                <p class="testimony-name">— John & Mary A., Abuja</p>
+                <a href="#testimonies" class="read-more-link"
+                  >Read Full Story →</a
+                >
+              </div>
+            </div>
+
+            <!-- Slide 3 -->
+            <div class="carousel-slide">
+              <div class="testimony-slide">
+                <img
+                  src="./images/userPlaceHolder.jpg"
+                  alt="Grace"
+                  class="testimony-avatar"
+                />
+                <blockquote>
+                  “Doctors gave up, but God healed my child during the Healing
+                  Service!”
+                </blockquote>
+                <p class="testimony-name">— Grace O., Port Harcourt</p>
+                <a href="#testimonies" class="read-more-link"
+                  >Read Full Story →</a
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Navigation -->
+          <button class="carousel-prev" aria-label="Previous slide">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
+
+          <button class="carousel-next" aria-label="Next slide">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
+
+          <!-- Dots -->
+          <div class="carousel-dots">
+            <span class="dot active" data-slide="0"></span>
+            <span class="dot" data-slide="1"></span>
+            <span class="dot" data-slide="2"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- UPCOMING EVENTS -->
+    <section class="events-section section">
+      <div class="container">
+        <h2 class="section-title">Upcoming Events</h2>
+        <div class="events-grid">
+          <!-- Event 1 -->
+          <div class="event-card">
+            <div class="event-date">
+              <span class="date-day">15</span>
+              <span class="date-month">NOV</span>
+            </div>
+            <div class="event-details">
+              <h3>Annual Harvest Crusade</h3>
+              <p><i class="fas fa-clock"></i> 4:00 PM – 8:00 PM</p>
+              <p>
+                <i class="fas fa-map-marker-alt"></i> Main Auditorium, Lagos
+              </p>
+              <a href="#" class="btn btn-secondary btn-small">Register Now</a>
+            </div>
+          </div>
+          <!-- Event 2 -->
+          <div class="event-card">
+            <div class="event-date">
+              <span class="date-day">22</span>
+              <span class="date-month">NOV</span>
+            </div>
+            <div class="event-details">
+              <h3>Youth Ablaze Conference</h3>
+              <p><i class="fas fa-clock"></i> 9:00 AM – 3:00 PM</p>
+              <p><i class="fas fa-map-marker-alt"></i> Youth Hall</p>
+              <a href="#" class="btn btn-secondary btn-small">Register Now</a>
+            </div>
+          </div>
+          <!-- Event 3 -->
+          <div class="event-card">
+            <div class="event-date">
+              <span class="date-day">01</span>
+              <span class="date-month">DEC</span>
+            </div>
+            <div class="event-details">
+              <h3>Christmas Carol Service</h3>
+              <p><i class="fas fa-clock"></i> 6:00 PM</p>
+              <p><i class="fas fa-map-marker-alt"></i> Main Sanctuary</p>
+              <a href="#" class="btn btn-secondary btn-small">Register Now</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GALLERY CAROUSEL SECTION -->
+    <section class="gallery-carousel-section section">
+      <div class="container">
+        <h2 class="section-title">Moments of Faith</h2>
+        <p class="section-subtitle">
+          Recent highlights from our services and events
+        </p>
+
+        <div class="gallery-carousel">
+          <div class="gallery-track">
+            <!-- Image 1 -->
+            <div class="gallery-slide">
+              <img src="./images/gallery/gImage1.jpg" alt="Sunday Worship" />
+              <div class="gallery-caption">Sunday Worship Service</div>
+            </div>
+            <!-- Image 2 -->
+            <div class="gallery-slide">
+              <img src="./images/gallery/gImage2.jpg" alt="Youth Conference" />
+              <div class="gallery-caption">Youth Ablaze Conference</div>
+            </div>
+            <!-- Image 3 -->
+            <div class="gallery-slide">
+              <img src="./images/gallery/gImage3.jpg" alt="Baptism" />
+              <div class="gallery-caption">Water Baptism</div>
+            </div>
+            <!-- Image 4 -->
+            <div class="gallery-slide">
+              <img src="./images/gallery/gImage4.jpg" alt="Outreach" />
+              <div class="gallery-caption">Community Outreach</div>
+            </div>
+            <!-- Image 5 -->
+            <div class="gallery-slide">
+              <img src="./images/gallery/gImage5.jpg" alt="Prayer Night" />
+              <div class="gallery-caption">All-Night Prayer</div>
+            </div>
+            <!-- Image 6 -->
+            <div class="gallery-slide">
+              <img src="./images/gallery/gImage6.jpg" alt="Christmas Carol" />
+              <div class="gallery-caption">Christmas Carol Service</div>
+            </div>
+            <!-- Image 7 -->
+            <div class="gallery-slide">
+              <img src="./images/gallery/gImage7.jpg" alt="Harvest Crusade" />
+              <div class="gallery-caption">Annual Harvest Crusade</div>
+            </div>
+          </div>
+
+          <!-- Controls -->
+          <button class="gallery-prev" aria-label="Previous slide">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
+
+          <button class="gallery-next" aria-label="Next slide">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
+
+          <!-- Dots -->
+          <div class="gallery-dots">
+            <span class="g-dot active" data-slide="0"></span>
+            <span class="g-dot" data-slide="1"></span>
+            <span class="g-dot" data-slide="2"></span>
+            <span class="g-dot" data-slide="3"></span>
+            <span class="g-dot" data-slide="4"></span>
+            <span class="g-dot" data-slide="5"></span>
+            <span class="g-dot" data-slide="6"></span>
+          </div>
+        </div>
+        <!-- View More Button -->
+        <div class="gallery-view-more">
+          <a href="gallery.html" class="btn btn-primary">View Full Gallery</a>
+        </div>
+      </div>
+    </section>
+
+    
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div>
+            <img src="./images/logo.png" alt="Logo" class="footer-logo" />
+            <p>Igniting Faith. Transforming Lives.</p>
+          </div>
+          <div>
+            <h4>Quick Links</h4>
+            <ul>
+              <li><a href="./live.html">Live Stream</a></li>
+              <li><a href="#give">Give</a></li>
+              <li><a href="./index.html#prayer">Prayer</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Contact</h4>
+            <p>prayer@destinymissions.org</p>
+            <p>+234 800 000 0000</p>
+          </div>
+          <div>
+            <h4>Follow Us</h4>
+            <div class="socials">
+              <a href="#"><i class="fab fa-facebook"></i></a>
+              <a href="#"><i class="fab fa-instagram"></i></a>
+              <a href="#"><i class="fab fa-youtube"></i></a>
+            </div>
+          </div>
+        </div>
+        <p class="copyright">
+          &copy; 2025 Destiny Missions Global Assembly. All rights reserved.
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

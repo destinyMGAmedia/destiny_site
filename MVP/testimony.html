@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Testimonies | Destiny Missions Global Assembly</title>
+  <link rel="stylesheet" href="testimony.css" />
+  <link rel="stylesheet" href="styles.css" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+  />
+  <script src="script.js" defer></script>
+  <script src="./testimony.js" defer></script>
+</head>
+
+<body>
+  <!-- HEADER -->
+  <header class="header">
+    <div class="container">
+      <div class="logo">
+        <img src="./images/logo.png" alt="DMGA Logo" />
+      </div>
+      <nav class="nav">
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="live.html" class="active">Live</a></li>
+          <li><a href="gallery.html">Gallery</a></li>
+          <li><a href="testimony.html">Testimonies</a></li>
+          <li><a href="events.html">Events</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+        <div class="mobile-toggle">☰</div>
+      </nav>
+    </div>
+  </header>
+  <div class="page-header">
+    <h1>Testimonies of Faith & Transformation</h1>
+    <p>Real stories of healing, deliverance, and breakthrough through Christ.</p>
+  </div>
+
+  <main>
+    <!-- FEATURED TESTIMONY CAROUSEL -->
+    <section class="testimony-carousel-section section">
+      <div class="container">
+        <h2 class="section-title">Testimonies of Transformation</h2>
+        <div class="carousel-container">
+          <button class="carousel-prev"><i class="fas fa-chevron-left"></i></button>
+          <div class="carousel-track">
+            <!-- Slide 1 -->
+            <div class="carousel-slide active">
+              <div class="testimony-slide">
+                <img src="./images/userPlaceHolder.jpg" alt="Sarah" class="testimony-avatar" />
+                <blockquote>
+                  “I was bound by addiction for 7 years. Through prayer at
+                  Destiny Missions Global Assembly, God set me free!”
+                </blockquote>
+                <p class="testimony-name">— Sarah K., Lagos</p>
+                <a href="#testimonies" class="read-more-link">Read Full Story →</a>
+              </div>
+            </div>
+
+            <!-- Slide 2 -->
+            <div class="carousel-slide">
+              <div class="testimony-slide">
+                <img src="./images/userPlaceHolder.jpg" alt="John & Mary" class="testimony-avatar" />
+                <blockquote>
+                  “My marriage was restored after attending the Couples Retreat.
+                  God is faithful!”
+                </blockquote>
+                <p class="testimony-name">— John & Mary A., Abuja</p>
+                <a href="#testimonies" class="read-more-link">Read Full Story →</a>
+              </div>
+            </div>
+
+            <!-- Slide 3 -->
+            <div class="carousel-slide">
+              <div class="testimony-slide">
+                <img src="./images/userPlaceHolder.jpg" alt="Grace" class="testimony-avatar" />
+                <blockquote>
+                  “Doctors gave up, but God healed my child during the Healing
+                  Service!”
+                </blockquote>
+                <p class="testimony-name">— Grace O., Port Harcourt</p>
+                <a href="#testimonies" class="read-more-link">Read Full Story →</a>
+              </div>
+            </div>
+          </div>
+          <button class="carousel-next"><i class="fas fa-chevron-right"></i></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- TESTIMONIES GRID -->
+    <section id="testimonies" class="testimonies-section section">
+      <div class="container">
+        <h2 class="section-title">Testimonies of Faith</h2>
+        <div class="testimony-grid">
+          <!-- Sample Testimony -->
+          <div class="testimony-card">
+            <img src="./images/userPlaceHolder.jpg" alt="Testimony" />
+            <h4>From Addiction to Freedom</h4>
+            <p class="author">— Sarah K., Lagos</p>
+            <p>
+              I was lost in drugs for 7 years before finding hope in Christ at
+              Destiny Missions Global Assembly...
+              <span class="read-more">Read More</span>
+            </p>
+          </div>
+
+          <div class="testimony-card">
+            <img src="./images/userPlaceHolder.jpg" alt="Testimony" />
+            <h4>Marriage Restored</h4>
+            <p class="author">— John & Mary A., Abuja</p>
+            <p>
+              Our marriage was falling apart until we attended the Couples
+              Retreat. God brought healing and unity...
+              <span class="read-more">Read More</span>
+            </p>
+          </div>
+
+          <div class="testimony-card">
+            <img src="./images/userPlaceHolder.jpg" alt="Testimony" />
+            <h4>Miraculous Healing</h4>
+            <p class="author">— Grace O., Port Harcourt</p>
+            <p>
+              When doctors gave up on my child, God proved His power through
+              healing during the church’s Healing Service...
+              <span class="read-more">Read More</span>
+            </p>
+          </div>
+        </div>
+
+        <div class="testimony-controls">
+          <button id="shareBtn" class="btn btn-secondary">Share Yours</button>
+        </div>
+
+        <!-- Hidden Testimony Form -->
+        <div id="testimonyForm" class="testimony-form hidden">
+          <h3>Share Your Testimony</h3>
+          <form id="submitTestimonyForm" action="#" method="post">
+            <div class="form-group">
+              <label for="name">Full Name</label>
+              <input type="text" id="name" name="name" required />
+            </div>
+
+            <div class="form-group">
+              <label for="location">Location</label>
+              <input type="text" id="location" name="location" />
+            </div>
+
+            <div class="form-group">
+              <label for="testimony">Your Testimony</label>
+              <textarea id="testimony" name="testimony" rows="5" required></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="photo">Upload a Photo (optional)</label>
+              <input type="file" id="photo" name="photo" accept="image/*" />
+            </div>
+
+            <button type="submit" class="btn btn-primary">Submit Testimony</button>
+            <button type="button" id="cancelBtn" class="btn btn-outline">Cancel</button>
+          </form>
+        </div>
+      </div>
+    </section>
+    <!-- Buttons -->
+    <div class="testimony-actions">
+        <a href="index.html" class="btn">← Back to Home</a>
+        <a href="#top" class="btn">↑ Back to Top</a>
+      </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <p class="copyright">
+        &copy; 2025 Destiny Missions Global Assembly. All rights reserved.
+      </p>
+    </div>
+  </footer>
+</body>
+</html>
