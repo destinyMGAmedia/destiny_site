@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Live Stream | Destiny Missions Global Assembly</title>
+
+    <!-- Google Fonts & Icons -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="live.css" />
+
+    <!-- Scripts -->
+    <script src="script.js" defer></script>
+    <script src="live2.js" defer></script>
+  </head>
+
+  <body>
+    <!-- HEADER (Same as Home) -->
+    <header class="header">
+      <div class="container">
+        <div class="logo">
+          <img src="./images/logo.png" alt="DMGA Logo" />
+        </div>
+
+        <nav class="nav">
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="live.html" class="active">Live</a></li>
+            <li><a href="gallery.html">Gallery</a></li>
+            <li><a href="testimony.html">Testimonies</a></li>
+            <li><a href="events.html">Events</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="contact.html">Contact</a></li>
+          </ul>
+          <div class="mobile-toggle">☰</div>
+        </nav>
+      </div>
+    </header>
+
+    <!-- LIVE STREAM PAGE -->
+    <main class="live-page">
+      <!-- VIDEO + CHAT LAYOUT -->
+      <section class="live-container">
+        <div class="container">
+          <!-- VIDEO PLAYER -->
+          <div class="video-section">
+            <h1 class="live-title">Sunday Service – Loading...</h1>
+            <h2 class="live-status">Next Stream – Date</h2>
+
+            <!-- Real-Time Viewer Count -->
+            <div id="viewer-count" class="viewer-count" hidden>
+              <i class="fas fa-eye"></i>
+              <span id="viewer-number">Loading...</span> viewers watching
+            </div>
+
+            <!-- YouTube Live Embed -->
+            <div class="video-wrapper">
+              <iframe
+                id="youtube-player"
+                src="https://www.youtube.com/embed/LIVE_STREAM_ID?autoplay=1&mute=0&rel=0&modestbranding=1"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+              ></iframe>
+            </div>
+
+            <!-- Mobile floating Chat FAB -->
+            <div class="mobile-chat-fab" id="open-chat-fab">
+              <i class="fas fa-comment-dots"></i>
+              <span>Chat</span>
+            </div>
+
+            <!-- OFFLINE COUNTDOWN -->
+            <div id="offline-countdown" class="offline-message" hidden>
+              <p>Next Service: <strong>Sunday 9:00 AM WAT</strong></p>
+              <div class="countdown-timer" id="countdown"></div>
+            </div>
+
+            <!-- CTA: Watch Past Sermons -->
+            <div class="past-sermons-cta">
+              <p>Missed a service?</p>
+              <button id="toggle-past-sermons" class="past-sermons-btn">
+                Watch Past Sermons
+              </button>
+            </div>
+
+            <!-- Hidden section for past sermons -->
+            <section id="past-sermons-section" class="hidden">
+              <h3>Past Sermons</h3>
+              <div id="past-sermons-list" class="sermon-grid"></div>
+            </section>
+
+            <!-- Hidden section for past sermons -->
+            <section id="past-sermons-section" class="hidden">
+              <h3>Past Sermons</h3>
+              <div id="past-sermons-list" class="sermon-grid"></div>
+            </section>
+          </div>
+
+          <!-- CHAT PANEL (Desktop Sidebar) -->
+          <aside class="chat-panel">
+            <h3>Live Chat</h3>
+            <div class="chat-embed">
+              <iframe
+                id="desktop-chat"
+                src="https://www.youtube.com/live_chat?v=LIVE_STREAM_ID&embed_domain=localhost"
+                frameborder="0"
+              ></iframe>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- SERVICE TIMES CARD -->
+      <section class="service-times section">
+        <div class="container">
+          <div class="times-card">
+            <h3>Regular Service Times</h3>
+            <ul>
+              <li><strong>Sunday:</strong> 9:00 AM & 11:30 AM WAT</li>
+              <li><strong>Thursday:</strong> 5:00 PM (Bible Study)</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Mobile Chat Bottom Sheet -->
+    <div id="mobile-chat-sheet" class="mobile-chat">
+      <div class="sheet-header">
+        <span>Live Chat</span>
+        <div class="chat-tabs">
+          <button class="chat-tab active" data-target="live">Live</button>
+          <button class="chat-tab" data-target="comments">Comments</button>
+        </div>
+        <button class="close-sheet" aria-label="Close chat">×</button>
+      </div>
+
+      <div class="chat-embed">
+        <!-- YouTube Live Chat -->
+        <iframe
+          id="live-chat"
+          src="https://www.youtube.com/live_chat?v=LIVE_STREAM_ID&embed_domain=yourdomain.com"
+          frameborder="0"
+          allowfullscreen
+        ></iframe>
+
+        <!-- Comments Section (hidden by default) -->
+        <div id="comments-chat" class="comments-section">
+          <div class="messages">
+            <p class="empty">No comments yet. Be the first to comment!</p>
+          </div>
+          <div class="comment-input">
+            <input
+              type="text"
+              placeholder="Type your comment..."
+              id="comment-text"
+            />
+            <button id="send-comment">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="container">
+        <p class="copyright">
+          &copy; 2025 Destiny Missions Global Assembly. All rights reserved.
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

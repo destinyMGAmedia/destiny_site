@@ -1,0 +1,485 @@
+/* ===== LIVE PAGE LAYOUT ===== */
+.live-page {
+  background: #f9f9fb;
+  min-height: 100vh;
+}
+
+.live-container {
+  padding: 3rem 0;
+}
+
+.live-container .container {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: 2rem;
+  align-items: start;
+}
+
+.video-section {
+  background: #fff;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.live-title {
+  text-align: center;
+  color: #6a1b9a;
+  margin-bottom: 1rem;
+  font-size: 2rem;
+}
+
+.live-status {
+  text-align: center;
+}
+
+.video-wrapper {
+  position: relative;
+  padding-bottom: 56.25%;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  margin-bottom: 1.5rem;
+  /* background: #000;  */
+}
+
+.countdown {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  min-width: 550px;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 30px 40px;
+  border-radius: 20px;
+  font-family: 'Poppins', sans-serif;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+.countdown h3 {
+  font-size: 1.8rem;
+  margin-bottom: 10px;
+}
+
+.countdown p {
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+.video-wrapper iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.offline-message {
+  text-align: center;
+  padding: 2rem;
+  background: #fff8e1;
+  border-radius: 12px;
+  margin: 1.5rem 0;
+  color: #ff7043;
+  font-weight: 500;
+}
+
+.countdown-timer {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #6a1b9a;
+  margin-top: 0.5rem;
+}
+
+.past-sermons-cta {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+.past-sermons-cta p {
+  margin-bottom: 0.5rem;
+  color: #666;
+}
+
+.past-sermons-btn {
+  padding: 1rem;
+  background-color: #ff7043;
+  border: none;
+  cursor: pointer;
+  color: white;
+  border-radius: 12px;
+  font-weight: 500;
+  width: 32vw;
+}
+
+/* === Past Sermons Section === */
+#past-sermons-section {
+  margin-top: 2rem;
+  display: none; /* Hidden by default */
+  text-align: center;
+  animation: fadeIn 0.4s ease;
+}
+
+#past-sermons-section.visible {
+  display: block;
+}
+
+.sermon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.2rem;
+  margin-top: 1rem;
+}
+
+.sermon-item {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: transform 0.25s ease;
+  cursor: pointer;
+}
+
+.sermon-item:hover {
+  transform: translateY(-5px);
+}
+
+.sermon-item iframe {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: none;
+  border-radius: 12px 12px 0 0;
+}
+
+.sermon-title {
+  padding: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Fade in effect */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
+/* ===== CHAT PANEL (Desktop) ===== */
+.chat-panel {
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  height: fit-content;
+  position: sticky;
+  top: 100px;
+}
+
+.chat-panel h3 {
+  background: #6a1b9a;
+  color: #fff;
+  padding: 1rem;
+  margin: 0;
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.chat-embed {
+  height: 600px;
+}
+
+.chat-embed iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* ===== SERVICE TIMES CARD ===== */
+.service-times {
+  padding: 3rem 0;
+}
+
+.times-card {
+  max-width: 500px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  text-align: left;
+}
+
+.times-card h3 {
+  color: #6a1b9a;
+  margin-bottom: 1rem;
+}
+
+.times-card ul {
+  text-align: left;
+  font-size: 1.1rem;
+  line-height: 2;
+  color: #444;
+}
+
+/* ===== REAL-TIME VIEWER COUNT ===== */
+.viewer-count {
+  text-align: center;
+  background: linear-gradient(135deg, #6a1b9a, #ec407a);
+  color: #fff;
+  padding: 0.8rem 1.5rem;
+  border-radius: 50px;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(106, 27, 154, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.viewer-count i {
+  color: #ffb300;
+}
+
+.viewer-count[hidden] {
+  display: none !important;
+}
+
+.countdown {
+  text-align: center;
+  background: linear-gradient(135deg, #6a1b9a, #ec407a);
+  color: #fff;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.countdown h3 {
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+}
+
+.countdown p {
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+
+/* ===== MOBILE CHAT FAB (Floating Button) ===== */
+.mobile-chat-fab {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: linear-gradient(45deg, #6a11cb, #ff7e5f);
+  color: white;
+  border-radius: 50px;
+  padding: 12px 18px;
+  font-family: 'Poppins', sans-serif;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  z-index: 999;
+}
+
+.mobile-chat-fab span {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.mobile-chat-fab:hover {
+  transform: scale(1.08);
+  background: #ec407a;
+}
+
+/* Hide FAB on desktop */
+@media (min-width: 993px) {
+  .mobile-chat-fab {
+    display: none;
+  }
+}
+
+/* ===== MOBILE CHAT SHEET ===== */
+.mobile-chat {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: -100%;
+  height: 80%;
+  background: #fff;
+  border-radius: 25px 25px 0 0;
+  box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.3);
+  transition: bottom 0.4s ease;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Show the chat */
+.mobile-chat.active {
+  bottom: 0;
+}
+
+/* Header */
+.sheet-header {
+  background: linear-gradient(45deg, #6a11cb, #ff7e5f);
+  color: #fff;
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chat-tabs {
+  display: flex;
+  gap: 10px;
+}
+
+.chat-tab {
+  background: rgba(255, 255, 255, 0.25);
+  border: none;
+  color: white;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+.chat-tab.active {
+  background: white;
+  color: #6a11cb;
+}
+
+.close-sheet {
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  color: white;
+  cursor: pointer;
+}
+
+/* Chat Embed */
+.chat-embed {
+  flex-grow: 1;
+  position: relative;
+}
+
+.chat-embed iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Comments */
+.comments-section {
+  display: none;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.comments-section.active {
+  display: flex;
+}
+
+.messages {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.comment-input {
+  display: flex;
+  padding: 10px;
+  border-top: 1px solid #ddd;
+  background: #fafafa;
+}
+
+.comment-input input {
+  flex-grow: 1;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  padding: 8px 15px;
+  outline: none;
+}
+
+.comment-input button {
+  background: linear-gradient(45deg, #6a11cb, #ff7e5f);
+  border: none;
+  border-radius: 50%;
+  padding: 8px 10px;
+  margin-left: 8px;
+  color: white;
+  cursor: pointer;
+}
+
+/* ===== MOBILE RESPONSIVE ===== */
+@media (max-width: 992px) {
+  .live-container .container {
+    grid-template-columns: 1fr;
+  }
+
+  .chat-panel {
+    display: none;
+  }
+
+  .mobile-chat {
+    display: flex;
+  }
+
+  /* Remove duplicate pseudo-button */
+  .video-section::after {
+    content: none !important;
+    display: none !important;
+  }
+
+  .video-wrapper {
+    position: relative; /* This allows FAB to anchor to it */
+  }
+
+  .mobile-chat-fab {
+    position: absolute;
+    bottom: px;
+    right: 10px;
+    background: #6a1b9a;
+    color: #fff;
+    border-radius: 50px;
+    padding: 0.8rem 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    z-index: 10;
+    font-size: 0.9rem;
+  }
+
+  .mobile-chat-fab i {
+    font-size: 1.2rem;
+  }
+}
+
+/* ===== MOBILE VIEWER COUNT & TITLES ===== */
+@media (max-width: 768px) {
+  .viewer-count {
+    font-size: 1rem;
+    padding: 0.6rem 1rem;
+  }
+
+  .live-title {
+    font-size: 1.6rem;
+  }
+
+  .times-card {
+    padding: 1.5rem;
+  }
+}

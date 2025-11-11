@@ -1,0 +1,265 @@
+/* ======== RESET & BASE ======== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: "Inter", sans-serif;
+    color: #333;
+    background: #fff;
+    line-height: 1.6;
+  }
+  
+  img {
+    max-width: 100%;
+    display: block;
+  }
+  
+  .container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  /* ======== SECTION TITLES ======== */
+  .section {
+    padding: 5rem 0;
+  }
+  
+  .section-title {
+    font-family: "Playfair Display", serif;
+    font-size: 2.5rem;
+    text-align: center;
+    color: #6a1b9a;
+    margin-bottom: 0.5rem;
+  }
+  
+  .section-subtitle {
+    text-align: center;
+    color: #777;
+    margin-bottom: 3rem;
+    font-size: 1.05rem;
+  }
+  
+  /* ======== EVENTS GRID ======== */
+  .events-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2.5rem;
+  }
+  
+  .event-card {
+    display: flex;
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    align-items: stretch;
+  }
+  
+  .event-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 30px rgba(106, 27, 154, 0.15);
+  }
+  
+  /* ======== EVENT DATE BLOCK ======== */
+  .event-date {
+    background: linear-gradient(135deg, #6a1b9a, #9c27b0);
+    color: #fff;
+    text-align: center;
+    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 100px;
+  }
+  
+  .date-day {
+    font-size: 2rem;
+    font-weight: 700;
+    font-family: "Playfair Display", serif;
+  }
+  
+  .date-month {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  
+  /* ======== EVENT DETAILS ======== */
+  .event-details {
+    flex: 1;
+    padding: 1.5rem 1.5rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  
+  .event-details h3 {
+    color: #6a1b9a;
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .event-details p {
+    color: #555;
+    font-size: 0.95rem;
+    margin-bottom: 0.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  /* ======== BUTTONS ======== */
+  .btn {
+    display: inline-block;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-small {
+    font-size: 0.9rem;
+    padding: 0.6rem 1.2rem;
+  }
+  
+  .btn-secondary {
+    background: linear-gradient(135deg, #ffb300, #ff9800);
+    color: #6a1b9a;
+  }
+  
+  .btn-secondary:hover {
+    background: linear-gradient(135deg, #6a1b9a, #8e24aa);
+    color: #fff;
+    transform: translateY(-3px);
+  }
+  
+  /* ======== MODAL (EVENT REGISTRATION) ======== */
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(20, 0, 40, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    backdrop-filter: blur(6px);
+  }
+  
+  .modal.hidden {
+    display: none;
+  }
+  
+  .modal-content {
+    background: #fff;
+    border-radius: 1rem;
+    width: 90%;
+    max-width: 500px;
+    padding: 2rem;
+    position: relative;
+    animation: slideIn 0.3s ease;
+    box-shadow: 0 10px 40px rgba(106, 27, 154, 0.3);
+  }
+  
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-25px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .close-btn {
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    font-size: 1.5rem;
+    color: #888;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  
+  .close-btn:hover {
+    color: #6a1b9a;
+  }
+  
+  .modal-content h3 {
+    text-align: center;
+    margin-bottom: 1rem;
+    color: #6a1b9a;
+    font-family: "Playfair Display", serif;
+  }
+  
+  /* ======== FORM ======== */
+  .form-group {
+    margin-bottom: 1.2rem;
+  }
+  
+  label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    color: #333;
+  }
+  
+  input,
+  textarea,
+  select {
+    width: 100%;
+    padding: 0.8rem;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    outline: none;
+    transition: border 0.3s ease;
+    font-family: inherit;
+  }
+  
+  input:focus,
+  textarea:focus,
+  select:focus {
+    border-color: #6a1b9a;
+  }
+  
+  .btn-primary {
+    width: 100%;
+    background: linear-gradient(135deg, #6a1b9a, #8e24aa);
+    color: #fff;
+    padding: 0.9rem;
+    font-size: 1rem;
+  }
+  
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #ffb300, #ff9800);
+    transform: scale(1.02);
+  }
+  
+  /* ======== RESPONSIVE DESIGN ======== */
+  @media (max-width: 768px) {
+    .event-card {
+      flex-direction: column;
+      text-align: center;
+    }
+  
+    .event-date {
+      flex-direction: row;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 1rem;
+    }
+  
+    .modal-content {
+      padding: 1.5rem;
+    }
+  }
+  

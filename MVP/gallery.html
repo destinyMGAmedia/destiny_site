@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gallery | Destiny Missions Global Assembly</title>
+  <link rel="stylesheet" href="gallery.css">
+  <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css"
+      rel="stylesheet"
+    />
+    <script src="./script.js" defer></script>
+    <script src="./gallery.js" defer></script>
+</head>
+
+<body>
+  <!-- HEADER (Same as Home) -->
+  <header class="header">
+    <div class="container">
+      <div class="logo">
+        <img src="./images/logo.png" alt="DMGA Logo" />
+      </div>
+
+      <nav class="nav">
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="live.html" class="active">Live</a></li>
+          <li><a href="gallery.html">Gallery</a></li>
+          <li><a href="testimony.html">Testimonies</a></li>
+          <li><a href="events.html">Events</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+        <div class="mobile-toggle">☰</div>
+      </nav>
+    </div>
+  </header>
+  <div class="page-header">
+    <h1>Church Gallery</h1>
+    <p>Moments of Faith, Fellowship & Joy</p>
+  </div>
+
+  <main class="gallery-container">
+    <div class="gallery-grid">
+      <!-- Image 1 -->
+      <div class="gallery-item">
+        <img src="./images/gallery/gImage1.jpg" alt="Sunday Worship" />
+        <div class="gallery-caption">Sunday Worship Service</div>
+      </div>
+
+      <!-- Image 2 -->
+      <div class="gallery-item">
+        <img src="./images/gallery/gImage2.jpg" alt="Youth Conference" />
+        <div class="gallery-caption">Youth Ablaze Conference</div>
+      </div>
+
+      <!-- Image 3 -->
+      <div class="gallery-item">
+        <img src="./images/gallery/gImage3.jpg" alt="Baptism" />
+        <div class="gallery-caption">Water Baptism</div>
+      </div>
+
+      <!-- Image 4 -->
+      <div class="gallery-item">
+        <img src="./images/gallery/gImage4.jpg" alt="Outreach" />
+        <div class="gallery-caption">Community Outreach</div>
+      </div>
+
+      <!-- Image 5 -->
+      <div class="gallery-item">
+        <img src="./images/gallery/gImage5.jpg" alt="Prayer Night" />
+        <div class="gallery-caption">All-Night Prayer</div>
+      </div>
+
+      <!-- Image 6 -->
+      <div class="gallery-item">
+        <img src="./images/gallery/gImage6.jpg" alt="Christmas Carol" />
+        <div class="gallery-caption">Christmas Carol Service</div>
+      </div>
+
+      <!-- Image 7 -->
+      <div class="gallery-item">
+        <img src="./images/gallery/gImage7.jpg" alt="Harvest Crusade" />
+        <div class="gallery-caption">Annual Harvest Crusade</div>
+      </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="gallery-actions">
+      <a href="index.html" class="btn">← Back to Home</a>
+      <a href="#top" class="btn">↑ Back to Top</a>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <p class="copyright">
+        &copy; <span id="year"></span> Destiny Missions Global Assembly. All rights reserved.
+      </p>
+    </div>
+  </footer>
+
+  <!-- Lightbox Modal -->
+  <div class="lightbox" id="lightbox">
+    <span class="lightbox-close" id="lightboxClose">&times;</span>
+    <img id="lightboxImg" src="" alt="Full View" />
+  </div>
+</body>
+</html>
