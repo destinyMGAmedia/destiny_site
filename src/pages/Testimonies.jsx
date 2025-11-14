@@ -1,231 +1,199 @@
-import { useState, useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import Carousel from '../components/Carousel'
+import TestimonyCard from '../components/TestimonyCard'
 
 function Testimonies() {
-  const [submitted, setSubmitted] = useState(false)
-  const location = useLocation()
+  const [showForm, setShowForm] = useState(false)
 
-  useEffect(() => {
-    const params = new URLSearchParams(location.search)
-    if (params.get('success') === 'true') {
-      setSubmitted(true)
-      setTimeout(() => {
-        window.history.replaceState({}, '', '/testimonies')
-      }, 100)
-    }
-  }, [location])
-
-  // Featured testimonies (manually curated - update these from approved testimonies)
-  const featuredTestimonies = [
+  const testimonySlides = [
     {
-      name: "Sister Grace",
-      testimony: "After years of believing God for a child, He blessed us with twins! God is faithful to His promises.",
-      date: "January 2025"
+      image: '/images/userPlaceHolder.jpg',
+      quote: 'I was bound by addiction for 7 years. Through prayer at Destiny Mission Global Assembly, God set me free!',
+      name: 'Sarah K., Lagos',
+      link: '#testimonies',
     },
     {
-      name: "Brother Michael",
-      testimony: "I was healed from a chronic illness that doctors said was incurable. God's power is real!",
-      date: "December 2024"
+      image: '/images/userPlaceHolder.jpg',
+      quote: 'My marriage was restored after attending the Couples Retreat. God is faithful!',
+      name: 'John & Mary A., Abuja',
+      link: '#testimonies',
     },
     {
-      name: "Mrs. Johnson",
-      testimony: "My family was restored after years of separation. God truly brings beauty from ashes.",
-      date: "November 2024"
-    }
+      image: '/images/userPlaceHolder.jpg',
+      quote: 'Doctors gave up, but God healed my child during the Healing Service!',
+      name: 'Grace O., Port Harcourt',
+      link: '#testimonies',
+    },
+  ]
+
+  const testimonies = [
+    {
+      image: '/images/userPlaceHolder.jpg',
+      title: 'From Addiction to Freedom',
+      author: '— Sarah K., Lagos',
+      text: 'I was lost in drugs for 7 years before finding hope in Christ at Destiny Mission Global Assembly...',
+      fullText: 'I was lost in drugs for 7 years before finding hope in Christ at Destiny Mission Global Assembly. Through prayer and the Word, God set me free and restored my life completely.',
+    },
+    {
+      image: '/images/userPlaceHolder.jpg',
+      title: 'Marriage Restored',
+      author: '— John & Mary A., Abuja',
+      text: 'Our marriage was falling apart until we attended the Couples Retreat. God brought healing and unity...',
+      fullText: 'Our marriage was falling apart until we attended the Couples Retreat. God brought healing and unity, and today we are stronger than ever.',
+    },
+    {
+      image: '/images/userPlaceHolder.jpg',
+      title: 'Miraculous Healing',
+      author: '— Grace O., Port Harcourt',
+      text: 'When doctors gave up on my child, God proved His power through healing during the church\'s Healing Service...',
+      fullText: 'When doctors gave up on my child, God proved His power through healing during the church\'s Healing Service. My child is now completely healthy!',
+    },
   ]
 
   return (
-    <div className="container mx-auto px-6 py-20">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Testimonies
+    <main className="min-h-screen bg-gray-50 pt-24">
+      <div className="bg-gradient-to-r from-primary-900 to-pink-600 text-white py-16 mb-12">
+        <div className="container mx-auto px-6 text-center">
+          <h1 className="text-4xl md:text-5xl font-serif font-bold mb-4">
+            Testimonies of Faith & Transformation
           </h1>
-          <div className="h-1 w-24 bg-gradient-to-r from-blue-400 to-purple-400 mx-auto mb-6"></div>
-          <p className="text-xl text-gray-300">
-            Share how God has moved in your life and inspire others
+          <p className="text-xl opacity-90">
+            Real stories of healing, deliverance, and breakthrough through Christ.
           </p>
         </div>
+      </div>
 
-        {/* Featured Testimonies Section */}
-        <section className="mb-16">
-          <h2 className="text-3xl font-bold text-white mb-8 text-center">
-            What God Has Done
+      {/* TESTIMONY CAROUSEL */}
+      <section className="py-20 bg-gradient-to-br from-purple-50 to-yellow-50">
+        <div className="container mx-auto px-6 max-w-4xl">
+          <h2 className="text-4xl font-serif font-bold text-center text-primary-900 mb-12">
+            Testimonies of Transformation
           </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredTestimonies.map((item, index) => (
+          <Carousel autoPlayInterval={8000}>
+            {testimonySlides.map((slide, index) => (
               <div
                 key={index}
-                className="bg-white bg-opacity-10 backdrop-blur-lg rounded-xl p-6 border border-white border-opacity-20"
+                className="bg-white p-12 text-center min-h-[300px] flex flex-col justify-center items-center rounded-2xl shadow-xl"
               >
-                <div className="text-4xl mb-4">✨</div>
-                <p className="text-gray-300 mb-4 italic">&quot;{item.testimony}&quot;</p>
-                <div className="flex justify-between items-center">
-                  <span className="text-blue-200 font-semibold">{item.name}</span>
-                  <span className="text-gray-400 text-sm">{item.date}</span>
-                </div>
+                <img
+                  src={slide.image}
+                  alt={slide.name}
+                  className="w-20 h-20 rounded-full border-4 border-accent-300 object-cover mb-4"
+                />
+                <blockquote className="text-xl italic text-primary-900 mb-4 leading-relaxed">
+                  &quot;{slide.quote}&quot;
+                </blockquote>
+                <p className="text-gray-500 font-medium mb-4">{slide.name}</p>
+                <a
+                  href={slide.link}
+                  className="text-accent-300 font-semibold hover:underline"
+                >
+                  Read Full Story →
+                </a>
               </div>
             ))}
-          </div>
-        </section>
+          </Carousel>
+        </div>
+      </section>
 
-        {/* Submit Testimony Form */}
-        <section className="max-w-3xl mx-auto">
-          <h2 className="text-3xl font-bold text-white mb-8 text-center">
-            Share Your Testimony
+      {/* TESTIMONIES GRID */}
+      <section id="testimonies" className="py-20 bg-white">
+        <div className="container mx-auto px-6 max-w-6xl">
+          <h2 className="text-4xl font-serif font-bold text-center text-primary-900 mb-12">
+            Testimonies of Faith
           </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
+            {testimonies.map((testimony, index) => (
+              <TestimonyCard key={index} testimony={testimony} />
+            ))}
+          </div>
 
-          {submitted ? (
-            // Success Message
-            <div className="bg-white bg-opacity-10 backdrop-blur-lg rounded-xl p-8 border border-white border-opacity-20 text-center">
-              <div className="text-6xl mb-4">🎉</div>
-              <h3 className="text-3xl font-bold text-white mb-4">
-                Thank You For Sharing!
-              </h3>
-              <p className="text-gray-300 mb-6">
-                Your testimony has been received and will be reviewed by our team. 
-                Once approved, it may be featured to encourage others in their faith journey.
-              </p>
-              <button
-                onClick={() => setSubmitted(false)}
-                className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-purple-600 transition duration-300"
-              >
-                Share Another Testimony
-              </button>
-            </div>
-          ) : (
-            // Form
-            <form
-              action="https://formsubmit.co/testimonies@dmga.org"
-              method="POST"
-              className="bg-white bg-opacity-10 backdrop-blur-lg rounded-xl p-8 border border-white border-opacity-20"
+          <div className="text-center mb-8">
+            <button
+              onClick={() => setShowForm(!showForm)}
+              className="px-8 py-3 bg-secondary-500 text-white rounded-lg font-semibold hover:bg-secondary-600 transition-colors"
             >
-              {/* FormSubmit Configuration */}
-              <input type="text" name="_honey" style={{display: 'none'}} />
-              <input type="hidden" name="_captcha" value="false" />
-              <input type="hidden" name="_subject" value="New Testimony Submission from DMGA Website" />
-              <input type="hidden" name="_next" value={`${window.location.origin}/testimonies?success=true`} />
+              Share Yours
+            </button>
+          </div>
 
-              {/* Name */}
-              <div className="mb-6">
-                <label htmlFor="name" className="block text-white mb-2 font-medium">
-                  Your Name
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  required
-                  placeholder="Enter your name"
-                  className="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 border border-white border-opacity-30 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                />
-              </div>
-
-              {/* Email */}
-              <div className="mb-6">
-                <label htmlFor="email" className="block text-white mb-2 font-medium">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  required
-                  placeholder="your.email@example.com"
-                  className="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 border border-white border-opacity-30 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                />
-                <p className="text-gray-400 text-sm mt-1">
-                  Required for verification and follow-up
-                </p>
-              </div>
-
-              {/* Category */}
-              <div className="mb-6">
-                <label htmlFor="category" className="block text-white mb-2 font-medium">
-                  Testimony Category
-                </label>
-                <select
-                  id="category"
-                  name="category"
-                  required
-                  className="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 border border-white border-opacity-30 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-                >
-                  <option value="" className="text-gray-900">Select a category</option>
-                  <option value="healing" className="text-gray-900">Healing & Miracles</option>
-                  <option value="deliverance" className="text-gray-900">Deliverance</option>
-                  <option value="financial" className="text-gray-900">Financial Breakthrough</option>
-                  <option value="salvation" className="text-gray-900">Salvation</option>
-                  <option value="family" className="text-gray-900">Family Restoration</option>
-                  <option value="career" className="text-gray-900">Career & Business</option>
-                  <option value="other" className="text-gray-900">Other</option>
-                </select>
-              </div>
-
-              {/* Testimony */}
-              <div className="mb-6">
-                <label htmlFor="testimony" className="block text-white mb-2 font-medium">
-                  Your Testimony
-                </label>
-                <textarea
-                  id="testimony"
-                  name="testimony"
-                  required
-                  rows="8"
-                  placeholder="Share what God has done in your life..."
-                  className="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 border border-white border-opacity-30 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
-                ></textarea>
-              </div>
-
-              {/* Permission Checkbox */}
-              <div className="mb-6">
-                <label className="flex items-start text-gray-300">
+          {showForm && (
+            <div className="max-w-2xl mx-auto bg-gray-100 p-8 rounded-xl shadow-lg">
+              <h3 className="text-2xl font-serif font-bold text-primary-900 mb-6">
+                Share Your Testimony
+              </h3>
+              <form className="space-y-4">
+                <div>
+                  <label className="block font-semibold mb-2">Full Name</label>
                   <input
-                    type="checkbox"
-                    name="permission"
-                    value="yes"
+                    type="text"
                     required
-                    className="mr-2 h-4 w-4 mt-1"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                   />
-                  <span className="text-sm">
-                    I give permission for my testimony to be shared publicly on the website 
-                    and in church services to glorify God and encourage others.
-                  </span>
-                </label>
-              </div>
-
-              {/* Anonymous Option */}
-              <div className="mb-6">
-                <label className="flex items-center text-gray-300">
+                </div>
+                <div>
+                  <label className="block font-semibold mb-2">Location</label>
                   <input
-                    type="checkbox"
-                    name="anonymous"
-                    value="yes"
-                    className="mr-2 h-4 w-4"
+                    type="text"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                   />
-                  <span>Post my testimony anonymously (only first name/initial)</span>
-                </label>
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                className="w-full px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-purple-600 transform hover:scale-105 transition duration-300 shadow-lg"
-              >
-                Submit Testimony
-              </button>
-
-              {/* Note */}
-              <p className="text-gray-400 text-sm mt-4 text-center">
-                All testimonies are reviewed before being published to ensure authenticity and appropriateness.
-              </p>
-            </form>
+                </div>
+                <div>
+                  <label className="block font-semibold mb-2">Your Testimony</label>
+                  <textarea
+                    rows="5"
+                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg resize-none"
+                  ></textarea>
+                </div>
+                <div>
+                  <label className="block font-semibold mb-2">
+                    Upload a Photo (optional)
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                  />
+                </div>
+                <div className="flex gap-4">
+                  <button
+                    type="submit"
+                    className="px-6 py-2 bg-accent-300 text-primary-900 rounded-lg font-semibold hover:bg-accent-400 transition-colors"
+                  >
+                    Submit Testimony
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowForm(false)}
+                    className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-400 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
           )}
-        </section>
+        </div>
+      </section>
+
+      <div className="container mx-auto px-6 max-w-6xl pb-12 text-center space-x-4">
+        <Link
+          to="/"
+          className="inline-block px-6 py-3 bg-primary-900 text-white rounded-lg font-semibold hover:bg-primary-800 transition-colors"
+        >
+          ← Back to Home
+        </Link>
+        <a
+          href="#top"
+          className="inline-block px-6 py-3 bg-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-400 transition-colors"
+        >
+          ↑ Back to Top
+        </a>
       </div>
-    </div>
+    </main>
   )
 }
 
 export default Testimonies
-
