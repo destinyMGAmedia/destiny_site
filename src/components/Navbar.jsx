@@ -10,7 +10,8 @@ function Navbar({ scrolled }) {
     { path: '/live', label: 'Live' },
     { path: '/gallery', label: 'Gallery' },
     { path: '/testimonies', label: 'Testimonies' },
-    { path: '/events', label: 'Events' },
+    { path: '/programmes', label: 'Programmes' },
+    { path: '/assemblies', label: 'Assemblies' },
     { path: '/about', label: 'About' },
     { path: '/contact', label: 'Contact' },
   ]
