@@ -16,21 +16,22 @@ function Prayer() {
   }, [location])
 
   return (
-    <div className="container mx-auto px-6 py-20">
-      <div className="max-w-3xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+    <main className="min-h-screen bg-gray-50">
+      <div className="bg-gradient-to-r from-primary-900 to-pink-600 text-white py-32 mb-12">
+        <div className="container mx-auto px-6 text-center">
+          <h1 className="text-4xl md:text-6xl font-serif font-bold mb-4">
             Prayer Request
           </h1>
-          <div className="h-1 w-24 bg-gradient-to-r from-blue-400 to-purple-400 mx-auto mb-6"></div>
-          <p className="text-xl text-gray-300">
+          <p className="text-xl opacity-90 max-w-3xl mx-auto">
             Submit your prayer requests and our prayer team will intercede for you
           </p>
-          <p className="text-gray-400 mt-4 italic">
+          <p className="text-white/80 mt-4 italic max-w-3xl mx-auto">
             "The prayer of a righteous person is powerful and effective." - James 5:16
           </p>
         </div>
+      </div>
+      <div className="container mx-auto px-6 py-20">
+        <div className="max-w-3xl mx-auto">
 
         {submitted ? (
           // Success Message
@@ -172,8 +173,9 @@ function Prayer() {
             </p>
           </form>
         )}
+        </div>
       </div>
-    </div>
+    </main>
   )
 }
 

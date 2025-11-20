@@ -59,18 +59,18 @@ function About() {
   ]
 
   return (
-    <main className="min-h-screen bg-gray-50 pt-24">
+    <main className="min-h-screen bg-gray-50">
       {/* HERO */}
-      <section className="bg-white py-16">
-        <div className="container mx-auto px-6 max-w-4xl text-center">
-          <h1 className="text-4xl md:text-5xl font-serif font-bold text-primary-900 mb-4">
+      <div className="bg-gradient-to-r from-primary-900 to-pink-600 text-white py-32 mb-12">
+        <div className="container mx-auto px-6 text-center">
+          <h1 className="text-4xl md:text-6xl font-serif font-bold mb-4">
             About Us
           </h1>
-          <p className="text-xl text-gray-600">
+          <p className="text-xl opacity-90 max-w-3xl mx-auto">
             To bring people and places into their destiny in God and raise dynamic leaders.
           </p>
         </div>
-      </section>
+      </div>
 
       {/* MISSION */}
       <section className="py-20 bg-white">

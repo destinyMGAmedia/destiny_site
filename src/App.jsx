@@ -10,6 +10,8 @@ import Live from './pages/Live'
 import Gallery from './pages/Gallery'
 import Events from './pages/Events'
 import Testimonies from './pages/Testimonies'
+import Prayer from './pages/Prayer'
+import Giving from './pages/Giving'
 
 function App() {
   return (
@@ -26,6 +28,8 @@ function App() {
           <Route path="programmes" element={<Programmes />} />
           <Route path="video-gallery" element={<VideoGallery />} />
           <Route path="contact" element={<Contact />} />
+          <Route path="prayer" element={<Prayer />} />
+          <Route path="giving" element={<Giving />} />
         </Route>
       </Routes>
     </Router>
