@@ -6,10 +6,6 @@ import EventCard from '../components/EventCard'
 import TestimonyCard from '../components/TestimonyCard'
 
 function Home() {
-  const [activeTab, setActiveTab] = useState('one-time')
-  const [selectedAmount, setSelectedAmount] = useState(null)
-  const [customAmount, setCustomAmount] = useState('')
-  const [showTestimonyForm, setShowTestimonyForm] = useState(false)
 
   // Sample events data
   const events = [
@@ -39,36 +35,28 @@ function Home() {
     },
   ]
 
-  // Sample testimonies for carousel
-  const testimonySlides = [
-    {
-      image: '/images/userPlaceHolder.jpg',
-      quote: 'I was bound by addiction for 7 years. Through prayer at Destiny Mission Global Assembly, God set me free!',
-      name: 'Sarah K., Lagos',
-      link: '/testimonies',
-    },
-    {
-      image: '/images/userPlaceHolder.jpg',
-      quote: 'My marriage was restored after attending the Couples Retreat. God is faithful!',
-      name: 'John & Mary A., Abuja',
-      link: '/testimonies',
-    },
-    {
-      image: '/images/userPlaceHolder.jpg',
-      quote: 'Doctors gave up, but God healed my child during the Healing Service!',
-      name: 'Grace O., Port Harcourt',
-      link: '/testimonies',
-    },
-  ]
-
-  // Sample testimonies for grid
+  // Recent testimonies (showing 3 on home page)
   const testimonies = [
     {
       image: '/images/userPlaceHolder.jpg',
       title: 'From Addiction to Freedom',
       author: '— Sarah K., Lagos',
-      text: 'I was lost in drugs for 7 years...',
+      text: 'I was lost in drugs for 7 years before finding hope in Christ at Destiny Mission Global Assembly...',
       fullText: 'I was lost in drugs for 7 years before finding hope in Christ at Destiny Mission Global Assembly. Through prayer and the Word, God set me free and restored my life completely.',
+    },
+    {
+      image: '/images/userPlaceHolder.jpg',
+      title: 'Marriage Restored',
+      author: '— John & Mary A., Abuja',
+      text: 'Our marriage was falling apart until we attended the Couples Retreat. God brought healing and unity...',
+      fullText: 'Our marriage was falling apart until we attended the Couples Retreat. God brought healing and unity, and today we are stronger than ever.',
+    },
+    {
+      image: '/images/userPlaceHolder.jpg',
+      title: 'Miraculous Healing',
+      author: '— Grace O., Port Harcourt',
+      text: 'When doctors gave up on my child, God proved His power through healing during the church\'s Healing Service...',
+      fullText: 'When doctors gave up on my child, God proved His power through healing during the church\'s Healing Service. My child is now completely healthy!',
     },
   ]
 
@@ -97,7 +85,7 @@ function Home() {
           <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent" />
         </div>
 
-        <div className="container relative z-10">
+        <div className="container relative z-10 px-8 md:px-12 lg:px-16">
           <div className="max-w-3xl">
             <img
               src="/images/favicon.png"
@@ -163,121 +151,34 @@ function Home() {
           <p className="text-center italic text-gray-600 mb-8">
             &quot;Bring the whole tithe into the storehouse...&quot; – Malachi 3:10
           </p>
-
-          <div className="flex justify-center gap-4 mb-8">
-            <button
-              onClick={() => setActiveTab('one-time')}
-              className={`px-6 py-2 rounded-lg font-semibold transition-colors ${
-                activeTab === 'one-time'
-                  ? 'bg-primary-900 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              One-Time
-            </button>
-            <button
-              onClick={() => setActiveTab('recurring')}
-              className={`px-6 py-2 rounded-lg font-semibold transition-colors ${
-                activeTab === 'recurring'
-                  ? 'bg-primary-900 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              Recurring
-            </button>
-          </div>
-
-          <form className="space-y-4 max-w-md mx-auto">
-            <div className="flex flex-wrap gap-2">
-              {[10, 50, 100].map((amount) => (
-                <button
-                  key={amount}
-                  type="button"
-                  onClick={() => {
-                    setSelectedAmount(amount)
-                    setCustomAmount('')
-                  }}
-                  className={`px-4 py-2 border-2 rounded-lg font-semibold transition-colors ${
-                    selectedAmount === amount
-                      ? 'border-accent-300 bg-yellow-50 text-primary-900'
-                      : 'border-gray-300 bg-white hover:border-gray-400'
-                  }`}
-                >
-                  ${amount}
-                </button>
-              ))}
-              <input
-                type="number"
-                placeholder="Custom"
-                value={customAmount}
-                onChange={(e) => {
-                  setCustomAmount(e.target.value)
-                  setSelectedAmount(null)
-                }}
-                className="px-4 py-2 border-2 border-gray-300 rounded-lg flex-1 min-w-[100px]"
-              />
-            </div>
-            <select className="w-full px-4 py-3 border border-gray-300 rounded-lg">
-              <option>Tithe</option>
-              <option>Offering</option>
-              <option>Missions</option>
-            </select>
-            <input
-              type="email"
-              placeholder="Email"
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg"
-            />
-            <input
-              type="text"
-              placeholder="Full Name"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg"
-            />
-            <button
-              type="submit"
-              className="w-full px-6 py-3 bg-accent-300 text-primary-900 rounded-lg font-semibold hover:bg-accent-400 transform hover:-translate-y-1 transition-all duration-300"
+          <div className="text-center">
+            <Link
+              to="/giving"
+              className="inline-block px-8 py-4 bg-accent-300 text-primary-900 rounded-lg font-semibold hover:bg-accent-400 transform hover:-translate-y-1 transition-all duration-300 shadow-lg"
             >
               Give Now
-            </button>
-          </form>
+            </Link>
+          </div>
         </div>
       </section>
 
       {/* PRAYER REQUEST SECTION */}
       <section id="prayer" className="py-20 bg-white">
         <div className="container mx-auto px-6 max-w-2xl">
-          <h2 className="text-4xl font-serif font-bold text-center text-primary-900 mb-12">
+          <h2 className="text-4xl font-serif font-bold text-center text-primary-900 mb-4">
             Submit Prayer Request
           </h2>
-          <form className="space-y-4">
-            <input
-              type="text"
-              placeholder="Your Name (optional)"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg"
-            />
-            <input
-              type="email"
-              placeholder="Email (for follow-up)"
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg"
-            />
-            <textarea
-              placeholder="Share your prayer need..."
-              rows="5"
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg resize-none"
-            ></textarea>
-            <label className="flex items-center gap-2">
-              <input type="checkbox" />
-              <span>Keep anonymous</span>
-            </label>
-            <button
-              type="submit"
-              className="w-full px-6 py-3 bg-accent-300 text-primary-900 rounded-lg font-semibold hover:bg-accent-400 transform hover:-translate-y-1 transition-all duration-300"
+          <p className="text-center text-gray-600 mb-12">
+            Share your prayer needs with us and our prayer team will intercede for you
+          </p>
+          <div className="text-center">
+            <Link
+              to="/prayer"
+              className="inline-block px-8 py-4 bg-accent-300 text-primary-900 rounded-lg font-semibold hover:bg-accent-400 transform hover:-translate-y-1 transition-all duration-300 shadow-lg"
             >
-              Send Prayer
-            </button>
-          </form>
+              Submit Prayer Request
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -285,7 +186,7 @@ function Home() {
       <section id="testimonies" className="py-20 bg-gray-50">
         <div className="container mx-auto px-6 max-w-6xl">
           <h2 className="text-4xl font-serif font-bold text-center text-primary-900 mb-12">
-            Testimonies of Faith
+            Recent Testimonies
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
             {testimonies.map((testimony, index) => (
@@ -293,104 +194,13 @@ function Home() {
             ))}
           </div>
           <div className="text-center">
-            <button
-              onClick={() => setShowTestimonyForm(!showTestimonyForm)}
-              className="px-8 py-3 bg-secondary-500 text-white rounded-lg font-semibold hover:bg-secondary-600 transition-colors"
+            <Link
+              to="/testimonies"
+              className="inline-block px-8 py-4 bg-primary-900 text-white rounded-lg font-semibold hover:bg-primary-800 transition-colors shadow-lg"
             >
-              Share Yours
-            </button>
+              Share Your Testimony
+            </Link>
           </div>
-
-          {showTestimonyForm && (
-            <div className="mt-8 max-w-2xl mx-auto bg-gray-100 p-8 rounded-xl shadow-lg">
-              <h3 className="text-2xl font-serif font-bold text-primary-900 mb-6">
-                Share Your Testimony
-              </h3>
-              <form className="space-y-4">
-                <div>
-                  <label className="block font-semibold mb-2">Full Name</label>
-                  <input
-                    type="text"
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold mb-2">Location</label>
-                  <input
-                    type="text"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold mb-2">Your Testimony</label>
-                  <textarea
-                    rows="5"
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg resize-none"
-                  ></textarea>
-                </div>
-                <div>
-                  <label className="block font-semibold mb-2">
-                    Upload a Photo (optional)
-                  </label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                  />
-                </div>
-                <div className="flex gap-4">
-                  <button
-                    type="submit"
-                    className="px-6 py-2 bg-accent-300 text-primary-900 rounded-lg font-semibold hover:bg-accent-400 transition-colors"
-                  >
-                    Submit Testimony
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowTestimonyForm(false)}
-                    className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-400 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* TESTIMONY CAROUSEL */}
-      <section className="py-20 bg-gradient-to-br from-purple-50 to-yellow-50">
-        <div className="container mx-auto px-6 max-w-4xl">
-          <h2 className="text-4xl font-serif font-bold text-center text-primary-900 mb-12">
-            Testimonies of Transformation
-          </h2>
-          <Carousel autoPlayInterval={8000}>
-            {testimonySlides.map((slide, index) => (
-              <div
-                key={index}
-                className="bg-white p-12 text-center min-h-[300px] flex flex-col justify-center items-center rounded-2xl shadow-xl"
-              >
-                <img
-                  src={slide.image}
-                  alt={slide.name}
-                  className="w-20 h-20 rounded-full border-4 border-accent-300 object-cover mb-4"
-                />
-                <blockquote className="text-xl italic text-primary-900 mb-4 leading-relaxed">
-                  &quot;{slide.quote}&quot;
-                </blockquote>
-                <p className="text-gray-500 font-medium mb-4">{slide.name}</p>
-                <Link
-                  to={slide.link}
-                  className="text-accent-300 font-semibold hover:underline"
-                >
-                  Read Full Story →
-                </Link>
-              </div>
-            ))}
-          </Carousel>
         </div>
       </section>
 
@@ -448,3 +258,4 @@ function Home() {
 }
 
 export default Home
+

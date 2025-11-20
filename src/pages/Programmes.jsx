@@ -116,15 +116,14 @@ function Programmes() {
   return (
     <>
       {/* Page Header */}
-      <section className="bg-purple-900 py-32">
+      <div className="bg-gradient-to-r from-primary-900 to-pink-600 text-white py-32 mb-12">
         <div className="container mx-auto px-6 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">Our Programmes</h1>
-          <div className="h-1 w-24 bg-purple-400 mx-auto mb-6"></div>
-          <p className="text-xl text-purple-200 max-w-3xl mx-auto">
+          <h1 className="text-4xl md:text-6xl font-serif font-bold mb-4">Our Programmes</h1>
+          <p className="text-xl opacity-90 max-w-3xl mx-auto">
             Discover opportunities to grow, serve, and fulfill your purpose
           </p>
         </div>
-      </section>
+      </div>
 
       {/* Weekly Schedule */}
       <section className="bg-white py-20">

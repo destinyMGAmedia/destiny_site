@@ -1,33 +1,43 @@
-import { useState, useEffect } from 'react'
-import { FaEye, FaCommentDots, FaPaperPlane } from 'react-icons/fa'
+import { useState, useEffect } from "react";
+import { FaEye, FaCommentDots, FaPaperPlane } from "react-icons/fa";
 
 function Live() {
-  const [showPastSermons, setShowPastSermons] = useState(false)
-  const [showChat, setShowChat] = useState(false)
-  const [viewerCount, setViewerCount] = useState(null)
+  const [showPastSermons, setShowPastSermons] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [viewerCount, setViewerCount] = useState(null);
 
   // YouTube Live Stream ID - replace with actual live stream ID
-  const LIVE_STREAM_ID = 'LIVE_STREAM_ID'
-  const videoUrl = `https://www.youtube.com/embed/${LIVE_STREAM_ID}?autoplay=1&mute=0&rel=0&modestbranding=1`
-  const chatUrl = `https://www.youtube.com/live_chat?v=${LIVE_STREAM_ID}&embed_domain=${window.location.hostname}`
+  const LIVE_STREAM_ID = "LIVE_STREAM_ID";
+  const videoUrl = `https://www.youtube.com/embed/${LIVE_STREAM_ID}?autoplay=1&mute=0&rel=0&modestbranding=1`;
+  const chatUrl = `https://www.youtube.com/live_chat?v=${LIVE_STREAM_ID}&embed_domain=${window.location.hostname}`;
 
   useEffect(() => {
     // Simulate viewer count - replace with actual API call
     const interval = setInterval(() => {
-      setViewerCount(Math.floor(Math.random() * 1000) + 100)
-    }, 5000)
-    return () => clearInterval(interval)
-  }, [])
+      setViewerCount(Math.floor(Math.random() * 1000) + 100);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <main className="min-h-screen bg-gray-50 pt-24">
+    <main className="min-h-screen bg-gray-50">
+      <div className="bg-gradient-to-r from-primary-900 to-pink-600 text-white py-32 mb-12">
+        <div className="container mx-auto px-6 text-center">
+          <h1 className="text-4xl md:text-6xl font-serif font-bold mb-4">
+            Live Service
+          </h1>
+          <p className="text-xl opacity-90 max-w-3xl mx-auto">
+            Join us for our live worship services and experience the presence of God
+          </p>
+        </div>
+      </div>
       <div className="container mx-auto px-6 max-w-7xl">
         <div className="grid lg:grid-cols-3 gap-6">
           {/* VIDEO SECTION */}
           <div className="lg:col-span-2">
-            <h1 className="text-3xl font-serif font-bold text-primary-900 mb-2">
+            <h2 className="text-3xl font-serif font-bold text-primary-900 mb-2">
               Sunday Service – Loading...
-            </h1>
+            </h2>
             <h2 className="text-xl text-gray-600 mb-4">Next Stream – Date</h2>
 
             {viewerCount && (
@@ -71,7 +81,7 @@ function Live() {
                 onClick={() => setShowPastSermons(!showPastSermons)}
                 className="px-6 py-2 bg-secondary-500 text-white rounded-lg font-semibold hover:bg-secondary-600 transition-colors"
               >
-                {showPastSermons ? 'Hide Past Sermons' : 'Watch Past Sermons'}
+                {showPastSermons ? "Hide Past Sermons" : "Watch Past Sermons"}
               </button>
             </div>
 
@@ -82,7 +92,9 @@ function Live() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Past sermon cards would go here */}
-                  <p className="text-gray-600">Past sermons will be displayed here</p>
+                  <p className="text-gray-600">
+                    Past sermons will be displayed here
+                  </p>
                 </div>
               </section>
             )}
@@ -129,7 +141,9 @@ function Live() {
         <div className="lg:hidden fixed inset-0 bg-black/50 z-50 flex items-end">
           <div className="bg-white w-full h-[80vh] rounded-t-3xl flex flex-col">
             <div className="flex items-center justify-between p-4 border-b">
-              <span className="text-lg font-semibold text-primary-900">Live Chat</span>
+              <span className="text-lg font-semibold text-primary-900">
+                Live Chat
+              </span>
               <button
                 onClick={() => setShowChat(false)}
                 className="text-2xl text-gray-600 hover:text-gray-900"
@@ -150,7 +164,7 @@ function Live() {
         </div>
       )}
     </main>
-  )
+  );
 }
 
-export default Live
+export default Live;
