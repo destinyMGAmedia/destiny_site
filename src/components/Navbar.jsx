@@ -18,13 +18,13 @@ function Navbar({ scrolled }) {
   return (
     <nav
       className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        scrolled ? 'bg-white/95 shadow-lg backdrop-blur-lg py-3' : 'bg-white py-5 shadow'
+        scrolled ? 'bg-white/95 shadow backdrop-blur-lg' : 'bg-white shadow'
       }`}
     >
-      <div className="max-w-6xl mx-auto px-6">
-        <div className="flex items-center justify-between gap-4">
+      <div className="max-w-6xl mx-auto px-2">
+        <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center">
-            <img src={logo} alt="Destiny Mission Global Assembly" className="h-12 md:h-14 w-auto object-contain" />
+            <img src={logo} alt="Destiny Mission Global Assembly" className="h-12 md:h-14 lg:h-28 w-auto object-contain" />
           </Link>
 
           {/* Desktop Menu */}
@@ -36,7 +36,7 @@ function Navbar({ scrolled }) {
                     to={link.path}
                     className={({ isActive }) =>
                       `font-medium transition-colors duration-300 ${
-                        isActive ? 'text-primary-900' : 'text-primary-900 hover:text-accent-300'
+                        isActive ? 'text-primary-900' : 'text-black hover:text-accent-300'
                       }`
                     }
                   >
@@ -59,15 +59,15 @@ function Navbar({ scrolled }) {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden fixed top-[70px] left-0 w-full bg-primary-900 text-white p-8 transition-all duration-300 z-40">
-            <ul className="space-y-4 text-center">
+          <div className="md:hidden fixed h-screen top-[50px] left-0 w-full bg-purple-950 text-white p-8 transition-all duration-300 z-40">
+            <ul className="space-y-8 text-end">
               {navLinks.map((link) => (
                 <li key={link.path}>
                   <NavLink
                     to={link.path}
                     onClick={() => setIsMenuOpen(false)}
                     className={({ isActive }) =>
-                      `block text-lg font-medium ${
+                      `block text-2xl font-medium ${
                         isActive ? 'text-accent-300' : 'text-white hover:text-accent-300'
                       }`
                     }

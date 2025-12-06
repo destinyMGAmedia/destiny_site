@@ -3,15 +3,30 @@ function Assemblies() {
   const assemblies = [
     {
       name: "Headquarters",
-      location: "City Center",
-      address: "123 Main Street, City, State 12345",
-      pastor: "Rev. Dr. John Smith",
+      location: "Uyo",
+      address: "96b Line Ewet Housing Estate, Uyo, Akwa Ibom State, Nigeria",
+      pastor: "Rev. Segun Adekola",
       services: [
         { day: "Sunday", time: "9:00 AM - 12:00 PM" },
         { day: "Wednesday", time: "6:00 PM - 8:00 PM" }
       ],
       contact: {
-        phone: "(123) 456-7890",
+        phone: "+234 806 049 9761",
+        email: "hq@dmga.org"
+      },
+      icon: "⛪"
+    },
+    {
+      name: "Idu Assembly",
+      location: "Uyo",
+      address: "96b Line Ewet Housing Estate, Uyo, Akwa Ibom State, Nigeria",
+      pastor: "Rev. Segun Adekola",
+      services: [
+        { day: "Sunday", time: "9:00 AM - 12:00 PM" },
+        { day: "Wednesday", time: "6:00 PM - 8:00 PM" }
+      ],
+      contact: {
+        phone: "+234 806 049 9761",
         email: "hq@dmga.org"
       },
       icon: "⛪"

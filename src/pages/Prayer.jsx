@@ -35,7 +35,7 @@ function Prayer() {
 
         {submitted ? (
           // Success Message
-          <div className="bg-white bg-opacity-10 backdrop-blur-lg rounded-xl p-8 border border-white border-opacity-20 text-center">
+          <div className="bg-white bg-opacity-10 backdrop-blur-lg rounded-xl p-8 border border-purple border-opacity-20 text-center">
             <div className="text-6xl mb-4">🙏</div>
             <h2 className="text-3xl font-bold text-white mb-4">
               We&apos;re Praying For You
@@ -55,7 +55,7 @@ function Prayer() {
           <form
             action="https://formsubmit.co/prayer@dmga.org"
             method="POST"
-            className="bg-white bg-opacity-10 backdrop-blur-lg rounded-xl p-8 border border-white border-opacity-20"
+            className="bg-white  backdrop-blur-lg rounded-xl p-8 border border-primary-900 border-opacity-20"
           >
             {/* FormSubmit Configuration */}
             <input type="text" name="_honey" style={{display: 'none'}} />
@@ -65,7 +65,7 @@ function Prayer() {
 
             {/* Name */}
             <div className="mb-6">
-              <label htmlFor="name" className="block text-white mb-2 font-medium">
+              <label htmlFor="name" className="block text-black mb-2 font-medium">
                 Your Name
               </label>
               <input
@@ -74,13 +74,13 @@ function Prayer() {
                 name="name"
                 required
                 placeholder="Enter your name"
-                className="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 border border-white border-opacity-30 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 border border-purple border-opacity-30 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
             </div>
 
             {/* Email */}
             <div className="mb-6">
-              <label htmlFor="email" className="block text-white mb-2 font-medium">
+              <label htmlFor="email" className="block text-black mb-2 font-medium">
                 Email (Optional)
               </label>
               <input
@@ -88,7 +88,7 @@ function Prayer() {
                 id="email"
                 name="email"
                 placeholder="your.email@example.com"
-                className="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 border border-white border-opacity-30 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 border border-purple border-opacity-30 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
               <p className="text-gray-400 text-sm mt-1">
                 Provide if you&apos;d like us to follow up with you
@@ -97,7 +97,7 @@ function Prayer() {
 
             {/* Phone */}
             <div className="mb-6">
-              <label htmlFor="phone" className="block text-white mb-2 font-medium">
+              <label htmlFor="phone" className="block text-black mb-2 font-medium">
                 Phone Number (Optional)
               </label>
               <input
@@ -105,20 +105,20 @@ function Prayer() {
                 id="phone"
                 name="phone"
                 placeholder="+234 800 000 0000"
-                className="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 border border-white border-opacity-30 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 border border-purple border-opacity-30 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
             </div>
 
             {/* Category */}
             <div className="mb-6">
-              <label htmlFor="category" className="block text-white mb-2 font-medium">
+              <label htmlFor="category" className="block text-black mb-2 font-medium">
                 Prayer Category
               </label>
               <select
                 id="category"
                 name="category"
                 required
-                className="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 border border-white border-opacity-30 text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 border border-purple border-opacity-30 text-black focus:outline-none focus:ring-2 focus:ring-blue-400"
               >
                 <option value="" className="text-gray-900">Select a category</option>
                 <option value="healing" className="text-gray-900">Healing & Health</option>
@@ -133,7 +133,7 @@ function Prayer() {
 
             {/* Prayer Request */}
             <div className="mb-6">
-              <label htmlFor="request" className="block text-white mb-2 font-medium">
+              <label htmlFor="request" className="block text-black mb-2 font-medium">
                 Your Prayer Request
               </label>
               <textarea
@@ -142,7 +142,7 @@ function Prayer() {
                 required
                 rows="6"
                 placeholder="Share your prayer request with us..."
-                className="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 border border-white border-opacity-30 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+                className="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 border border-purple border-opacity-30 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
               ></textarea>
             </div>
 

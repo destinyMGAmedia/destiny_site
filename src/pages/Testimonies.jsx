@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import TestimonyCard from '../components/TestimonyCard'
+import { testimonies } from '../Data'   // ← now pulling from data.js
 
 function Testimonies() {
   const [submitted, setSubmitted] = useState(false)
@@ -16,53 +17,10 @@ function Testimonies() {
     }
   }, [location])
 
-  const testimonies = [
-    {
-      image: '/images/userPlaceHolder.jpg',
-      title: 'From Addiction to Freedom',
-      author: '— Sarah K., Lagos',
-      text: 'I was lost in drugs for 7 years before finding hope in Christ at Destiny Mission Global Assembly...',
-      fullText: 'I was lost in drugs for 7 years before finding hope in Christ at Destiny Mission Global Assembly. Through prayer and the Word, God set me free and restored my life completely.',
-    },
-    {
-      image: '/images/userPlaceHolder.jpg',
-      title: 'Marriage Restored',
-      author: '— John & Mary A., Abuja',
-      text: 'Our marriage was falling apart until we attended the Couples Retreat. God brought healing and unity...',
-      fullText: 'Our marriage was falling apart until we attended the Couples Retreat. God brought healing and unity, and today we are stronger than ever.',
-    },
-    {
-      image: '/images/userPlaceHolder.jpg',
-      title: 'Miraculous Healing',
-      author: '— Grace O., Port Harcourt',
-      text: 'When doctors gave up on my child, God proved His power through healing during the church\'s Healing Service...',
-      fullText: 'When doctors gave up on my child, God proved His power through healing during the church\'s Healing Service. My child is now completely healthy!',
-    },
-    {
-      image: '/images/userPlaceHolder.jpg',
-      title: 'Financial Breakthrough',
-      author: '— Michael T., Ibadan',
-      text: 'After years of financial struggle, God opened doors I never imagined possible through the teachings at DMGA...',
-      fullText: 'After years of financial struggle, God opened doors I never imagined possible through the teachings at DMGA. My business is now thriving and I can support others.',
-    },
-    {
-      image: '/images/userPlaceHolder.jpg',
-      title: 'Deliverance from Depression',
-      author: '— Joy M., Enugu',
-      text: 'I was in a dark place for months, but the prayers and support from the church family brought me into the light...',
-      fullText: 'I was in a dark place for months, but the prayers and support from the church family brought me into the light. I am now filled with joy and purpose.',
-    },
-    {
-      image: '/images/userPlaceHolder.jpg',
-      title: 'Career Transformation',
-      author: '— David P., Kano',
-      text: 'After losing my job, I thought all was lost. But God used the church\'s career ministry to open a better opportunity...',
-      fullText: 'After losing my job, I thought all was lost. But God used the church\'s career ministry to open a better opportunity that I never could have imagined.',
-    },
-  ]
-
   return (
     <main className="min-h-screen bg-gray-50">
+
+      {/* HERO SECTION */}
       <div className="bg-gradient-to-r from-primary-900 to-pink-600 text-white py-32 mb-12">
         <div className="container mx-auto px-6 text-center">
           <h1 className="text-4xl md:text-6xl font-serif font-bold mb-4">
@@ -80,6 +38,7 @@ function Testimonies() {
           <h2 className="text-4xl font-serif font-bold text-center text-primary-900 mb-12">
             All Testimonies
           </h2>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
             {testimonies.map((testimony, index) => (
               <TestimonyCard key={index} testimony={testimony} />
@@ -94,7 +53,7 @@ function Testimonies() {
           <h2 className="text-4xl font-serif font-bold text-center text-primary-900 mb-12">
             Share Your Testimony
           </h2>
-          
+
           {submitted ? (
             <div className="bg-white rounded-xl p-8 shadow-lg text-center">
               <div className="text-6xl mb-4">🙏</div>
@@ -117,11 +76,19 @@ function Testimonies() {
               method="POST"
               className="bg-white rounded-xl p-8 shadow-lg"
             >
-              {/* FormSubmit Configuration */}
-              <input type="text" name="_honey" style={{display: 'none'}} />
+              {/* FormSubmit Hidden Settings */}
+              <input type="text" name="_honey" style={{ display: 'none' }} />
               <input type="hidden" name="_captcha" value="false" />
-              <input type="hidden" name="_subject" value="New Testimony Submission from DMGA Website" />
-              <input type="hidden" name="_next" value={`${window.location.origin}/testimonies?success=true`} />
+              <input
+                type="hidden"
+                name="_subject"
+                value="New Testimony Submission from DMGA Website"
+              />
+              <input
+                type="hidden"
+                name="_next"
+                value={`${window.location.origin}/testimonies?success=true`}
+              />
 
               <div className="space-y-4">
                 <div>
@@ -133,6 +100,7 @@ function Testimonies() {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-900"
                   />
                 </div>
+
                 <div>
                   <label className="block font-semibold mb-2 text-gray-700">Location</label>
                   <input
@@ -141,6 +109,7 @@ function Testimonies() {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-900"
                   />
                 </div>
+
                 <div>
                   <label className="block font-semibold mb-2 text-gray-700">Email (Optional)</label>
                   <input
@@ -150,6 +119,7 @@ function Testimonies() {
                   />
                   <p className="text-sm text-gray-500 mt-1">For follow-up purposes only</p>
                 </div>
+
                 <div>
                   <label className="block font-semibold mb-2 text-gray-700">Your Testimony *</label>
                   <textarea
@@ -160,10 +130,9 @@ function Testimonies() {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary-900"
                   ></textarea>
                 </div>
+
                 <div>
-                  <label className="block font-semibold mb-2 text-gray-700">
-                    Upload a Photo (optional)
-                  </label>
+                  <label className="block font-semibold mb-2 text-gray-700">Upload a Photo (optional)</label>
                   <input
                     type="file"
                     name="photo"
@@ -171,6 +140,7 @@ function Testimonies() {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-900"
                   />
                 </div>
+
                 <div className="flex gap-4">
                   <button
                     type="submit"
@@ -179,6 +149,7 @@ function Testimonies() {
                     Submit Testimony
                   </button>
                 </div>
+
                 <p className="text-sm text-gray-500 text-center">
                   By submitting, you agree that your testimony may be shared publicly to encourage others.
                 </p>
@@ -201,4 +172,3 @@ function Testimonies() {
 }
 
 export default Testimonies
-
