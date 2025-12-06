@@ -1,92 +1,77 @@
-import { useState, useEffect } from 'react'
-import { FaChevronLeft, FaChevronRight } from 'react-icons/fa'
+import { useState, useEffect, useRef } from 'react'
 
-function Carousel({ children, autoPlayInterval = 6000, showDots = true, showArrows = true }) {
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [isPaused, setIsPaused] = useState(false)
-  const totalSlides = children.length
+export default function Carousel({ children, autoPlayInterval = 5000 }) {
+  const [index, setIndex] = useState(0)
+  const sliderRef = useRef(null)
+  const slides = Array.isArray(children) ? children : [children]
 
+  // Auto-play
   useEffect(() => {
-    if (isPaused || totalSlides <= 1) return
+    if (slides.length <= 1) return
+    const timer = setInterval(() => next(), autoPlayInterval)
+    return () => clearInterval(timer)
+  }, [index, slides.length])
 
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % totalSlides)
-    }, autoPlayInterval)
+  const next = () => setIndex((prev) => (prev + 1) % slides.length)
+  const prev = () => setIndex((prev) => (prev - 1 + slides.length) % slides.length)
 
-    return () => clearInterval(interval)
-  }, [isPaused, totalSlides, autoPlayInterval])
-
-  const goToSlide = (index) => {
-    setCurrentIndex(index)
-  }
-
-  const nextSlide = () => {
-    setCurrentIndex((prev) => (prev + 1) % totalSlides)
-  }
-
-  const prevSlide = () => {
-    setCurrentIndex((prev) => (prev - 1 + totalSlides) % totalSlides)
-  }
-
-  if (totalSlides === 0) return null
+  // Slide movement
+  useEffect(() => {
+    if (sliderRef.current) {
+      sliderRef.current.style.transform = `translateX(-${index * 100}%)`
+    }
+  }, [index])
 
   return (
-    <div
-      className="relative"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-    >
-      <div className="overflow-hidden rounded-2xl">
-        <div
-          className="flex transition-transform duration-[600ms] ease-in-out"
-          style={{ transform: `translateX(-${currentIndex * 100}%)` }}
-        >
-          {children.map((child, index) => (
-            <div key={index} className="min-w-full flex-shrink-0">
-              {child}
+    <div className="relative w-full max-w-5xl mx-auto overflow-hidden rounded-2xl">
+
+      {/* Slider Wrapper */}
+      <div
+        ref={sliderRef}
+        className="flex transition-transform duration-700 ease-out"
+        style={{ width: `${slides.length * 100}%` }}
+      >
+        {slides.map((slide, i) => (
+          <div key={i} className="w-full flex-shrink-0 flex justify-center">
+            
+            {/* IMPORTANT FIX: no forced aspect ratio here */}
+            <div className="w-full rounded-2xl overflow-hidden shadow-xl">
+              {slide}
             </div>
-          ))}
-        </div>
+
+          </div>
+        ))}
       </div>
 
-      {showArrows && totalSlides > 1 && (
-        <>
-          <button
-            onClick={prevSlide}
-            className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-primary-900/80 text-white flex items-center justify-center hover:bg-primary-900 hover:scale-110 transition-all duration-300 z-10 backdrop-blur-sm"
-            aria-label="Previous slide"
-          >
-            <FaChevronLeft />
-          </button>
-          <button
-            onClick={nextSlide}
-            className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-primary-900/80 text-white flex items-center justify-center hover:bg-primary-900 hover:scale-110 transition-all duration-300 z-10 backdrop-blur-sm"
-            aria-label="Next slide"
-          >
-            <FaChevronRight />
-          </button>
-        </>
-      )}
+      {/* Prev Button */}
+      <button
+        onClick={prev}
+        className="absolute left-3 top-1/2 -translate-y-1/2 
+        bg-purple-900/90 text-white py-3 px-5 rounded-full hover:bg-purple-900/60 z-10"
+      >
+        ❮
+      </button>
 
-      {showDots && totalSlides > 1 && (
-        <div className="flex justify-center gap-2 mt-6">
-          {children.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => goToSlide(index)}
-              className={`h-3 w-3 rounded-full transition-all duration-300 ${
-                index === currentIndex
-                  ? 'bg-accent-300 scale-125 shadow-lg shadow-accent-300/60'
-                  : 'bg-gray-300 hover:bg-gray-400'
-              }`}
-              aria-label={`Go to slide ${index + 1}`}
-            />
-          ))}
-        </div>
-      )}
+      {/* Next Button */}
+      <button
+        onClick={next}
+        className="absolute right-3 top-1/2 -translate-y-1/2 
+        bg-purple-900/90 text-white py-3 px-5 rounded-full hover:bg-purple-900/60 z-10"
+      >
+        ❯
+      </button>
+
+      {/* Dots */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+        {slides.map((_, i) => (
+          <div
+            key={i}
+            onClick={() => setIndex(i)}
+            className={`w-3 h-3 rounded-full cursor-pointer transition 
+            ${index === i ? 'bg-white' : 'bg-white/40'}`}
+          />
+        ))}
+      </div>
     </div>
   )
 }
-
-export default Carousel
-

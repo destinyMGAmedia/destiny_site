@@ -1,30 +1,25 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { galleryImages } from '../Data'   // adjust path based on your structure
 
 function Gallery() {
   const [selectedImage, setSelectedImage] = useState(null)
 
-  const galleryImages = [
-    { src: '/images/gallery/gImage1.jpg', caption: 'Sunday Worship Service' },
-    { src: '/images/gallery/gImage2.jpg', caption: 'Youth Ablaze Conference' },
-    { src: '/images/gallery/gImage3.jpg', caption: 'Water Baptism' },
-    { src: '/images/gallery/gImage4.jpg', caption: 'Community Outreach' },
-    { src: '/images/gallery/gImage5.jpg', caption: 'All-Night Prayer' },
-    { src: '/images/gallery/gImage6.jpg', caption: 'Christmas Carol Service' },
-    { src: '/images/gallery/gImage7.jpg', caption: 'Annual Harvest Crusade' },
-  ]
-
   return (
     <main className="min-h-screen bg-gray-50">
+      {/* Header */}
       <div className="bg-gradient-to-r from-primary-900 to-pink-600 text-white py-32 mb-12">
         <div className="container mx-auto px-6 text-center">
           <h1 className="text-4xl md:text-6xl font-serif font-bold mb-4">
             Church Gallery
           </h1>
-          <p className="text-xl opacity-90 max-w-3xl mx-auto">Moments of Faith, Fellowship & Joy</p>
+          <p className="text-xl opacity-90 max-w-3xl mx-auto">
+            Moments of Faith, Fellowship and Joy
+          </p>
         </div>
       </div>
 
+      {/* Gallery Grid */}
       <div className="container mx-auto px-6 max-w-6xl mb-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {galleryImages.map((image, index) => (
@@ -49,7 +44,8 @@ function Gallery() {
           ))}
         </div>
 
-        <div className="mt-12 text-center space-x-4">
+        {/* Back button */}
+        <div className="mt-12 text-center">
           <Link
             to="/"
             className="inline-block px-6 py-3 bg-primary-900 text-white rounded-lg font-semibold hover:bg-primary-800 transition-colors"
@@ -59,7 +55,7 @@ function Gallery() {
         </div>
       </div>
 
-      {/* Lightbox Modal */}
+      {/* Lightbox */}
       {selectedImage && (
         <div
           className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
@@ -73,13 +69,17 @@ function Gallery() {
             >
               ×
             </button>
+
             <img
               src={selectedImage.src}
               alt={selectedImage.caption}
               className="w-full h-auto rounded-lg"
               onClick={(e) => e.stopPropagation()}
             />
-            <p className="text-white text-center mt-4 text-xl">{selectedImage.caption}</p>
+
+            <p className="text-white text-center mt-4 text-xl">
+              {selectedImage.caption}
+            </p>
           </div>
         </div>
       )}

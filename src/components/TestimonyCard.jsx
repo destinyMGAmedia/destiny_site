@@ -5,11 +5,11 @@ function TestimonyCard({ testimony }) {
   const { image, title, author, text, fullText } = testimony
 
   return (
-    <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+    <div className="bg-white rounded-xl overflow-hidden border border-purple-900 border-opacity-30 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
       <img
         src={image || '/images/userPlaceHolder.jpg'}
         alt={title}
-        className="w-full h-48 object-cover"
+        className="w-full h-52 object-contain"
       />
       <div className="p-6">
         <h4 className="text-xl font-bold text-primary-900 mb-2">{title}</h4>

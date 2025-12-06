@@ -1,62 +1,42 @@
+// src/pages/EventsPage.jsx
+import React, { useState } from 'react'
 import EventCard from '../components/EventCard'
+import EventDetailModal from '../components/EventDetailModal'
+import ActionAlert from '../components/ActionAlert'
+import { events } from '../Data'  // ← now pulling from data.js
 
-function Events() {
-  const events = [
-    {
-      day: '15',
-      month: 'NOV',
-      title: 'Annual Harvest Crusade',
-      time: '4:00 PM – 8:00 PM',
-      location: 'Main Auditorium, Lagos',
-      onRegister: () => {
-        // Handle registration
-        alert('Registration form will open here')
-      },
-    },
-    {
-      day: '22',
-      month: 'NOV',
-      title: 'Youth Ablaze Conference',
-      time: '9:00 AM – 3:00 PM',
-      location: 'Youth Hall',
-      onRegister: () => {
-        alert('Registration form will open here')
-      },
-    },
-    {
-      day: '01',
-      month: 'DEC',
-      title: 'Christmas Carol Service',
-      time: '6:00 PM',
-      location: 'Main Sanctuary',
-      onRegister: () => {
-        alert('Registration form will open here')
-      },
-    },
-  ]
+export default function Events() {
+  const [actionMessage, setActionMessage] = useState(null)
+  const [selectedEvent, setSelectedEvent] = useState(null)
+
+  const handleCardAction = (actionType, event) => {
+    if (actionType === 'register') {
+      setActionMessage(`Successfully attempted to register for "${event.title}". (In a real app, this would initiate the registration process)`)
+    } else if (actionType === 'details') {
+      setSelectedEvent(event)
+    }
+  }
+
+  const closeActionAlert = () => setActionMessage(null)
+  const closeDetailModal = () => setSelectedEvent(null)
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <div className="bg-gradient-to-r from-primary-900 to-pink-600 text-white py-32 mb-12">
-        <div className="container mx-auto px-6 text-center">
-          <h1 className="text-4xl md:text-6xl font-serif font-bold mb-4">
-            Upcoming Events
-          </h1>
-          <p className="text-xl opacity-90 max-w-3xl mx-auto">
-            Join our special gatherings and experience the power of fellowship
-          </p>
-        </div>
+    <>
+      <div className="min-h-screen bg-gray-50 p-6 sm:p-12 font-sans">
+        <header className="text-center mb-16">
+          <h1 className="text-5xl font-extrabold text-gray-900 mb-4 tracking-tight">Discover Events</h1>
+          <p className="text-xl text-gray-500 max-w-2xl mx-auto">Explore the vibrant social scene around you, from festivals to tech summits.</p>
+        </header>
+
+        <main className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {events.map((event) => (
+            <EventCard key={event.id} event={event} onAction={handleCardAction} />
+          ))}
+        </main>
       </div>
 
-      <div className="container mx-auto px-6 max-w-6xl mb-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {events.map((event, index) => (
-            <EventCard key={index} event={event} />
-          ))}
-        </div>
-      </div>
-    </main>
+      <ActionAlert message={actionMessage} onClose={closeActionAlert} />
+      <EventDetailModal event={selectedEvent} onClose={closeDetailModal} />
+    </>
   )
 }
-
-export default Events
