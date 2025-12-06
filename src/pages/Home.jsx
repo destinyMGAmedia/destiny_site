@@ -48,7 +48,7 @@ function Home() {
           <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent" />
         </div>
 
-        <div className="container relative z-10 px-8 md:px-12 lg:px-16 lg:ml-36 max-w-6xl">
+        <div className="container relative z-10 px-8 md:px-12 lg:px-16 xl:ml-36 max-w-6xl">
           <div className="max-w-3xl">
             <img
               src="/images/favicon.png"
