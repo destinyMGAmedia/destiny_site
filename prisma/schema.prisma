@@ -1,0 +1,519 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Assembly {
+  id               String             @id @default(cuid())
+  slug             String             @unique
+  name             String
+  city             String
+  country          String
+  timezone         Timezone           @default(NIGERIA)
+  heroImage        String?
+  heroImages       String[]
+  tagline          String?
+  welcomeText      String?
+  aboutText        String?
+  address          String?
+  mapLink          String?
+  parkingNotes     String?
+  serviceTimes     Json               @default("[]")
+  phone            String?
+  email            String?
+  whatsapp         String?
+  youtubeChannelId String?
+  isActive         Boolean            @default(true)
+  isHQ             Boolean            @default(false)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  activityFeed     ActivityFeedItem[]
+  arkCenters       ArkCenter[]
+  reports          AssemblyReport[]
+  sections         AssemblySection[]
+  attendance       AttendanceRecord[]
+  audioContent     AudioContent[]
+  events           Event[]
+  givingDetails    GivingDetails?
+  mediaItems       MediaItem[]
+  mediaSeries      MediaSeries[]
+  members          Member[]
+  prayerRequests   PrayerRequest[]
+  teamMembers      TeamMember[]
+  testimonies      Testimony[]
+  admins           User[]
+}
+
+model User {
+  id         String    @id @default(cuid())
+  email      String    @unique
+  password   String
+  name       String
+  role       Role      @default(ASSEMBLY_ADMIN)
+  isActive   Boolean   @default(true)
+  assemblyId String?
+  createdAt  DateTime  @default(now())
+  lastLogin  DateTime?
+  accounts   Account[]
+  sessions   Session[]
+  assembly   Assembly? @relation(fields: [assemblyId], references: [id])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model TeamMember {
+  id           String       @id @default(cuid())
+  assemblyId   String
+  name         String
+  role         String
+  bio          String?
+  photo        String?
+  category     TeamCategory
+  fellowship   Fellowship?
+  department   Department?
+  displayOrder Int          @default(0)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  assembly     Assembly     @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+}
+
+model Event {
+  id               String         @id @default(cuid())
+  assemblyId       String?
+  title            String
+  description      String?
+  venue            String?
+  startDate        DateTime
+  endDate          DateTime?
+  time             String?
+  flyerImage       String?
+  isGlobal         Boolean        @default(false)
+  isChildrensEvent Boolean        @default(false)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  audioContent     AudioContent[]
+  assembly         Assembly?      @relation(fields: [assemblyId], references: [id])
+  mediaItems       MediaItem[]
+}
+
+model MediaSeries {
+  id           String         @id @default(cuid())
+  assemblyId   String
+  title        String
+  description  String?
+  coverImage   String?
+  createdAt    DateTime       @default(now())
+  audioContent AudioContent[]
+  mediaItems   MediaItem[]
+  assembly     Assembly       @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+}
+
+model MediaItem {
+  id           String       @id @default(cuid())
+  assemblyId   String
+  type         MediaType
+  url          String
+  caption      String?
+  thumbnail    String?
+  eventId      String?
+  seriesId     String?
+  seriesName   String?
+  tags         String[]
+  capturedDate DateTime?
+  createdAt    DateTime     @default(now())
+  assembly     Assembly     @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+  event        Event?       @relation(fields: [eventId], references: [id])
+  series       MediaSeries? @relation(fields: [seriesId], references: [id])
+}
+
+model AudioContent {
+  id           String        @id @default(cuid())
+  assemblyId   String
+  title        String
+  speaker      String
+  description  String?
+  audioUrl     String
+  thumbnail    String?
+  duration     Int?
+  fileSize     Int?
+  category     AudioCategory @default(SERMON)
+  eventId      String?
+  seriesId     String?
+  tags         String[]
+  recordedDate DateTime?
+  publishedAt  DateTime      @default(now())
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  assembly     Assembly      @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+  event        Event?        @relation(fields: [eventId], references: [id])
+  series       MediaSeries?  @relation(fields: [seriesId], references: [id])
+}
+
+model YoutubeChannel {
+  id          String             @id @default(cuid())
+  channelType YoutubeChannelType @unique
+  channelId   String
+  channelName String
+  description String?
+  thumbnail   String?
+  isActive    Boolean            @default(true)
+  updatedAt   DateTime           @updatedAt
+}
+
+model Devotional {
+  id             String   @id @default(cuid())
+  title          String
+  content        String
+  scripture      String?
+  scriptureRef   String?
+  scheduledDate  DateTime
+  publishTime    String   @default("00:00")
+  targetTimezone Timezone @default(NIGERIA)
+  authorId       String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model PrayerRequest {
+  id         String       @id @default(cuid())
+  assemblyId String
+  name       String
+  email      String?
+  request    String
+  status     PrayerStatus @default(PENDING)
+  createdAt  DateTime     @default(now())
+  assembly   Assembly     @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+}
+
+model Testimony {
+  id         String   @id @default(cuid())
+  assemblyId String
+  name       String
+  title      String
+  content    String
+  image      String?
+  isApproved Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  assembly   Assembly @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+}
+
+model GivingDetails {
+  id            String   @id @default(cuid())
+  assemblyId    String   @unique
+  accountName   String?
+  bankName      String?
+  accountNumber String?
+  qrCodeImage   String?
+  instructions  String?
+  updatedAt     DateTime @updatedAt
+  assembly      Assembly @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+}
+
+model AttendanceRecord {
+  id          String   @id @default(cuid())
+  assemblyId  String
+  fullName    String
+  phone       String?
+  email       String?
+  serviceDate DateTime
+  serviceType String
+  submittedAt DateTime @default(now())
+  assembly    Assembly @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+}
+
+model Game {
+  id            String   @id @default(cuid())
+  title         String
+  description   String?
+  instructions  String?
+  type          GameType
+  gameData      Json
+  thumbnail     String?
+  isFeatured    Boolean  @default(false)
+  isActive      Boolean  @default(true)
+  isKidsGame    Boolean  @default(false)
+  isMultiplayer Boolean  @default(false)
+  maxPlayers    Int      @default(1)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model HeroSlide {
+  id           String   @id @default(cuid())
+  imageUrl     String
+  caption      String?
+  ctaText      String?
+  ctaLink      String?
+  displayOrder Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+model MemoryVerse {
+  id        String   @id @default(cuid())
+  verse     String
+  reference String
+  weekOf    DateTime
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model AssemblySection {
+  id            String      @id @default(cuid())
+  assemblyId    String
+  type          SectionType
+  title         String
+  isVisible     Boolean     @default(true)
+  position      Int
+  isCustom      Boolean     @default(false)
+  customContent Json?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  assembly      Assembly    @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+
+  @@index([assemblyId, position])
+}
+
+model ArkCenter {
+  id          String   @id @default(cuid())
+  assemblyId  String
+  name        String
+  location    String?
+  meetingDay  String?
+  meetingTime String?
+  leaderId    String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  assembly    Assembly @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+  leader      Member?  @relation("ArkCenterLeader", fields: [leaderId], references: [id])
+  members     Member[]
+}
+
+model Member {
+  id             String       @id @default(cuid())
+  assemblyId     String
+  firstName      String
+  lastName       String
+  middleName     String?
+  gender         Gender
+  dateOfBirth    DateTime
+  photo          String?
+  phone          String?
+  email          String?
+  address        String?
+  city           String?
+  state          String?
+  country        String?
+  joinDate       DateTime     @default(now())
+  baptismDate    DateTime?
+  fellowship     Fellowship?
+  department     Department?
+  status         MemberStatus @default(ACTIVE)
+  arkCenterId    String?
+  emergencyName  String?
+  emergencyPhone String?
+  notes          String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  ledArkCenter   ArkCenter[]  @relation("ArkCenterLeader")
+  arkCenter      ArkCenter?   @relation(fields: [arkCenterId], references: [id])
+  assembly       Assembly     @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+}
+
+model AssemblyReport {
+  id                   String       @id @default(cuid())
+  assemblyId           String
+  period               ReportPeriod
+  periodStart          DateTime
+  periodEnd            DateTime
+  status               ReportStatus @default(DRAFT)
+  sundayAvgAttendance  Int?
+  totalServicesHeld    Int?
+  totalAttendance      Int?
+  totalMembers         Int?
+  newMembers           Int?
+  transferredIn        Int?
+  transferredOut       Int?
+  baptisms             Int?
+  totalOffering        Float?
+  totalTithe           Float?
+  totalSpecialOffering Float?
+  totalExpenditure     Float?
+  currency             String?      @default("NGN")
+  salvations           Int?
+  outreachEvents       Int?
+  highlights           String?
+  challenges           String?
+  prayerPoints         String?
+  submittedById        String?
+  submittedAt          DateTime?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  assembly             Assembly     @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+}
+
+model ActivityFeedItem {
+  id         String   @id @default(cuid())
+  assemblyId String
+  type       String
+  title      String
+  body       String?
+  link       String?
+  imageUrl   String?
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  assembly   Assembly @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+}
+
+enum Role {
+  SUPER_ADMIN
+  GLOBAL_ADMIN
+  ASSEMBLY_ADMIN
+  APP_ADMIN
+}
+
+enum SectionType {
+  HERO
+  FIND_US
+  FELLOWSHIPS
+  DEPARTMENTS
+  EVENTS
+  MEDIA
+  GIVING
+  PRAYER
+  TESTIMONIES
+  CONTACT
+  CUSTOM
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum MemberStatus {
+  ACTIVE
+  INACTIVE
+  TRANSFERRED
+  DECEASED
+}
+
+enum ReportPeriod {
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  ANNUAL
+}
+
+enum ReportStatus {
+  DRAFT
+  SUBMITTED
+  REVIEWED
+}
+
+enum Timezone {
+  NIGERIA
+  USA_EAST
+  USA_WEST
+}
+
+enum Fellowship {
+  KINGS_MEN
+  DESTINY_PRESERVERS
+  DESTINY_DEFENDERS
+  DESTINY_TREASURES
+}
+
+enum Department {
+  PASTORS
+  CHOIR
+  SANCTUARY_KEEPERS
+  PROTOCOL
+  MEDIA_TECHNICAL
+  CREATIVE_ARTS
+  FACILITY
+  EVANGELISM
+  PRAYER
+}
+
+enum TeamCategory {
+  FELLOWSHIP
+  DEPARTMENT
+}
+
+enum MediaType {
+  PHOTO
+  VIDEO
+  AUDIO
+}
+
+enum AudioCategory {
+  SERMON
+  WORSHIP
+  PRAYER
+  TEACHING
+  SPECIAL
+}
+
+enum YoutubeChannelType {
+  MAIN_LIVE
+  CREATIVE_ARTS
+  TREASURES_KIDS
+}
+
+enum PrayerStatus {
+  PENDING
+  PRAYED
+  ARCHIVED
+}
+
+enum GameType {
+  CROSSWORD
+  QUIZ
+  WORD_SEARCH
+  MEMORY
+  FILL_BLANK
+  WHO_SAID_IT
+  NAME_THAT_BOOK
+  BIBLE_SCRABBLE
+  JOURNEY_TO_HEAVEN
+  CORE_VALUES
+}
