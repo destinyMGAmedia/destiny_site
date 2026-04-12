@@ -1,0 +1,450 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Inter:wght@300;400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap');
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────
+   DESIGN TOKENS
+   ───────────────────────────────────────────── */
+:root {
+  /* Brand */
+  --purple-900: #2d0060;
+  --purple-800: #4a148c;
+  --purple-700: #6a1b9a;
+  --purple-600: #7b1fa2;
+  --purple-500: #9c27b0;
+  --purple-100: #f3e5f5;
+  --purple-50:  #faf5ff;
+
+  --gold-500: #ffb300;
+  --gold-400: #ffca28;
+  --gold-300: #ffe082;
+  --gold-100: #fff8e1;
+
+  --ivory:    #faf8f5;
+  --surface:  #ffffff;
+  --surface-alt: #f3f0fa;  /* lavender tint */
+  --border:   #e5e0da;
+
+  --charcoal: #1a1a1a;
+  --gray-600: #4b5563;
+  --gray-400: #9ca3af;
+  --gray-100: #f3f4f6;
+
+  /* Typography */
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans:  'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-kids:  'Nunito', 'Inter', ui-sans-serif, sans-serif; /* Destiny Treasures */
+
+  /* Radii */
+  --radius-lozenge: 50px;  /* signature button shape */
+  --radius-card:    16px;
+  --radius-sm:      8px;
+
+  /* Shadows */
+  --shadow-card:  0 4px 24px rgba(74, 20, 140, 0.08);
+  --shadow-hover: 0 8px 32px rgba(74, 20, 140, 0.18);
+  --shadow-glow:  0 0 32px rgba(255, 179, 0, 0.25);
+}
+
+/* ─────────────────────────────────────────────
+   BASE
+   ───────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--ivory);
+  color: var(--charcoal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-serif);
+  line-height: 1.2;
+}
+
+/* ─────────────────────────────────────────────
+   BUTTON SYSTEM
+   ───────────────────────────────────────────── */
+
+/* Primary — gold lozenge (signature shape) */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 2rem;
+  background: var(--gold-500);
+  color: var(--purple-900);
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 0.95rem;
+  border-radius: var(--radius-lozenge);
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn-primary:hover {
+  background: var(--gold-400);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+/* Secondary — purple lozenge */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 2rem;
+  background: var(--purple-800);
+  color: #fff;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 0.95rem;
+  border-radius: var(--radius-lozenge);
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn-secondary:hover {
+  background: var(--purple-700);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+/* Outline — transparent with purple border */
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 2rem;
+  background: transparent;
+  color: var(--purple-800);
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 0.95rem;
+  border-radius: var(--radius-lozenge);
+  border: 2px solid var(--purple-800);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn-outline:hover {
+  background: var(--purple-800);
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+/* Outline white — for use on dark/purple backgrounds */
+.btn-outline-white {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 2rem;
+  background: transparent;
+  color: #fff;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 0.95rem;
+  border-radius: var(--radius-lozenge);
+  border: 2px solid rgba(255,255,255,0.7);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn-outline-white:hover {
+  background: rgba(255,255,255,0.15);
+  border-color: #fff;
+  transform: translateY(-2px);
+}
+
+/* Small variant modifier */
+.btn-sm {
+  padding: 0.5rem 1.25rem;
+  font-size: 0.85rem;
+}
+
+/* ─────────────────────────────────────────────
+   CARD BASE
+   ───────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+.card:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-3px);
+}
+
+/* ─────────────────────────────────────────────
+   SECTION RHYTHM
+   alternates: ivory → white → lavender → white
+   ───────────────────────────────────────────── */
+.section-ivory   { background: var(--ivory); }
+.section-white   { background: var(--surface); }
+.section-purple  { background: var(--purple-800); }
+.section-lavender{ background: var(--surface-alt); }
+
+/* ─────────────────────────────────────────────
+   ANCHOR NAV (assembly page in-page jump nav)
+   ───────────────────────────────────────────── */
+.anchor-nav {
+  position: sticky;
+  top: 64px; /* navbar height */
+  z-index: 40;
+  background: var(--purple-900);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.anchor-nav::-webkit-scrollbar { display: none; }
+.anchor-nav-inner {
+  display: flex;
+  gap: 0;
+  min-width: max-content;
+  padding: 0 1rem;
+}
+.anchor-nav-item {
+  padding: 0.875rem 1.25rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.65);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.anchor-nav-item:hover,
+.anchor-nav-item.active {
+  color: var(--gold-500);
+  border-bottom-color: var(--gold-500);
+}
+
+/* ─────────────────────────────────────────────
+   HORIZONTAL SCROLL STRIP (assemblies on home)
+   ───────────────────────────────────────────── */
+.scroll-strip {
+  display: flex;
+  gap: 1.25rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.5rem 1.5rem 1.5rem;
+  scrollbar-width: none;
+}
+.scroll-strip::-webkit-scrollbar { display: none; }
+.scroll-strip > * {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+/* ─────────────────────────────────────────────
+   AUDIO PLAYER
+   ───────────────────────────────────────────── */
+.audio-player {
+  background: var(--purple-900);
+  border-radius: var(--radius-card);
+  padding: 1.25rem;
+  color: #fff;
+}
+.audio-progress {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.2);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.audio-progress::-webkit-slider-thumb {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--gold-500);
+  cursor: pointer;
+}
+
+/* ─────────────────────────────────────────────
+   ADMIN PANEL SPECIFIC
+   ───────────────────────────────────────────── */
+.admin-sidebar {
+  background: var(--purple-900);
+  min-height: 100vh;
+  width: 260px;
+  flex-shrink: 0;
+}
+
+.admin-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.65);
+  border-radius: var(--radius-sm);
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.admin-nav-item:hover,
+.admin-nav-item.active {
+  background: rgba(255,255,255,0.1);
+  color: var(--gold-500);
+}
+
+.admin-tab {
+  padding: 0.6rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  color: var(--gray-600);
+  transition: all 0.2s;
+}
+.admin-tab:hover,
+.admin-tab.active {
+  color: var(--purple-800);
+  border-bottom-color: var(--purple-800);
+}
+
+.form-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--gray-600);
+  margin-bottom: 0.35rem;
+}
+.form-input {
+  width: 100%;
+  padding: 0.65rem 0.875rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  color: var(--charcoal);
+  background: var(--surface);
+  transition: border-color 0.2s;
+  outline: none;
+}
+.form-input:focus {
+  border-color: var(--purple-700);
+  box-shadow: 0 0 0 3px rgba(106, 27, 154, 0.1);
+}
+.form-textarea {
+  width: 100%;
+  padding: 0.65rem 0.875rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  color: var(--charcoal);
+  background: var(--surface);
+  min-height: 120px;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-textarea:focus {
+  border-color: var(--purple-700);
+  box-shadow: 0 0 0 3px rgba(106, 27, 154, 0.1);
+}
+.form-select {
+  width: 100%;
+  padding: 0.65rem 0.875rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  color: var(--charcoal);
+  background: var(--surface);
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.form-select:focus {
+  border-color: var(--purple-700);
+}
+
+/* ─────────────────────────────────────────────
+   DESTINY TREASURES THEME (kids only)
+   ───────────────────────────────────────────── */
+.treasures-body {
+  font-family: var(--font-kids) !important;
+}
+.treasures-heading {
+  font-family: var(--font-kids);
+  font-weight: 800;
+}
+
+/* ─────────────────────────────────────────────
+   UTILITY
+   ───────────────────────────────────────────── */
+.section-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 5rem 1.5rem;
+}
+.section-heading {
+  font-family: var(--font-serif);
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-weight: 700;
+  color: var(--purple-900);
+  margin-bottom: 0.5rem;
+}
+.section-subheading {
+  font-size: 1.05rem;
+  color: var(--gray-600);
+  margin-bottom: 3rem;
+}
+.gold-bar {
+  width: 56px;
+  height: 4px;
+  background: var(--gold-500);
+  border-radius: 2px;
+  margin-bottom: 1.5rem;
+}
+
+/* Pill / badge */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.pill-purple { background: var(--purple-100); color: var(--purple-800); }
+.pill-gold   { background: var(--gold-100);   color: #7a5100; }
+
+/* Page fade-in */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in { animation: fadeIn 0.5s ease both; }
+
+/* Hero crossfade */
+@keyframes heroCrossfade {
+  0%   { opacity: 1; }
+  45%  { opacity: 1; }
+  55%  { opacity: 0; }
+  95%  { opacity: 0; }
+  100% { opacity: 1; }
+}
