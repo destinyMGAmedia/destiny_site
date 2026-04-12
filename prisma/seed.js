@@ -238,14 +238,20 @@ async function main() {
 
   // ─── SUPER_ADMIN ───────────────────────────────────
   const superAdminEmail = process.env.SEED_SUPER_ADMIN_EMAIL || 'superadmin@destinymissions.org'
-  const superAdminHash = await bcrypt.hash('ChangeMe@SuperAdmin1', 12)
+  const superAdminPassword = process.env.SEED_SUPER_ADMIN_PASSWORD || 'ChangeMe@SuperAdmin1'
+  const superAdminHash = await bcrypt.hash(superAdminPassword, 12)
   await prisma.user.upsert({
     where: { email: superAdminEmail },
-    update: {},
+    update: {
+      password: superAdminHash,
+      name: process.env.SEED_SUPER_ADMIN_NAME || 'Super Administrator',
+      role: 'SUPER_ADMIN',
+      isActive: true,
+    },
     create: {
       email: superAdminEmail,
       password: superAdminHash,
-      name: 'Super Administrator',
+      name: process.env.SEED_SUPER_ADMIN_NAME || 'Super Administrator',
       role: 'SUPER_ADMIN',
       isActive: true,
     },
@@ -258,7 +264,12 @@ async function main() {
   const globalAdminHash = await bcrypt.hash(globalAdminPassword, 12)
   await prisma.user.upsert({
     where: { email: globalAdminEmail },
-    update: {},
+    update: {
+      password: globalAdminHash,
+      name: process.env.SEED_ADMIN_NAME || 'Global Administrator',
+      role: 'GLOBAL_ADMIN',
+      isActive: true,
+    },
     create: {
       email: globalAdminEmail,
       password: globalAdminHash,
@@ -315,7 +326,7 @@ async function main() {
 
   console.log('\n🎉 Seed complete!')
   console.log('─────────────────────────────────────────')
-  console.log(`SUPER_ADMIN  → ${superAdminEmail} / ChangeMe@SuperAdmin1`)
+  console.log(`SUPER_ADMIN  → ${superAdminEmail} / ${superAdminPassword}`)
   console.log(`GLOBAL_ADMIN → ${globalAdminEmail} / ${globalAdminPassword}`)
   console.log('⚠️  Change passwords immediately after first login!')
   console.log('─────────────────────────────────────────')

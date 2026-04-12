@@ -2,14 +2,22 @@ import { PrismaClient } from '@prisma/client'
 
 const globalForPrisma = globalThis
 
-const prisma = globalForPrisma.prisma ?? new PrismaClient({
+const prismaOptions = {
   log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
-  datasources: {
+}
+
+// Only override datasources if the URL is actually present.
+// This prevents Prisma from throwing a validation error during build time
+// (e.g., when collecting page data for layouts or static pages).
+if (process.env.DATABASE_URL) {
+  prismaOptions.datasources = {
     db: {
       url: process.env.DATABASE_URL,
     },
-  },
-})
+  }
+}
+
+const prisma = globalForPrisma.prisma ?? new PrismaClient(prismaOptions)
 
 if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma
