@@ -20,20 +20,23 @@ export default async function AssembliesPage() {
 
   return (
     <div className="section-ivory min-h-screen">
-      <div className="py-8 px-6">
-        <BackButton variant="outline" />
-      </div>
-      <div className="section-container">
-
-        {/* Header — title only, no CTA */}
-        <div className="text-center mb-16">
-          <SectionHeader
-            label="Our Family"
-            title="Our Assemblies"
-            subtitle="A global family committed to Igniting Faith, Transforming Lives, and Reaching Nations."
-            centered
-          />
+      {/* Header */}
+      <div
+        className="relative py-24 px-6 text-white text-center"
+        style={{ background: 'linear-gradient(135deg, var(--purple-900), var(--purple-700))' }}
+      >
+        <BackButton className="absolute top-8 left-8 z-20" />
+        <div className="absolute top-0 right-0 w-80 h-80 rounded-full opacity-10" style={{ background: 'var(--gold-500)', transform: 'translate(30%,-30%)' }} />
+        <div className="relative z-10 max-w-2xl mx-auto">
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5" style={{ background: 'rgba(255,179,0,0.15)' }}>
+            <Users size={24} style={{ color: 'var(--gold-500)' }} />
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold mb-3" style={{ fontFamily: 'var(--font-serif)' }}>Our Assemblies</h1>
+          <p className="text-white/60">A global family committed to Igniting Faith, Transforming Lives, and Reaching Nations.</p>
         </div>
+      </div>
+
+      <div className="section-container mt-16">
 
         {/* All assemblies in one grid — HQ always first */}
         {assemblies.length > 0 ? (
