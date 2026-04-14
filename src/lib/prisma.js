@@ -21,11 +21,24 @@ let prisma = globalForPrisma.prisma
 
 // If cached prisma is missing new models, recreate it
 if (prisma && (!prisma.serviceData || !prisma.growthStage || !prisma.visitor)) {
+  // We don't await because it's top-level, but we trigger the disconnect
+  prisma.$disconnect().catch(() => {})
   prisma = undefined
 }
 
 if (!prisma) {
-  prisma = new PrismaClient(prismaOptions)
+  const finalOptions = { ...prismaOptions }
+  
+  // For development with HMR, use a very small connection pool to avoid "too many connections"
+  if (process.env.NODE_ENV !== 'production' && finalOptions.datasources?.db?.url) {
+    const url = new URL(finalOptions.datasources.db.url)
+    if (!url.searchParams.has('connection_limit')) {
+      url.searchParams.set('connection_limit', '3')
+      finalOptions.datasources.db.url = url.toString()
+    }
+  }
+
+  prisma = new PrismaClient(finalOptions)
 }
 
 if (process.env.NODE_ENV !== 'production') {
