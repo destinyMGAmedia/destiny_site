@@ -13,10 +13,16 @@ export const metadata = {
 export const revalidate = 60
 
 export default async function AssembliesPage() {
-  const assemblies = await prisma.assembly.findMany({
-    where: { isActive: true },
-    orderBy: [{ isHQ: 'desc' }, { name: 'asc' }],
-  })
+  let assemblies = []
+  try {
+    assemblies = await prisma.assembly.findMany({
+      where: { isActive: true },
+      orderBy: [{ isHQ: 'desc' }, { name: 'asc' }],
+    })
+  } catch (error) {
+    console.error('Error loading assemblies:', error)
+    // Return empty array if database fails, page will show "no assemblies" message
+  }
 
   return (
     <div className="section-ivory min-h-screen">

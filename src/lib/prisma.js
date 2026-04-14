@@ -15,6 +15,9 @@ if (process.env.DATABASE_URL) {
       url: process.env.DATABASE_URL,
     },
   }
+} else if (process.env.NODE_ENV === 'production') {
+  // In production, DATABASE_URL should always be set
+  console.warn('[PRISMA_WARN] DATABASE_URL not found in production environment')
 }
 
 let prisma = globalForPrisma.prisma
@@ -43,6 +46,13 @@ if (!prisma) {
         url.searchParams.set('connection_limit', limit)
         finalOptions.datasources.db.url = url.toString()
       }
+      
+      // Add connection timeout for Vercel deployments
+      if (!url.searchParams.has('connect_timeout')) {
+        url.searchParams.set('connect_timeout', '60')
+      }
+      
+      finalOptions.datasources.db.url = url.toString()
       console.log(`[PRISMA_INIT] Environment: ${process.env.NODE_ENV}. Pool limit: ${url.searchParams.get('connection_limit')}`)
     } catch (e) {
       console.warn('[PRISMA_INIT] Failed to parse DATABASE_URL to add connection_limit', e)
@@ -57,7 +67,18 @@ if (!prisma) {
   } catch (err) {
     console.error('[PRISMA_FATAL] Failed to instantiate PrismaClient:', err)
     // Create a dummy client to avoid Proxy crash, but it will fail on query
-    prisma = { $connect: async () => {}, $disconnect: async () => {} }
+    prisma = { 
+      $connect: async () => { throw new Error('Database connection unavailable') }, 
+      $disconnect: async () => {},
+      // Add stubs for common model operations to prevent crashes
+      assembly: { findUnique: async () => null, findMany: async () => [] },
+      user: { findUnique: async () => null, findMany: async () => [] },
+      heroSlide: { findMany: async () => [] },
+      youtubeChannel: { findUnique: async () => null },
+      event: { findMany: async () => [] },
+      devotional: { findFirst: async () => null },
+      game: { findFirst: async () => null }
+    }
   }
 }
 
@@ -115,4 +136,5 @@ const handler = {
   },
 }
 
-export default new Proxy(prisma, handler)
+const prismaWithProxy = new Proxy(prisma, handler)
+export default prismaWithProxy
