@@ -1,5 +1,6 @@
 import './globals.css'
 import SessionProvider from '@/components/layout/SessionProvider'
+import ErrorBoundary from '@/components/ui/ErrorBoundary'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 
@@ -22,14 +23,22 @@ export const metadata = {
 }
 
 export default async function RootLayout({ children }) {
-  const session = await getServerSession(authOptions)
+  let session = null
+  try {
+    session = await getServerSession(authOptions)
+  } catch (error) {
+    console.error('Error getting server session:', error)
+    // Continue with null session - auth will handle it
+  }
 
   return (
     <html lang="en" data-scroll-behavior="smooth">
       <body>
-        <SessionProvider session={session}>
-          {children}
-        </SessionProvider>
+        <ErrorBoundary>
+          <SessionProvider session={session}>
+            {children}
+          </SessionProvider>
+        </ErrorBoundary>
       </body>
     </html>
   )

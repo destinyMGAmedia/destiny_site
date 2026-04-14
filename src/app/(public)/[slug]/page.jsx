@@ -17,60 +17,73 @@ import JoinUsQR from '@/components/assembly/JoinUsQR'
 import TeamSection from '@/components/assembly/TeamSection'
 
 export async function generateMetadata({ params }) {
-  const { slug } = await params
-  const assembly = await prisma.assembly.findUnique({
-    where: { slug, isActive: true },
-    select: { name: true, tagline: true, city: true },
-  })
-  if (!assembly) return { title: 'Not Found' }
-  return {
-    title: assembly.name,
-    description: assembly.tagline || `${assembly.name} — Destiny Mission Global Assembly, ${assembly.city}`,
+  try {
+    const { slug } = await params
+    const assembly = await prisma.assembly.findUnique({
+      where: { slug, isActive: true },
+      select: { name: true, tagline: true, city: true },
+    })
+    if (!assembly) return { title: 'Assembly Not Found' }
+    return {
+      title: assembly.name,
+      description: assembly.tagline || `${assembly.name} — Destiny Mission Global Assembly, ${assembly.city}`,
+    }
+  } catch (error) {
+    console.error('Error generating metadata:', error)
+    return {
+      title: 'Assembly',
+      description: 'Destiny Mission Global Assembly'
+    }
   }
 }
 
 export default async function AssemblyPage({ params }) {
-  const { slug } = await params
-  const assembly = await prisma.assembly.findUnique({
-    where: { slug, isActive: true },
-    include: {
-      sections: {
-        where: { isVisible: true },
-        orderBy: { position: 'asc' },
-      },
-      teamMembers: { orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }] },
-      events: {
-        where: { startDate: { gte: new Date() } },
-        orderBy: { startDate: 'asc' },
-        take: 6,
-      },
-      givingDetails: true,
-      testimonies: {
-        where: { isApproved: true },
-        orderBy: { createdAt: 'desc' },
-        take: 8,
-      },
-      mediaItems: {
-        orderBy: { createdAt: 'desc' },
-        take: 9,
-      },
-      audioContent: {
-        orderBy: { publishedAt: 'desc' },
-        take: 4,
-      },
-      arkCenters: {
-        where: { isActive: true },
-        include: {
-          leader: {
-            select: { firstName: true, lastName: true, photo: true }
-          }
+  try {
+    const { slug } = await params
+    const assembly = await prisma.assembly.findUnique({
+      where: { slug, isActive: true },
+      include: {
+        sections: {
+          where: { isVisible: true },
+          orderBy: { position: 'asc' },
         },
-        orderBy: { name: 'asc' }
-      }
-    },
-  })
+        teamMembers: { orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }] },
+        events: {
+          where: { startDate: { gte: new Date() } },
+          orderBy: { startDate: 'asc' },
+          take: 6,
+        },
+        givingDetails: true,
+        testimonies: {
+          where: { isApproved: true },
+          orderBy: { createdAt: 'desc' },
+          take: 8,
+        },
+        mediaItems: {
+          orderBy: { createdAt: 'desc' },
+          take: 9,
+        },
+        audioContent: {
+          orderBy: { publishedAt: 'desc' },
+          take: 4,
+        },
+        arkCenters: {
+          where: { isActive: true },
+          include: {
+            leader: {
+              select: { firstName: true, lastName: true, photo: true }
+            }
+          },
+          orderBy: { name: 'asc' }
+        }
+      },
+    })
 
-  if (!assembly) notFound()
+    if (!assembly) notFound()
+  } catch (error) {
+    console.error('Error loading assembly:', error)
+    notFound()
+  }
 
   // Build anchor nav from visible sections (excluding HERO which is above the fold)
   const anchorSections = assembly.sections.filter((s) => s.type !== 'HERO')
