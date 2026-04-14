@@ -43,6 +43,21 @@ if (!prisma) {
         url.searchParams.set('connection_limit', limit)
         finalOptions.datasources.db.url = url.toString()
       }
+<<<<<<< Updated upstream
+=======
+      
+      // Add connection timeout for Vercel deployments - reduce from 60 to 30 seconds
+      if (!url.searchParams.has('connect_timeout')) {
+        url.searchParams.set('connect_timeout', '30')
+      }
+      
+      // Add pool timeout to prevent hanging connections
+      if (!url.searchParams.has('pool_timeout')) {
+        url.searchParams.set('pool_timeout', '30')
+      }
+      
+      finalOptions.datasources.db.url = url.toString()
+>>>>>>> Stashed changes
       console.log(`[PRISMA_INIT] Environment: ${process.env.NODE_ENV}. Pool limit: ${url.searchParams.get('connection_limit')}`)
     } catch (e) {
       console.warn('[PRISMA_INIT] Failed to parse DATABASE_URL to add connection_limit', e)
@@ -92,15 +107,26 @@ const handler = {
                 const isConnErr =
                   err?.code === 'P1001' ||
                   err?.code === 'P1008' ||
+                  err?.code === 'P1017' ||
                   err?.message?.includes('ECONNREFUSED') ||
                   err?.message?.includes('Can\'t reach database') ||
-                  err?.message?.includes('Too many database connections')
+                  err?.message?.includes('Too many database connections') ||
+                  err?.message?.includes('Connection terminated') ||
+                  err?.message?.includes('Connection is closed')
                 
                 if (isConnErr && attempt < 2) {
-                  await new Promise(r => setTimeout(r, 1000 * (attempt + 1)))
-                  try { if (target.$connect) await target.$connect() } catch (_) {}
+                  const backoff = Math.min(1000 * Math.pow(2, attempt), 5000)
+                  await new Promise(r => setTimeout(r, backoff))
+                  try { 
+                    if (target.$connect) {
+                      await target.$disconnect().catch(() => {})
+                      await target.$connect()
+                    }
+                  } catch (_) {}
                   continue
                 }
+                
+                console.error(`[PRISMA_ERROR] Method ${methodName} failed after ${attempt + 1} attempts:`, err)
                 throw err
               }
             }
