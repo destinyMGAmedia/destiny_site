@@ -1,6 +1,6 @@
 import SectionHeader from '@/components/ui/SectionHeader'
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, User } from 'lucide-react'
 import BackButton from '@/components/ui/BackButton'
 
 export const metadata = {
@@ -16,6 +16,24 @@ const VALUES = [
   { title: 'Excellence', desc: 'We pursue excellence in all we do to honor God and serve His people with distinction.' },
   { title: 'Action', desc: 'We are doers of the Word, translating faith into practical demonstration and tangible results.' },
   { title: 'Devotion', desc: 'We maintain unwavering commitment to God, His Word, and our divine assignment.' },
+]
+
+const LEADERSHIP = [
+  { 
+    name: 'Rev. John Doe', 
+    role: 'Lead Pastor & Founder', 
+    desc: 'A visionary leader and teacher of the Word, Rev. John Doe has a passion for empowering believers to fulfill their divine destiny.' 
+  },
+  { 
+    name: 'Pastor Mary Doe', 
+    role: 'Co-Pastor', 
+    desc: 'A compassionate shepherd and intercessor, Pastor Mary Doe plays a vital role in nurturing families and strengthening the church community.' 
+  },
+  { 
+    name: 'Pastor David Smith', 
+    role: 'Youth & Outreach Pastor', 
+    desc: 'Committed to raising young leaders and reaching the lost through creative evangelism and mentorship.' 
+  }
 ]
 
 export default function AboutPage() {
@@ -46,14 +64,17 @@ export default function AboutPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-20">
           {[
             {
-              label: 'Our Vision',
+              label: 'Our Mission',
               title: 'A People of Destiny',
-              body: 'Bringing people and places into their destiny in God and raising dynamic leaders.',
+              body: <>
+                <p className="mb-4">At <strong>Destiny Mission Global Assembly</strong>, we are committed to bringing men, women, and children into their God-ordained destinies. Through powerful worship, transformative teaching, and genuine fellowship, we help believers discover and fulfill their divine purpose.</p>
+                <p>Our church is a place where lives are changed, families are restored, and destinies are realized through the power of God&apos;s Word and the Holy Spirit.</p>
+              </>,
             },
             {
-              label: 'Our Mission',
-              title: 'A road map to fulfil destiny',
-              body: 'To establish and advance the kingdom of God on earth by discerning His voice, declaring His will, and delivering His purpose.',
+              label: 'Our Vision',
+              title: 'Impact the World',
+              body: 'To be a beacon of hope and transformation in our community and beyond, raising up a generation of believers who walk in their God-given purpose and impact the world for Christ. We envision a church where every member is empowered to fulfill their destiny and make disciples who make disciples.',
             },
           ].map((item) => (
             <div
@@ -73,6 +94,7 @@ export default function AboutPage() {
         <div className="mb-20">
           <div className="text-center mb-12">
             <SectionHeader label="What We Stand For" title="Our Core Values" centered />
+            <h4 className="text-3xl font-black text-purple-900/10 mt-2 tracking-[0.5em] uppercase">VIP LEAD</h4>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {VALUES.map((v, i) => (
@@ -147,6 +169,31 @@ export default function AboutPage() {
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* CTA */}
+        <div className="mb-20">
+          <SectionHeader label="Anointed Direction" title="Our Leadership" centered />
+          <p className="text-center text-gray-500 max-w-2xl mx-auto mb-12">
+            Meet the anointed men and women leading Destiny Mission Global Assembly under God’s direction and grace.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {LEADERSHIP.map((leader) => (
+              <div key={leader.name} className="card p-0 overflow-hidden text-center group">
+                <div className="h-64 bg-purple-50 flex items-center justify-center relative overflow-hidden">
+                  <div className="w-24 h-24 rounded-full bg-purple-900/10 flex items-center justify-center text-purple-900 group-hover:scale-110 transition-transform">
+                    <User size={40} />
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-purple-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+                <div className="p-8">
+                  <h4 className="text-xl font-bold text-purple-900" style={{ fontFamily: 'var(--font-serif)' }}>{leader.name}</h4>
+                  <p className="text-gold-600 font-bold text-xs uppercase tracking-widest mb-4">{leader.role}</p>
+                  <p className="text-gray-500 text-sm leading-relaxed">{leader.desc}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 

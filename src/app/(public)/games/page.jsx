@@ -4,13 +4,21 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import SectionHeader from '@/components/ui/SectionHeader'
 import HomeBibleQuiz from '@/components/home/HomeBibleQuiz'
 import BibleWordSearch from '@/components/games/BibleWordSearch'
+import BibleCrossword from '@/components/games/BibleCrossword'
 import JourneyToHeaven from '@/components/games/JourneyToHeaven'
 import JourneyToHeavenFixed from '@/components/games/JourneyToHeavenFixed'
 import PromiseLand from '@/components/games/PromiseLand'
-import { Gamepad2, Trophy, HelpCircle, Map, Mountain, Maximize2, Minimize2, Keyboard, User, Save, RefreshCw, ChevronDown } from 'lucide-react'
+import { Gamepad2, Trophy, HelpCircle, Map, Mountain, Maximize2, Minimize2, Keyboard, User, Save, RefreshCw, ChevronDown, Grid3x3 } from 'lucide-react'
 import BackButton from '@/components/ui/BackButton'
 
 const TABS = [
+  { 
+    id: 'crossword', 
+    label: 'Crossword', 
+    icon: Grid3x3, 
+    color: 'text-purple-600',
+    desc: 'Solve the DMGA values puzzle. Use clues from our vision and mission to fill the grid.'
+  },
   { 
     id: 'promise', 
     label: 'Promise Land', 
@@ -44,7 +52,7 @@ const TABS = [
 export default function GamesPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [activeTab, setActiveTab] = useState('promise')
+  const [activeTab, setActiveTab] = useState('crossword')
   const gameContainerRef = useRef(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [showControls, setShowControls] = useState(false)
@@ -351,6 +359,19 @@ export default function GamesPage() {
             )}
 
             <div className="flex-1 w-full relative">
+               {activeTab === 'crossword' && (
+                 <div className="w-full py-20 px-6 flex items-center justify-center min-h-[600px]">
+                    <div className="w-full max-w-4xl mx-auto">
+                       <SectionHeader label="Values Puzzle" title="DMGA Crossword" centered />
+                       <div className="mt-12">
+                          <BibleCrossword 
+                            initialState={allProgress.crossword}
+                            onSave={(state) => saveProgress('crossword', state)}
+                          />
+                       </div>
+                    </div>
+                 </div>
+               )}
                {activeTab === 'promise' && (
                  <PromiseLand 
                    initialState={allProgress.promise} 

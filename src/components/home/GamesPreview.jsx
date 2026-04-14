@@ -2,31 +2,39 @@
 import { useState } from 'react'
 import SectionHeader from '@/components/ui/SectionHeader'
 import Link from 'next/link'
-import { ChevronRight, Gamepad2, Sparkles } from 'lucide-react'
+import { ChevronRight, Gamepad2, Sparkles, Grid3x3, Trophy, HelpCircle } from 'lucide-react'
+import BibleCrossword from '@/components/games/BibleCrossword'
+import BibleWordSearch from '@/components/games/BibleWordSearch'
+import HomeBibleQuiz from '@/components/home/HomeBibleQuiz'
 
 export default function GamesPreview({ featuredGame }) {
   const typeMap = {
+    CROSSWORD: 'crossword',
     WORDSEARCH: 'wordsearch',
     QUIZ: 'quiz',
     JOURNEY_TO_HEAVEN: 'journey'
   }
-  const defaultGame = featuredGame && typeMap[featuredGame.type] ? typeMap[featuredGame.type] : 'wordsearch'
+  const defaultGame = featuredGame && typeMap[featuredGame.type] ? typeMap[featuredGame.type] : 'crossword'
   const [activeGame, setActiveGame] = useState(defaultGame)
 
   const games = {
+    crossword: {
+      title: 'DMGA Crossword',
+      icon: <Grid3x3 size={16} />,
+      component: <BibleCrossword />,
+      desc: 'Solve the DMGA values puzzle based on our vision and mission.'
+    },
     wordsearch: {
       title: 'DMGA Word Search',
-      thumbnail: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80&w=800',
-      icon: <Sparkles size={14} className="text-gold-500" />
-    },
-    journey: {
-      title: 'Journey to Heaven',
-      thumbnail: 'https://images.unsplash.com/photo-1544652478-6653e09f18a2?auto=format&fit=crop&q=80&w=800',
-      isNew: true
+      icon: <Trophy size={16} />,
+      component: <BibleWordSearch />,
+      desc: 'Find hidden words from our core values in the grid.'
     },
     quiz: {
       title: 'Bible Challenge',
-      thumbnail: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=800',
+      icon: <HelpCircle size={16} />,
+      component: <HomeBibleQuiz />,
+      desc: 'Test your knowledge of the Word with 5 random questions.'
     }
   }
 
@@ -50,14 +58,17 @@ export default function GamesPreview({ featuredGame }) {
                   onClick={() => setActiveGame(id)}
                   className={`w-full text-left p-4 rounded-2xl border-2 transition-all duration-200 relative overflow-hidden group ${activeGame === id ? 'bg-white border-purple-600 shadow-md' : 'bg-white/50 border-transparent hover:border-purple-200'}`}
                 >
-                  {game.isNew && (
-                    <span className="absolute top-0 right-0 bg-gold-500 text-purple-900 text-[8px] font-black px-2 py-0.5 rounded-bl-lg uppercase tracking-widest">
-                      New
-                    </span>
-                  )}
-                  <h4 className={`font-bold text-sm ${activeGame === id ? 'text-purple-900' : 'text-gray-500'}`}>
-                    {game.title}
-                  </h4>
+                  <div className="flex items-center gap-3">
+                    <div className={`${activeGame === id ? 'text-purple-600' : 'text-gray-400'}`}>
+                      {game.icon}
+                    </div>
+                    <div>
+                      <h4 className={`font-bold text-sm ${activeGame === id ? 'text-purple-900' : 'text-gray-500'}`}>
+                        {game.title}
+                      </h4>
+                      {activeGame === id && <p className="text-[10px] text-gray-400 mt-1 leading-tight">{game.desc}</p>}
+                    </div>
+                  </div>
                 </button>
               ))}
             </div>
@@ -67,47 +78,32 @@ export default function GamesPreview({ featuredGame }) {
             </Link>
           </div>
 
-          {/* Right — thumbnail preview (3 cols) */}
+          {/* Right — actual game board (3 cols) */}
           <div
-            className="lg:col-span-3 rounded-[2.5rem] p-6 md:p-10 shadow-2xl border border-white min-h-[500px] flex flex-col group overflow-hidden relative"
-            style={{ background: 'var(--surface)' }}
+            className="lg:col-span-3 rounded-[2.5rem] p-6 md:p-10 shadow-2xl border border-white min-h-[500px] flex flex-col group overflow-hidden relative bg-white/40 backdrop-blur-sm"
           >
-            <div className="absolute inset-0 z-0">
-               <img 
-                 src={games[activeGame].thumbnail} 
-                 alt={games[activeGame].title}
-                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-40 mix-blend-overlay"
-               />
-               <div className="absolute inset-0 bg-gradient-to-t from-purple-950/80 to-transparent" />
-            </div>
-
             <div className="relative z-10 flex flex-col h-full">
-               <div className="mb-6 flex items-center justify-between border-b border-white/10 pb-4">
+               <div className="mb-8 flex items-center justify-between border-b border-purple-100 pb-4">
                   <div className="flex items-center gap-3">
-                     <h3 className="font-bold text-xl text-white" style={{ fontFamily: 'var(--font-serif)' }}>
+                     <h3 className="font-bold text-xl text-purple-900" style={{ fontFamily: 'var(--font-serif)' }}>
                         {games[activeGame].title}
                      </h3>
-                     {games[activeGame].icon}
+                     <span className="pill bg-purple-100 text-purple-600 text-[10px] font-black uppercase tracking-wider">
+                        Live Preview
+                     </span>
                   </div>
-                  <span className="pill bg-white/10 text-white text-[10px] font-black uppercase tracking-wider backdrop-blur-md">
-                     Preview Only
-                  </span>
+                  <Link 
+                    href={`/games?active=${activeGame}`}
+                    className="text-purple-600 hover:text-purple-900 text-xs font-bold flex items-center gap-1"
+                  >
+                    Play Full Screen <ChevronRight size={14} />
+                  </Link>
                </div>
                
-               <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
-                  <div className="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center mb-6 backdrop-blur-md border border-white/30 text-white animate-pulse">
-                     <Gamepad2 size={40} />
+               <div className="flex-1 flex flex-col items-center justify-center">
+                  <div className="w-full max-w-2xl transform scale-90 md:scale-100 origin-center transition-transform">
+                    {games[activeGame].component}
                   </div>
-                  <h4 className="text-3xl font-bold text-white mb-4">Ready to Play?</h4>
-                  <p className="text-white/70 max-w-md mb-8">
-                     Visit our dedicated games page to experience {games[activeGame].title} and other faith-building interactive adventures in full screen.
-                  </p>
-                  <Link 
-                    href={`/games?active=${activeGame}`} 
-                    className="bg-gold-500 hover:bg-gold-400 text-purple-950 px-8 py-3 rounded-full font-bold transition-all shadow-xl hover:shadow-gold-500/20"
-                  >
-                    Launch Full Game
-                  </Link>
                </div>
             </div>
           </div>

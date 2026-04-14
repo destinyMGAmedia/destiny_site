@@ -22,7 +22,17 @@ export async function POST(req) {
         
         const fullScheduledAt = new Date(scheduledDate)
         const [hours, minutes] = (publishTime || '00:00').split(':')
-        fullScheduledAt.setHours(parseInt(hours), parseInt(minutes), 0, 0)
+        
+        // Adjust based on targetTimezone to ensure it's stored in correct UTC
+        // Default WAT (UTC+1)
+        let offset = 1 
+        if (targetTimezone === 'USA_EAST') offset = -5
+        if (targetTimezone === 'USA_WEST') offset = -8
+
+        // Set hours in UTC based on the local target time and its offset
+        // UTC = Local - Offset
+        const utcHours = parseInt(hours) - offset
+        fullScheduledAt.setUTCHours(utcHours, parseInt(minutes), 0, 0)
 
         return prisma.devotional.create({
           data: {
