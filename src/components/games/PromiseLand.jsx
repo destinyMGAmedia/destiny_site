@@ -12,9 +12,12 @@ import {
   Float,
   Text,
   Html,
-  Loader
+  Loader,
+  useGLTF,
+  useAnimations,
+  Circle
 } from '@react-three/drei'
-import { Physics, RigidBody, CuboidCollider, CylinderCollider } from '@react-three/rapier'
+import { Physics, RigidBody, CuboidCollider, CylinderCollider, CapsuleCollider } from '@react-three/rapier'
 import { Bloom, EffectComposer, DepthOfField } from '@react-three/postprocessing'
 import * as THREE from 'three'
 
@@ -22,10 +25,60 @@ import * as THREE from 'three'
 const ROAD_WIDTH = 10
 const ROAD_LENGTH = 300
 const MOVE_SPEED = 10
-const JUMP_FORCE = 12
+const JUMP_FORCE = 8
+
+// --- Joshua Character Component ---
+const Joshua = ({ age, moving, jumping }) => {
+  // Use a more stable human model from Three.js examples
+  // Soldier.glb has: Idle, Walk, Run, TPose
+  const { scene, animations } = useGLTF('https://cdn.jsdelivr.net/gh/mrdoob/three.js@master/examples/models/gltf/Soldier.glb')
+  const group = useRef()
+  const { actions } = useAnimations(animations, group)
+
+  // Handle Age Evolutions - Adjusted scale and color
+  const ageConfig = {
+    boy: { scale: 0.6, color: '#4b2c20' },
+    adolescent: { scale: 0.8, color: '#4b2c20' },
+    youth: { scale: 1.0, color: '#4b2c20' },
+    adult: { scale: 1.1, color: '#4b2c20' },
+    advanced: { scale: 1.0, color: '#f3f4f6' },
+  }
+
+  const currentAge = ageConfig[age] || ageConfig.adult
+
+  useEffect(() => {
+    if (actions) {
+      // Soldier animations: 'Idle', 'Walk', 'Run'
+      const name = moving ? 'Run' : 'Idle'
+      const action = actions[name]
+      if (action) {
+        // Stop all other actions first
+        Object.values(actions).forEach(a => a?.fadeOut(0.2))
+        action.reset().fadeIn(0.2).play()
+      }
+    }
+  }, [actions, moving])
+
+  // Apply shadows and material tweaks
+  useEffect(() => {
+    scene.traverse((child) => {
+      if (child.isMesh) {
+        child.castShadow = true
+        child.receiveShadow = true
+        // For the boy stage, we can make it look younger via scale (already done)
+      }
+    })
+  }, [scene])
+
+  return (
+    <group ref={group} scale={currentAge.scale} position={[0, -0.9, 0]}>
+      <primitive object={scene} />
+    </group>
+  )
+}
 
 // --- Character Component ---
-const Character = ({ playerRef, onCollision }) => {
+const Character = ({ playerRef, onCollision, age, mobileMove, onFall }) => {
   const rigidBody = useRef()
   
   useEffect(() => {
@@ -36,24 +89,39 @@ const Character = ({ playerRef, onCollision }) => {
   
   // Camera follow state
   const cameraOffset = new THREE.Vector3(0, 5, 10)
-  const cameraTarget = new THREE.Vector3(0, 0, 0)
+
+  const [isMoving, setIsMoving] = useState(false)
+  const [isJumping, setIsJumping] = useState(false)
 
   useFrame((state, delta) => {
     if (!rigidBody.current) return
 
     const { forward, backward, left, right, jump } = getKeys()
     
-    // Get current velocity
+    // Combine Keyboard and Mobile Controls
+    const moveForward = forward || mobileMove.forward
+    const moveBackward = backward || mobileMove.backward
+    const moveLeft = left || mobileMove.left
+    const moveRight = right || mobileMove.right
+    const shouldJump = jump || mobileMove.jump
+    
+    // Get current position and velocity
+    const charPos = rigidBody.current.translation()
     const velocity = rigidBody.current.linvel()
     
+    // Fall Detection
+    if (charPos.y < -5) {
+      onFall()
+    }
+
     // Calculate target movement
     let xSpeed = 0
     let zSpeed = 0
     
-    if (forward) zSpeed -= MOVE_SPEED
-    if (backward) zSpeed += MOVE_SPEED
-    if (left) xSpeed -= MOVE_SPEED
-    if (right) xSpeed += MOVE_SPEED
+    if (moveForward) zSpeed -= MOVE_SPEED
+    if (moveBackward) zSpeed += MOVE_SPEED
+    if (moveLeft) xSpeed -= MOVE_SPEED
+    if (moveRight) xSpeed += MOVE_SPEED
 
     // Apply movement with smoothing
     rigidBody.current.setLinvel({ 
@@ -63,12 +131,17 @@ const Character = ({ playerRef, onCollision }) => {
     }, true)
 
     // Jump logic - check if touching ground (velocity.y close to 0)
-    if (jump && Math.abs(velocity.y) < 0.1) {
+    // We use a small epsilon for better detection
+    if (shouldJump && Math.abs(velocity.y) < 0.1) {
       rigidBody.current.applyImpulse({ x: 0, y: JUMP_FORCE, z: 0 }, true)
     }
 
+    // Update animation state
+    const moving = Math.abs(xSpeed) > 0.1 || Math.abs(zSpeed) > 0.1
+    setIsMoving(moving)
+    setIsJumping(Math.abs(velocity.y) > 0.2)
+
     // Camera follow - smoother interpolation
-    const charPos = rigidBody.current.translation()
     const targetCameraPos = new THREE.Vector3(
       charPos.x + cameraOffset.x,
       charPos.y + cameraOffset.y,
@@ -82,44 +155,124 @@ const Character = ({ playerRef, onCollision }) => {
   return (
     <RigidBody 
       ref={rigidBody} 
-      colliders="cuboid" 
+      colliders={false} 
       enabledRotations={[false, false, false]} 
       position={[0, 5, 0]}
       onIntersectionEnter={onCollision}
     >
-      <group>
-        {/* Simple Humanoid Shape */}
-        <mesh castShadow position={[0, 0.9, 0]}>
-          <capsuleGeometry args={[0.4, 1, 4, 16]} />
-          <meshStandardMaterial color="#8b5cf6" />
-        </mesh>
-        <mesh castShadow position={[0, 1.8, 0]}>
-          <sphereGeometry args={[0.3, 32, 32]} />
-          <meshStandardMaterial color="#8b5cf6" />
-        </mesh>
-      </group>
+      <CapsuleCollider args={[0.7, 0.4]} />
+      <Suspense fallback={<mesh><capsuleGeometry args={[0.4, 1, 4, 16]} /><meshStandardMaterial color="orange" opacity={0.5} transparent /></mesh>}>
+        <Joshua age={age} moving={isMoving} jumping={isJumping} />
+      </Suspense>
     </RigidBody>
   )
 }
 
 // --- World Components ---
-const WildernessRoad = () => {
+const WorldEnvironment = ({ stage }) => {
+  const roadLength = ROAD_LENGTH
+  const roadWidth = ROAD_WIDTH
+
   return (
     <RigidBody type="fixed" colliders="cuboid">
-      <mesh receiveShadow position={[0, -0.5, -ROAD_LENGTH / 2 + 10]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[ROAD_WIDTH, ROAD_LENGTH]} />
-        <meshStandardMaterial color="#d2b48c" roughness={1} />
+      {/* Ground based on stage */}
+      <mesh receiveShadow position={[0, -0.5, -roadLength / 2 + 10]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[roadWidth, roadLength]} />
+        <meshStandardMaterial 
+          color={
+            stage === 1 ? '#e2c391' : // Egypt (Sand)
+            stage === 2 ? '#1e40af' : // Red Sea (Water)
+            stage === 3 ? '#d2b48c' : // Wilderness (Dry)
+            stage === 4 ? '#365314' : // Mountains (Dark Green)
+            stage === 5 ? '#a8a29e' : // Jericho (Stone/Gray)
+            '#4ade80'                 // Canaan (Lush Green)
+          } 
+          roughness={1} 
+        />
       </mesh>
       
-      {/* Side barriers/rocks */}
-      <mesh receiveShadow position={[ROAD_WIDTH/2 + 1, 0, -ROAD_LENGTH / 2 + 10]}>
-        <boxGeometry args={[2, 1, ROAD_LENGTH]} />
-        <meshStandardMaterial color="#8b7355" />
-      </mesh>
-      <mesh receiveShadow position={[-ROAD_WIDTH/2 - 1, 0, -ROAD_LENGTH / 2 + 10]}>
-        <boxGeometry args={[2, 1, ROAD_LENGTH]} />
-        <meshStandardMaterial color="#8b7355" />
-      </mesh>
+      {/* Walls/Environment Features */}
+      {stage === 1 && (
+         <group>
+            {/* Pyramid-like shapes for Egypt */}
+            <mesh position={[8, 2, -20]}><coneGeometry args={[5, 10, 4]} /><meshStandardMaterial color="#c2a371" /></mesh>
+            <mesh position={[-8, 1, -50]}><coneGeometry args={[4, 8, 4]} /><meshStandardMaterial color="#c2a371" /></mesh>
+         </group>
+      )}
+
+      {stage === 2 && (
+         <group>
+            {/* High Water Walls for Red Sea Crossing */}
+            <mesh position={[roadWidth/2 + 2, 5, -roadLength/2 + 10]}>
+               <boxGeometry args={[1, 15, roadLength]} />
+               <meshStandardMaterial color="#3b82f6" transparent opacity={0.6} />
+            </mesh>
+            <mesh position={[-roadWidth/2 - 2, 5, -roadLength/2 + 10]}>
+               <boxGeometry args={[1, 15, roadLength]} />
+               <meshStandardMaterial color="#3b82f6" transparent opacity={0.6} />
+            </mesh>
+         </group>
+      )}
+
+      {stage === 3 && (
+         <group>
+            {/* Rocks for Wilderness */}
+            <mesh position={[4, 1, -40]}><dodecahedronGeometry args={[2]} /><meshStandardMaterial color="#8b7355" /></mesh>
+            <mesh position={[-5, 0.5, -90]}><dodecahedronGeometry args={[1.5]} /><meshStandardMaterial color="#8b7355" /></mesh>
+         </group>
+      )}
+
+      {stage === 4 && (
+         <group>
+            {/* Mountains and Forest for Victories */}
+            <mesh position={[7, 5, -50]}><coneGeometry args={[4, 15, 3]} /><meshStandardMaterial color="#3f3f37" /></mesh>
+            <mesh position={[-7, 4, -80]}><coneGeometry args={[3, 12, 3]} /><meshStandardMaterial color="#3f3f37" /></mesh>
+            <mesh position={[5, 2, -120]}><cylinderGeometry args={[0.3, 0.3, 3]} /><meshStandardMaterial color="#4b2c20" /></mesh>
+            <mesh position={[5, 4, -120]}><coneGeometry args={[2, 4, 8]} /><meshStandardMaterial color="#064e3b" /></mesh>
+         </group>
+      )}
+
+      {stage === 5 && (
+         <group>
+            {/* Jericho Walls */}
+            <mesh position={[0, 4, -ROAD_LENGTH + 50]}>
+               <boxGeometry args={[ROAD_WIDTH, 8, 2]} />
+               <meshStandardMaterial color="#78716c" />
+            </mesh>
+            <mesh position={[ROAD_WIDTH/2, 6, -ROAD_LENGTH + 50]}>
+               <boxGeometry args={[2, 12, 4]} />
+               <meshStandardMaterial color="#57534e" />
+            </mesh>
+            <mesh position={[-ROAD_WIDTH/2, 6, -ROAD_LENGTH + 50]}>
+               <boxGeometry args={[2, 12, 4]} />
+               <meshStandardMaterial color="#57534e" />
+            </mesh>
+         </group>
+      )}
+
+      {stage === 6 && (
+         <group>
+            {/* Trees for Canaan */}
+            <mesh position={[6, 2, -30]}><cylinderGeometry args={[0.5, 0.5, 4]} /><meshStandardMaterial color="#78350f" /></mesh>
+            <mesh position={[6, 5, -30]}><sphereGeometry args={[2]} /><meshStandardMaterial color="#166534" /></mesh>
+            <mesh position={[-6, 2, -60]}><cylinderGeometry args={[0.5, 0.5, 4]} /><meshStandardMaterial color="#78350f" /></mesh>
+            <mesh position={[-6, 5, -60]}><sphereGeometry args={[2]} /><meshStandardMaterial color="#166534" /></mesh>
+         </group>
+      )}
+      
+      {/* Side barriers */}
+      {stage !== 2 && (
+         <group>
+            <mesh receiveShadow position={[roadWidth/2 + 1, 0, -roadLength / 2 + 10]}>
+               <boxGeometry args={[2, 1, roadLength]} />
+               <meshStandardMaterial color="#8b7355" />
+            </mesh>
+            <mesh receiveShadow position={[-roadWidth/2 - 1, 0, -roadLength / 2 + 10]}>
+               <boxGeometry args={[2, 1, roadLength]} />
+               <meshStandardMaterial color="#8b7355" />
+            </mesh>
+         </group>
+      )}
     </RigidBody>
   )
 }
@@ -133,6 +286,7 @@ const Pickup = ({ position, type, color, label, onPickup }) => {
     <RigidBody 
       type="fixed" 
       position={position} 
+      colliders="ball"
       sensor 
       onIntersectionEnter={() => {
         setActive(false)
@@ -144,7 +298,9 @@ const Pickup = ({ position, type, color, label, onPickup }) => {
           <octahedronGeometry args={[0.5]} />
           <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.5} />
         </mesh>
-        <Text position={[0, 1, 0]} fontSize={0.3} color="white">{label}</Text>
+        <Suspense fallback={null}>
+           <Text position={[0, 1, 0]} fontSize={0.3} color="white">{label}</Text>
+        </Suspense>
       </Float>
     </RigidBody>
   )
@@ -177,7 +333,7 @@ const Temptation = ({ position, label, onHit, playerRef }) => {
         })
       } else {
         // Idle bobbing
-        const time = state.clock.getElapsedTime()
+        const time = performance.now() * 0.001
         rigidBody.current.setNextKinematicTranslation({
           x: position[0] + Math.sin(time + position[2]) * 2,
           y: position[1] + Math.cos(time * 2) * 0.5,
@@ -200,34 +356,104 @@ const Temptation = ({ position, label, onHit, playerRef }) => {
         <sphereGeometry args={[0.7, 16, 16]} />
         <meshStandardMaterial color="#ff0000" emissive="#ff0000" emissiveIntensity={1} wireframe />
       </mesh>
-      <Text position={[0, 1.2, 0]} fontSize={0.4} color="#ff4444">{label}</Text>
+      <Suspense fallback={null}>
+         <Text position={[0, 1.2, 0]} fontSize={0.4} color="#ff4444">{label}</Text>
+      </Suspense>
     </RigidBody>
   )
 }
 
-const Goal = ({ position, onWin }) => {
+const Goal = ({ position, onWin, stage }) => {
+  const goalLabels = {
+    1: 'RED SEA',
+    2: 'WILDERNESS',
+    3: 'VICTORIES',
+    4: 'JERICHO',
+    5: 'JORDAN',
+    6: 'CANAAN'
+  }
+  
   return (
-    <RigidBody type="fixed" position={position} sensor onIntersectionEnter={onWin}>
+    <RigidBody type="fixed" position={position} colliders="cuboid" sensor onIntersectionEnter={onWin}>
       <group>
         <mesh position={[0, 5, 0]}>
-          <torusGeometry args={[4, 0.1, 16, 100]} />
+          <torusGeometry args={[4, 0.2, 16, 100]} />
           <meshStandardMaterial color="gold" emissive="gold" emissiveIntensity={2} />
         </mesh>
-        <Text position={[0, 5, 0]} fontSize={1} color="gold">CANAAN</Text>
-        <pointLight color="gold" intensity={10} distance={20} />
+        <Suspense fallback={null}>
+           <Text position={[0, 5, 0]} fontSize={1.2} color="gold">{goalLabels[stage] || 'CANAAN'}</Text>
+        </Suspense>
+        <pointLight color="gold" intensity={15} distance={30} />
+        
+        {/* Visual "landing circle" on ground */}
+        <mesh rotation={[-Math.PI/2, 0, 0]} position={[0, 0.1, 0]}>
+           <ringGeometry args={[0, 5, 32]} />
+           <meshStandardMaterial color="gold" transparent opacity={0.3} />
+        </mesh>
       </group>
     </RigidBody>
   )
 }
 
+// --- Simple Error Boundary ---
+class GameErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = { hasError: false, error: null }
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error }
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <Html center>
+          <div className="bg-red-900/90 p-6 rounded-2xl border border-red-500 text-white text-center backdrop-blur-md min-w-[300px]">
+            <h3 className="text-xl font-bold mb-2">Connection Error</h3>
+            <p className="text-xs opacity-70 mb-4">The game could not load all spiritual assets. Please check your connection.</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="bg-white text-red-900 px-4 py-2 rounded-lg font-bold text-sm"
+            >
+              Reconnect
+            </button>
+          </div>
+        </Html>
+      )
+    }
+    return this.props.children
+  }
+}
+
 // --- Main Game Component ---
-export default function PromiseLand() {
+export default function PromiseLand({ initialState, onSave }) {
   const [gameKey, setGameKey] = useState(0)
   const playerRef = useRef()
   const [gameState, setGameState] = useState('playing') // playing, won, lost
-  const [spirit, setSpirit] = useState(100)
-  const [armors, setArmors] = useState([])
-  const [message, setMessage] = useState('Begin your journey to the Promise Land!')
+  const [stage, setStage] = useState(initialState?.stage || 1)
+  const [spirit, setSpirit] = useState(initialState?.spirit ?? 100)
+  const [lives, setLives] = useState(initialState?.lives ?? 3)
+  const [armors, setArmors] = useState(initialState?.armors || [])
+  const [message, setMessage] = useState('Joshua in Egypt: Prepare for the Passover!')
+  const lastHitTime = useRef(0)
+
+  // Save progress whenever important state changes
+  useEffect(() => {
+    if (gameState === 'playing' && onSave) {
+      onSave({ stage, spirit, armors, lives })
+    }
+  }, [stage, spirit, armors, lives, gameState, onSave])
+  
+  // Character Age Logic
+  const getAgeByStage = (s) => {
+    if (s === 1) return 'boy'
+    if (s === 2) return 'adolescent'
+    if (s === 3) return 'youth'
+    if (s === 4) return 'adult'
+    if (s === 5) return 'adult'
+    return 'advanced'
+  }
+  const age = getAgeByStage(stage)
 
   const map = useMemo(() => [
     { name: 'forward', keys: ['ArrowUp', 'KeyW'] },
@@ -248,35 +474,97 @@ export default function PromiseLand() {
   }
 
   const handleHit = (label) => {
+    const now = Date.now()
+    if (now - lastHitTime.current < 2000) return // 2s cooldown
+    lastHitTime.current = now
+
     const damage = armors.length > 0 ? 10 : 20
-    setSpirit(prev => {
-      const next = prev - damage
-      if (next <= 0) setGameState('lost')
-      return Math.max(0, next)
-    })
-    setMessage(`Tempted by ${label}! Spirit weakened.`)
+    const nextSpirit = spirit - damage
+
+    if (nextSpirit <= 0) {
+      if (lives > 1) {
+        setLives(l => l - 1)
+        setSpirit(100)
+        setGameKey(k => k + 1) // Reset current stage position
+        setMessage(`Spirit exhausted! One life lost. Joshua perseveres.`)
+      } else {
+        setLives(0)
+        setSpirit(0)
+        setGameState('lost')
+        setMessage(`All lives lost! Joshua's journey has ended for now.`)
+      }
+    } else {
+      setSpirit(nextSpirit)
+      setMessage(`Tempted by ${label}! Spirit weakened.`)
+    }
   }
 
   const handleWin = () => {
-    setGameState('won')
-    setMessage('Hallelujah! You have reached Canaan!')
+    if (stage < 6) {
+      setStage(prev => prev + 1)
+      setSpirit(100)
+      const stageMsgs = {
+        2: 'Miracle at the Red Sea: Follow the path!',
+        3: 'Into the Wilderness: Joshua leads the way!',
+        4: 'Victories in battle: Jericho is near!',
+        5: 'The Walls of Jericho: Faith will bring them down!',
+        6: 'Entering Canaan: The Promise Land at last!'
+      }
+      setMessage(stageMsgs[stage + 1])
+      setGameKey(k => k + 1) // Reset position for next stage
+    } else {
+      setGameState('won')
+      setMessage('Hallelujah! Joshua has led the people into Canaan!')
+    }
+  }
+
+  const handleFall = () => {
+    if (gameState === 'playing') {
+      if (lives > 1) {
+        setLives(l => l - 1)
+        setSpirit(100)
+        setGameKey(k => k + 1) // Reset current stage position
+        setMessage(`You fell! One life lost. Try again from the start of this stage.`)
+      } else {
+        setLives(0)
+        setSpirit(0)
+        setGameState('lost')
+        setMessage('You fell off the path! All lives lost.')
+      }
+    }
   }
 
   const restart = () => {
     setGameKey(k => k + 1)
     setSpirit(100)
     setArmors([])
+    setStage(1)
+    setLives(3)
     setGameState('playing')
-    setMessage('Begin your journey to the Promise Land!')
+    setMessage('Joshua in Egypt: Prepare for the Passover!')
   }
 
+  // Mobile Controls Handling
+  const [mobileMove, setMobileMove] = useState({ forward: false, backward: false, left: false, right: false, jump: false })
+
   return (
-    <div className="relative w-full h-[600px] bg-sky-400 rounded-3xl overflow-hidden shadow-2xl">
+    <div className="relative w-full h-[600px] lg:h-screen bg-sky-400 rounded-none overflow-hidden shadow-2xl">
       {/* UI Overlay */}
-      <div className="absolute top-6 left-6 z-10 pointer-events-none">
+      <div className="absolute top-6 left-6 z-10 pointer-events-none space-y-4">
         <div className="bg-white/20 backdrop-blur-md p-4 rounded-2xl border border-white/30 text-white min-w-[200px]">
+          <div className="flex items-center justify-between gap-4 mb-3 pb-3 border-b border-white/10">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-70">Lives</span>
+            <div className="flex gap-1.5">
+               {[...Array(3)].map((_, i) => (
+                  <div 
+                    key={i} 
+                    className={`w-3.5 h-3.5 rounded-full border-2 border-white/20 transition-all duration-500 ${i < lives ? 'bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.8)]' : 'bg-gray-800/50'}`} 
+                  />
+               ))}
+            </div>
+          </div>
           <div className="flex items-center justify-between gap-4 mb-2">
-            <span className="text-xs font-bold uppercase tracking-widest">Spirit Meter</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-70">Spirit Meter</span>
             <span className="text-xs font-bold">{spirit}%</span>
           </div>
           <div className="w-full h-3 bg-gray-800/50 rounded-full overflow-hidden mb-4 border border-white/10">
@@ -296,10 +584,30 @@ export default function PromiseLand() {
             )}
           </div>
         </div>
+
+        <div className="bg-purple-900/60 backdrop-blur-md p-4 rounded-2xl border border-white/10 text-white min-w-[200px]">
+           <div className="text-[10px] font-black uppercase tracking-[0.2em] opacity-70 mb-1">Current Objective</div>
+           <div className="text-sm font-bold text-gold-400">
+              {stage === 1 && 'Cross the Red Sea'}
+              {stage === 2 && 'Navigate the Water'}
+              {stage === 3 && 'Survive the Wilderness'}
+              {stage === 4 && 'Achieve Victory'}
+              {stage === 5 && 'Collapse Jericho Walls'}
+              {stage === 6 && 'Inherit Canaan'}
+           </div>
+           <div className="mt-2 flex items-center gap-2">
+              <span className="px-2 py-0.5 bg-white/10 rounded text-[9px] font-bold uppercase tracking-widest">
+                 Joshua: {age}
+              </span>
+              <span className="px-2 py-0.5 bg-gold-500/20 text-gold-400 rounded text-[9px] font-bold uppercase tracking-widest">
+                 Stage {stage}/6
+              </span>
+           </div>
+        </div>
       </div>
 
       {/* Message Overlay */}
-      <div className="absolute top-6 right-6 z-10">
+      <div className="absolute top-6 right-6 z-10 hidden md:block">
         <div className="bg-black/40 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10 text-white shadow-xl animate-in fade-in slide-in-from-top-2">
           <p className="text-sm font-medium tracking-tight italic">
             &quot;{message}&quot;
@@ -308,78 +616,154 @@ export default function PromiseLand() {
       </div>
 
       {gameState !== 'playing' && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/70 backdrop-blur-md p-6 text-center animate-in fade-in duration-500">
+        <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/70 backdrop-blur-md p-6 text-center animate-in fade-in duration-500">
           <div className="max-w-md w-full">
             <h2 className={`text-5xl font-bold mb-4 ${gameState === 'won' ? 'text-gold-400' : 'text-red-500'}`} style={{ fontFamily: 'var(--font-serif)' }}>
-              {gameState === 'won' ? 'CANAAN REACHED!' : 'SPIRIT DEPLETED'}
+              {gameState === 'won' ? 'CANAAN REACHED!' : 'JOURNEY FAILED'}
             </h2>
             <p className="text-white/70 text-lg mb-8">
               {gameState === 'won' 
-                ? 'Hallelujah! You have successfully navigated the wilderness and reached the Promise Land.' 
-                : 'The temptations of the wilderness were too great. Seek revival and try again!'}
+                ? 'Hallelujah! Joshua has successfully led the people into the Promise Land of Canaan.' 
+                : 'The trials of the journey were too great. Seek revival and try again!'}
             </p>
             <button 
               onClick={restart}
               className={`px-10 py-4 rounded-2xl font-bold text-lg shadow-2xl transition-all active:scale-95 ${gameState === 'won' ? 'bg-gold-500 text-purple-900' : 'bg-red-600 text-white'}`}
             >
-              {gameState === 'won' ? 'Journey Again' : 'Seek Revival'}
+              {gameState === 'won' ? 'Restart Journey' : 'Seek Revival'}
             </button>
           </div>
         </div>
       )}
 
+      {/* Mobile Controls UI */}
+      <div className="absolute bottom-8 right-8 z-20 md:hidden flex flex-col items-center gap-2">
+         <button 
+            className={`w-16 h-16 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center active:bg-white/40`}
+            onTouchStart={() => setMobileMove(p => ({ ...p, jump: true }))}
+            onTouchEnd={() => setMobileMove(p => ({ ...p, jump: false }))}
+         >
+            <span className="font-bold text-white">JUMP</span>
+         </button>
+      </div>
+
+      <div className="absolute bottom-8 left-8 z-20 md:hidden grid grid-cols-3 gap-2">
+         <div />
+         <button 
+            className="w-12 h-12 bg-white/20 backdrop-blur-md border border-white/30 rounded-xl flex items-center justify-center"
+            onTouchStart={() => setMobileMove(p => ({ ...p, forward: true }))}
+            onTouchEnd={() => setMobileMove(p => ({ ...p, forward: false }))}
+         >
+            <span className="text-white">↑</span>
+         </button>
+         <div />
+         <button 
+            className="w-12 h-12 bg-white/20 backdrop-blur-md border border-white/30 rounded-xl flex items-center justify-center"
+            onTouchStart={() => setMobileMove(p => ({ ...p, left: true }))}
+            onTouchEnd={() => setMobileMove(p => ({ ...p, left: false }))}
+         >
+            <span className="text-white">←</span>
+         </button>
+         <button 
+            className="w-12 h-12 bg-white/20 backdrop-blur-md border border-white/30 rounded-xl flex items-center justify-center"
+            onTouchStart={() => setMobileMove(p => ({ ...p, backward: true }))}
+            onTouchEnd={() => setMobileMove(p => ({ ...p, backward: false }))}
+         >
+            <span className="text-white">↓</span>
+         </button>
+         <button 
+            className="w-12 h-12 bg-white/20 backdrop-blur-md border border-white/30 rounded-xl flex items-center justify-center"
+            onTouchStart={() => setMobileMove(p => ({ ...p, right: true }))}
+            onTouchEnd={() => setMobileMove(p => ({ ...p, right: false }))}
+         >
+            <span className="text-white">→</span>
+         </button>
+      </div>
+
       <KeyboardControls map={map} key={gameKey}>
-        <Canvas shadows>
-          <Suspense fallback={<Html center><div className="text-white font-bold">Initializing Game World...</div></Html>}>
-            <Sky sunPosition={[100, 20, 100]} />
-            <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
-            <ambientLight intensity={0.8} />
-            <directionalLight 
-              position={[10, 20, 10]} 
-              intensity={2.5} 
-              castShadow 
-              shadow-camera-left={-20}
-              shadow-camera-right={20}
-              shadow-camera-top={20}
-              shadow-camera-bottom={-20}
-            />
+        <Canvas shadows="pcf">
+          <Suspense fallback={<Html center><div className="text-white font-bold flex flex-col items-center gap-4">
+            <div className="w-12 h-12 border-4 border-white/20 border-t-white rounded-full animate-spin" />
+            Initializing Level {stage}...
+          </div></Html>}>
+            <GameErrorBoundary>
+              <Sky sunPosition={[100, 20, 100]} />
+              <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
+              <ambientLight intensity={0.8} />
+              <directionalLight 
+                position={[10, 20, 10]} 
+                intensity={2.5} 
+                castShadow 
+                shadow-camera-left={-20}
+                shadow-camera-right={20}
+                shadow-camera-top={20}
+                shadow-camera-bottom={-20}
+              />
 
-            <Physics gravity={[0, -20, 0]}>
-              <WildernessRoad />
-              <Character playerRef={playerRef} />
-              
-              {/* Armors */}
-              <Pickup position={[0, 1.5, -30]} type="helmet" color="#fbbf24" label="Helmet of Salvation" onPickup={handlePickup} />
-              <Pickup position={[3, 1.5, -80]} type="shield" color="#3b82f6" label="Shield of Faith" onPickup={handlePickup} />
-              <Pickup position={[-3, 1.5, -130]} type="sword" color="#ef4444" label="Sword of Spirit" onPickup={handlePickup} />
-              <Pickup position={[2, 1.5, -180]} type="breastplate" color="#ec4899" label="Breastplate of Righteousness" onPickup={handlePickup} />
-              
-              {/* Miracles */}
-              <Pickup position={[0, 1.5, -60]} type="manna" color="#ffffff" label="Manna from Heaven" onPickup={handlePickup} />
-              <Pickup position={[4, 1.5, -150]} type="water" color="#60a5fa" label="Water from Rock" onPickup={handlePickup} />
+              <Physics gravity={[0, -25, 0]}>
+                <WorldEnvironment stage={stage} />
+                <Character 
+                  playerRef={playerRef} 
+                  age={age} 
+                  onCollision={() => {}} 
+                  mobileMove={mobileMove}
+                  onFall={handleFall}
+                />
+                
+                {/* Armors & Miracles (Positioned based on stage) */}
+                {stage === 1 && (
+                   <>
+                     <Pickup position={[0, 1, -30]} type="helmet" color="#fbbf24" label="Passover Lamb" onPickup={handlePickup} />
+                     <Pickup position={[2, 1, -60]} type="manna" color="#ffffff" label="Unleavened Bread" onPickup={handlePickup} />
+                   </>
+                )}
+                
+                {stage === 2 && (
+                   <>
+                     <Pickup position={[0, 1, -50]} type="water" color="#60a5fa" label="The Dry Path" onPickup={handlePickup} />
+                     <Pickup position={[-3, 1, -100]} type="shield" color="#3b82f6" label="Faith in the Deep" onPickup={handlePickup} />
+                   </>
+                )}
 
-              {/* Temptations */}
-              <Temptation position={[2, 2, -45]} label="Envy" onHit={handleHit} playerRef={playerRef} />
-              <Temptation position={[-3, 2, -100]} label="Malice" onHit={handleHit} playerRef={playerRef} />
-              <Temptation position={[0, 2, -160]} label="Pride" onHit={handleHit} playerRef={playerRef} />
-              <Temptation position={[4, 2, -220]} label="Fornication" onHit={handleHit} playerRef={playerRef} />
-              <Temptation position={[-4, 2, -260]} label="Idolatry" onHit={handleHit} playerRef={playerRef} />
+                {stage === 3 && (
+                   <>
+                     <Pickup position={[3, 1, -80]} type="manna" color="#ffffff" label="Manna" onPickup={handlePickup} />
+                     <Pickup position={[-3, 1, -130]} type="sword" color="#ef4444" label="Sword of Truth" onPickup={handlePickup} />
+                   </>
+                )}
 
-              <Goal position={[0, 0, -ROAD_LENGTH + 20]} onWin={handleWin} />
-            </Physics>
+                {stage === 4 && (
+                   <>
+                     <Pickup position={[2, 1, -180]} type="breastplate" color="#ec4899" label="Jericho Victory" onPickup={handlePickup} />
+                   </>
+                )}
 
-            <EffectComposer>
-              <Bloom luminanceThreshold={1} luminanceSmoothing={0.9} height={300} />
-              <DepthOfField focusDistance={0} focalLength={0.02} bounce={0.1} />
-            </EffectComposer>
+                {stage === 5 && (
+                   <>
+                     <Pickup position={[0, 1, -150]} type="sword" color="#ef4444" label="Seven Trumpets" onPickup={handlePickup} />
+                   </>
+                )}
+
+                {/* Temptations */}
+                <Temptation position={[2, 1.2, -45]} label="Fear" onHit={handleHit} playerRef={playerRef} />
+                <Temptation position={[-3, 1.2, -100]} label="Murmuring" onHit={handleHit} playerRef={playerRef} />
+                <Temptation position={[0, 1.2, -160]} label="Idolatry" onHit={handleHit} playerRef={playerRef} />
+
+                <Goal position={[0, 0, -ROAD_LENGTH + 20]} onWin={handleWin} stage={stage} />
+              </Physics>
+
+              <EffectComposer>
+                <Bloom luminanceThreshold={1} luminanceSmoothing={0.9} height={300} />
+              </EffectComposer>
+            </GameErrorBoundary>
           </Suspense>
         </Canvas>
       </KeyboardControls>
       
       <Loader />
 
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 text-white/50 text-xs uppercase font-bold tracking-widest">
-        WASD to Move • SPACE to Jump • Reach Canaan
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 text-white/50 text-xs uppercase font-bold tracking-widest hidden md:block">
+        WASD to Move • SPACE to Jump • Lead the people
       </div>
     </div>
   )

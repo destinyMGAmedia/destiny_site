@@ -1,9 +1,6 @@
 'use client'
 import { useState } from 'react'
 import SectionHeader from '@/components/ui/SectionHeader'
-import HomeBibleQuiz from '@/components/home/HomeBibleQuiz'
-import BibleWordSearch from '@/components/games/BibleWordSearch'
-import JourneyToHeaven from '@/components/games/JourneyToHeaven'
 import Link from 'next/link'
 import { ChevronRight, Gamepad2, Sparkles } from 'lucide-react'
 
@@ -19,17 +16,17 @@ export default function GamesPreview({ featuredGame }) {
   const games = {
     wordsearch: {
       title: 'DMGA Word Search',
-      component: <BibleWordSearch />,
+      thumbnail: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80&w=800',
       icon: <Sparkles size={14} className="text-gold-500" />
     },
     journey: {
       title: 'Journey to Heaven',
-      component: <JourneyToHeaven />,
+      thumbnail: 'https://images.unsplash.com/photo-1544652478-6653e09f18a2?auto=format&fit=crop&q=80&w=800',
       isNew: true
     },
     quiz: {
       title: 'Bible Challenge',
-      component: <HomeBibleQuiz />
+      thumbnail: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=800',
     }
   }
 
@@ -66,28 +63,52 @@ export default function GamesPreview({ featuredGame }) {
             </div>
 
             <Link href="/games" className="btn-secondary w-full justify-center gap-2 text-sm">
-              <Gamepad2 size={16} /> View All Games <ChevronRight size={14} />
+              <Gamepad2 size={16} /> Play All Games <ChevronRight size={14} />
             </Link>
           </div>
 
-          {/* Right — playable game board (3 cols) */}
+          {/* Right — thumbnail preview (3 cols) */}
           <div
-            className="lg:col-span-3 rounded-[2.5rem] p-6 md:p-10 shadow-2xl border border-white min-h-[500px] flex flex-col"
+            className="lg:col-span-3 rounded-[2.5rem] p-6 md:p-10 shadow-2xl border border-white min-h-[500px] flex flex-col group overflow-hidden relative"
             style={{ background: 'var(--surface)' }}
           >
-            <div className="mb-6 flex items-center justify-between border-b border-gray-100 pb-4">
-               <div className="flex items-center gap-3">
-                  <h3 className="font-bold text-xl text-purple-900" style={{ fontFamily: 'var(--font-serif)' }}>
-                     {games[activeGame].title}
-                  </h3>
-                  {games[activeGame].icon}
-               </div>
-               <span className="pill bg-gold-500 text-purple-900 text-[10px] font-black uppercase tracking-wider">
-                  Live Preview
-               </span>
+            <div className="absolute inset-0 z-0">
+               <img 
+                 src={games[activeGame].thumbnail} 
+                 alt={games[activeGame].title}
+                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-40 mix-blend-overlay"
+               />
+               <div className="absolute inset-0 bg-gradient-to-t from-purple-950/80 to-transparent" />
             </div>
-            <div className="flex-1">
-              {games[activeGame].component}
+
+            <div className="relative z-10 flex flex-col h-full">
+               <div className="mb-6 flex items-center justify-between border-b border-white/10 pb-4">
+                  <div className="flex items-center gap-3">
+                     <h3 className="font-bold text-xl text-white" style={{ fontFamily: 'var(--font-serif)' }}>
+                        {games[activeGame].title}
+                     </h3>
+                     {games[activeGame].icon}
+                  </div>
+                  <span className="pill bg-white/10 text-white text-[10px] font-black uppercase tracking-wider backdrop-blur-md">
+                     Preview Only
+                  </span>
+               </div>
+               
+               <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
+                  <div className="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center mb-6 backdrop-blur-md border border-white/30 text-white animate-pulse">
+                     <Gamepad2 size={40} />
+                  </div>
+                  <h4 className="text-3xl font-bold text-white mb-4">Ready to Play?</h4>
+                  <p className="text-white/70 max-w-md mb-8">
+                     Visit our dedicated games page to experience {games[activeGame].title} and other faith-building interactive adventures in full screen.
+                  </p>
+                  <Link 
+                    href={`/games?active=${activeGame}`} 
+                    className="bg-gold-500 hover:bg-gold-400 text-purple-950 px-8 py-3 rounded-full font-bold transition-all shadow-xl hover:shadow-gold-500/20"
+                  >
+                    Launch Full Game
+                  </Link>
+               </div>
             </div>
           </div>
 

@@ -11,11 +11,12 @@ import {
 } from 'lucide-react'
 import { MdOutlineChurch } from 'react-icons/md'
 
-function NavItem({ href, icon: Icon, label, active }) {
+function NavItem({ href, icon: Icon, label, active, onClick }) {
   return (
     <Link
       href={href}
       className={`admin-nav-item ${active ? 'active' : ''}`}
+      onClick={onClick}
     >
       <Icon size={17} />
       <span>{label}</span>
@@ -35,7 +36,7 @@ function NavSection({ title, children }) {
   )
 }
 
-export default function AdminSidebar() {
+export default function AdminSidebar({ onItemClick }) {
   const { data: session } = useSession()
   const pathname = usePathname()
   const role = session?.user?.role
@@ -46,7 +47,7 @@ export default function AdminSidebar() {
   const assemblyBase = `/admin/assemblies/${slug}`
 
   return (
-    <aside className="admin-sidebar flex flex-col">
+    <aside className="admin-sidebar flex flex-col h-full">
       {/* Logo */}
       <div className="px-5 py-6 border-b border-white/10">
         <div className="flex items-center gap-3">
@@ -72,23 +73,24 @@ export default function AdminSidebar() {
         {(role === 'SUPER_ADMIN' || role === 'GLOBAL_ADMIN') && (
           <>
             <NavSection title="Overview">
-              <NavItem href="/admin/dashboard" icon={Home} label="Dashboard" active={isActive('/admin/dashboard')} />
+              <NavItem href="/admin/dashboard" icon={Home} label="Dashboard" active={isActive('/admin/dashboard')} onClick={onItemClick} />
             </NavSection>
 
             <NavSection title="Assemblies">
-              <NavItem href="/admin/assemblies" icon={MdOutlineChurch} label="All Assemblies" active={pathname === '/admin/assemblies'} />
-              <NavItem href="/admin/assemblies/new" icon={Globe} label="New Assembly" active={isActive('/admin/assemblies/new')} />
+              <NavItem href="/admin/assemblies" icon={MdOutlineChurch} label="All Assemblies" active={pathname === '/admin/assemblies'} onClick={onItemClick} />
+              <NavItem href="/admin/assemblies/new" icon={Globe} label="New Assembly" active={isActive('/admin/assemblies/new')} onClick={onItemClick} />
             </NavSection>
 
             <NavSection title="Users">
-              <NavItem href="/admin/admins" icon={Users} label="Manage Admins" active={isActive('/admin/admins')} />
+              <NavItem href="/admin/admins" icon={Users} label="Manage Admins" active={isActive('/admin/admins')} onClick={onItemClick} />
             </NavSection>
 
             <NavSection title="Global Content">
-              <NavItem href="/admin/devotionals" icon={BookOpen} label="Royal Feed" active={isActive('/admin/devotionals')} />
-              <NavItem href="/admin/games" icon={Grid3x3} label="Bible Games" active={isActive('/admin/games')} />
-              <NavItem href="/admin/hero-slides" icon={ImageIcon} label="Hero Slides" active={isActive('/admin/hero-slides')} />
-              <NavItem href="/admin/channels" icon={Video} label="YouTube Channels" active={isActive('/admin/channels')} />
+              <NavItem href="/admin/devotionals" icon={BookOpen} label="Royal Feed" active={isActive('/admin/devotionals')} onClick={onItemClick} />
+              <NavItem href="/admin/growth-track" icon={UserCheck} label="Growth Track" active={isActive('/admin/growth-track')} onClick={onItemClick} />
+              <NavItem href="/admin/games" icon={Grid3x3} label="Bible Games" active={isActive('/admin/games')} onClick={onItemClick} />
+              <NavItem href="/admin/hero-slides" icon={ImageIcon} label="Hero Slides" active={isActive('/admin/hero-slides')} onClick={onItemClick} />
+              <NavItem href="/admin/channels" icon={Video} label="YouTube Channels" active={isActive('/admin/channels')} onClick={onItemClick} />
             </NavSection>
           </>
         )}
@@ -96,8 +98,8 @@ export default function AdminSidebar() {
         {/* SUPER_ADMIN only */}
         {role === 'SUPER_ADMIN' && (
           <NavSection title="System">
-            <NavItem href="/admin/system" icon={BarChart2} label="Analytics" active={isActive('/admin/system')} />
-            <NavItem href="/admin/system/settings" icon={Settings} label="System Settings" active={isActive('/admin/system/settings')} />
+            <NavItem href="/admin/system" icon={BarChart2} label="Analytics" active={isActive('/admin/system')} onClick={onItemClick} />
+            <NavItem href="/admin/system/settings" icon={Settings} label="System Settings" active={isActive('/admin/system/settings')} onClick={onItemClick} />
           </NavSection>
         )}
 
@@ -105,23 +107,35 @@ export default function AdminSidebar() {
         {role === 'ASSEMBLY_ADMIN' && slug && (
           <>
             <NavSection title="Overview">
-              <NavItem href={assemblyBase} icon={Home} label="Dashboard" active={pathname === assemblyBase} />
+              <NavItem href={assemblyBase} icon={Home} label="Dashboard" active={pathname === assemblyBase} onClick={onItemClick} />
             </NavSection>
 
             <NavSection title="Page Content">
-              <NavItem href={`${assemblyBase}/content`} icon={LayoutDashboard} label="Content Sections" active={isActive(`${assemblyBase}/content`)} />
+              <NavItem href={`${assemblyBase}/content`} icon={LayoutDashboard} label="Content Sections" active={isActive(`${assemblyBase}/content`)} onClick={onItemClick} />
             </NavSection>
 
             <NavSection title="Church Management">
-              <NavItem href={`${assemblyBase}/members`} icon={UserCheck} label="Members" active={isActive(`${assemblyBase}/members`)} />
-              <NavItem href={`${assemblyBase}/attendance`} icon={Calendar} label="Attendance" active={isActive(`${assemblyBase}/attendance`)} />
-              <NavItem href={`${assemblyBase}/finance`} icon={DollarSign} label="Finance" active={isActive(`${assemblyBase}/finance`)} />
-              <NavItem href={`${assemblyBase}/schedule`} icon={Calendar} label="Schedule" active={isActive(`${assemblyBase}/schedule`)} />
-              <NavItem href={`${assemblyBase}/reports`} icon={ClipboardList} label="Reports" active={isActive(`${assemblyBase}/reports`)} />
+              <NavItem href={`${assemblyBase}/members`} icon={UserCheck} label="Members" active={isActive(`${assemblyBase}/members`)} onClick={onItemClick} />
+              <NavItem href={`${assemblyBase}/attendance`} icon={Calendar} label="Attendance" active={isActive(`${assemblyBase}/attendance`)} onClick={onItemClick} />
+              <NavItem href={`${assemblyBase}/finance`} icon={DollarSign} label="Finance" active={isActive(`${assemblyBase}/finance`)} onClick={onItemClick} />
+              <NavItem href={`${assemblyBase}/schedule`} icon={Calendar} label="Schedule" active={isActive(`${assemblyBase}/schedule`)} onClick={onItemClick} />
+              <NavItem href={`${assemblyBase}/reports`} icon={ClipboardList} label="Reports" active={isActive(`${assemblyBase}/reports`)} onClick={onItemClick} />
             </NavSection>
 
             <NavSection title="Account">
-              <NavItem href={`${assemblyBase}/settings`} icon={Settings} label="Settings" active={isActive(`${assemblyBase}/settings`)} />
+              <NavItem href={`${assemblyBase}/settings`} icon={Settings} label="Settings" active={isActive(`${assemblyBase}/settings`)} onClick={onItemClick} />
+            </NavSection>
+          </>
+        )}
+
+        {/* APP_ADMIN nav */}
+        {role === 'APP_ADMIN' && slug && (
+          <>
+            <NavSection title="Content">
+              <NavItem href={`${assemblyBase}/content`} icon={LayoutDashboard} label="Page Sections" active={isActive(`${assemblyBase}/content`)} onClick={onItemClick} />
+            </NavSection>
+            <NavSection title="Account">
+              <NavItem href={`${assemblyBase}/settings`} icon={Settings} label="Settings" active={isActive(`${assemblyBase}/settings`)} onClick={onItemClick} />
             </NavSection>
           </>
         )}

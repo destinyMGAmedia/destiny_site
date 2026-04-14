@@ -4,21 +4,29 @@ import { CheckCircle, RefreshCw, Info, Trophy } from 'lucide-react'
 
 const WORDS = [
   'DESTINY', 'MISSION', 'VISION', 'INTEGRITY', 'PIONEER', 'LEADERSHIP', 
-  'EXCELLENCE', 'ACTION', 'DEVOTION', 'CHAMPION', 'VICTORY', 'ASSEMBLY', 
-  'OASIS', 'FELLOWSHIP', 'WORSHIP', 'DIGNIFIED', 'DYNAMO'
+  'EXCELLENCE', 'ACTION', 'DEVOTION', 'CHAMPION', 'CHAMPIONS', 'VICTORY', 
+  'ASSEMBLY', 'OASIS', 'FELLOWSHIP', 'WORSHIP', 'DIGNIFIED', 'REIGN',
+  'TRANSFORM', 'NATIONS', 'BUILDING', 'PASTURES', 'DYNAMO'
 ]
 
 const GRID_SIZE = 12
 
-export default function BibleWordSearch() {
-  const [grid, setGrid] = useState([])
-  const [foundWords, setFoundWords] = useState([])
-  const [foundPaths, setFoundPaths] = useState([])
+export default function BibleWordSearch({ initialState, onSave }) {
+  const [grid, setGrid] = useState(initialState?.grid || [])
+  const [foundWords, setFoundWords] = useState(initialState?.foundWords || [])
+  const [foundPaths, setFoundPaths] = useState(initialState?.foundPaths || [])
   const [selecting, setSelecting] = useState(false)
   const [selectionStart, setSelectionStart] = useState(null)
   const [selectionPath, setSelectionPath] = useState([])
-  const [gameWon, setGameWon] = useState(false)
+  const [gameWon, setGameWon] = useState(initialState?.gameWon || false)
   const gridRef = useRef(null)
+
+  // Save progress whenever important state changes
+  useEffect(() => {
+    if (grid.length > 0 && onSave) {
+      onSave({ grid, foundWords, foundPaths, gameWon })
+    }
+  }, [grid, foundWords, foundPaths, gameWon, onSave])
 
   const generateGrid = useCallback(() => {
     const newGrid = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(''))
@@ -73,7 +81,9 @@ export default function BibleWordSearch() {
   }, [])
 
   useEffect(() => {
-    generateGrid()
+    if (grid.length === 0) {
+      generateGrid()
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -145,13 +155,13 @@ export default function BibleWordSearch() {
   const isCellInFoundPath = (r, c) => foundPaths.some(path => path.some(p => p.r === r && p.c === c))
 
   return (
-    <div className="flex flex-col lg:flex-row gap-10 select-none">
-      {/* Word Search Grid */}
-      <div className="flex-1">
+    <div className="flex flex-col gap-10 select-none w-full min-h-screen bg-lavender-50/30">
+      {/* Grid Side (Top) */}
+      <div className="w-full py-12 flex items-center justify-center bg-white/40 backdrop-blur-md border-b border-purple-100">
         <div 
           ref={gridRef}
-          className="grid grid-cols-12 gap-1 bg-purple-100 p-2 rounded-2xl shadow-xl border-4 border-purple-200 cursor-crosshair mx-auto overflow-hidden"
-          style={{ maxWidth: '500px', aspectRatio: '1/1' }}
+          className="grid grid-cols-12 gap-1 bg-purple-100 p-3 md:p-6 rounded-[2.5rem] shadow-2xl border-8 border-white cursor-crosshair mx-auto overflow-hidden touch-none"
+          style={{ width: 'min(90vw, 600px)', aspectRatio: '1/1' }}
         >
           {grid.map((row, r) => 
             row.map((letter, c) => (
@@ -159,10 +169,16 @@ export default function BibleWordSearch() {
                 key={`${r}-${c}`}
                 onMouseDown={() => handleMouseDown(r, c)}
                 onMouseEnter={() => handleMouseEnter(r, c)}
+                onTouchStart={(e) => {
+                  e.preventDefault();
+                  const touch = e.touches[0];
+                  const el = document.elementFromPoint(touch.clientX, touch.clientY);
+                  if (el) handleMouseDown(r, c);
+                }}
                 className={`
-                  flex items-center justify-center rounded-lg font-black text-sm md:text-base transition-all duration-150
+                  flex items-center justify-center rounded-lg font-black text-xs md:text-xl transition-all duration-150
                   ${isCellSelected(r, c) ? 'bg-gold-500 text-purple-900 scale-110 z-20 shadow-lg' : 
-                    isCellInFoundPath(r, c) ? 'bg-purple-900/10 text-purple-900 font-bold' : 'bg-white text-gray-700 hover:bg-purple-50'}
+                    isCellInFoundPath(r, c) ? 'bg-purple-900 text-white font-bold' : 'bg-white text-gray-700 hover:bg-purple-50'}
                 `}
               >
                 {letter}
@@ -172,60 +188,85 @@ export default function BibleWordSearch() {
         </div>
       </div>
 
-      {/* Word List and Status */}
-      <div className="w-full lg:w-80 flex flex-col gap-6">
-        <div className="card p-6 border-purple-100 bg-white/50 backdrop-blur-sm shadow-xl flex-1">
-          <div className="flex items-center justify-between mb-6">
-             <h3 className="font-bold text-purple-900 flex items-center gap-2">
-                <Info size={18} className="text-gold-600" /> Word List
-             </h3>
-             <span className="text-xs font-black px-2 py-1 bg-purple-100 text-purple-700 rounded-full">
-                {foundWords.length} / {WORDS.length}
-             </span>
+      {/* Word List Side (Bottom) */}
+      <div className="w-full max-w-6xl mx-auto px-6 pb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          
+          <div className="lg:col-span-2">
+             <div className="flex items-center justify-between mb-8">
+                <div>
+                   <h3 className="text-3xl font-bold text-purple-900" style={{ fontFamily: 'var(--font-serif)' }}>
+                      Find the Words
+                   </h3>
+                   <p className="text-gray-500 mt-2">Discover the vision and mission of DMGA hidden in the grid.</p>
+                </div>
+                <div className="flex items-center gap-4 bg-white p-4 rounded-3xl shadow-sm border border-purple-50">
+                   <div className="text-right">
+                      <div className="text-[10px] font-black uppercase tracking-widest text-gray-400">Progress</div>
+                      <div className="text-2xl font-black text-purple-900">{foundWords.length}/{WORDS.length}</div>
+                   </div>
+                   <div className="w-12 h-12 rounded-2xl bg-gold-500 flex items-center justify-center text-purple-900 font-bold">
+                      {Math.round((foundWords.length / WORDS.length) * 100)}%
+                   </div>
+                </div>
+             </div>
+
+             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+               {WORDS.map((word) => (
+                 <div 
+                   key={word} 
+                   className={`
+                     px-4 py-3 rounded-2xl text-xs md:text-sm font-bold transition-all border flex items-center gap-2
+                     ${foundWords.includes(word) ? 
+                       'bg-green-100 border-green-200 text-green-700 opacity-60' : 
+                       'bg-white border-purple-100 text-purple-900 shadow-sm'}
+                   `}
+                 >
+                   {foundWords.includes(word) ? <CheckCircle size={14} /> : <div className="w-3.5 h-3.5 rounded-full border-2 border-purple-200" />}
+                   {word}
+                 </div>
+               ))}
+             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-            {WORDS.map((word) => (
-              <div 
-                key={word} 
-                className={`
-                  px-3 py-2 rounded-xl text-[10px] md:text-xs font-bold transition-all border
-                  ${foundWords.includes(word) ? 
-                    'bg-green-100 border-green-200 text-green-700 line-through opacity-60' : 
-                    'bg-white border-purple-50 text-gray-500'}
-                `}
-              >
-                {word}
-              </div>
-            ))}
+          <div className="space-y-6">
+             {gameWon ? (
+               <div className="p-8 bg-gradient-to-br from-gold-500 to-orange-400 rounded-[2.5rem] text-center shadow-2xl animate-in zoom-in duration-500">
+                 <Trophy size={64} className="text-purple-900 mx-auto mb-4" />
+                 <h4 className="text-purple-900 font-black text-3xl mb-2">VICTORY!</h4>
+                 <p className="text-purple-900/70 font-bold mb-8 text-lg">You found all the words from our mission!</p>
+                 <button 
+                   onClick={generateGrid}
+                   className="w-full bg-purple-900 text-white py-4 rounded-2xl font-bold text-lg hover:shadow-xl transition-all active:scale-95"
+                 >
+                   New Puzzle
+                 </button>
+               </div>
+             ) : (
+                <div className="card p-8 border-purple-100 bg-white shadow-xl rounded-[2.5rem]">
+                   <h4 className="font-bold text-purple-900 mb-4 flex items-center gap-2">
+                      <RefreshCw size={18} className="text-gold-600" /> Game Controls
+                   </h4>
+                   <p className="text-sm text-gray-500 mb-8 leading-relaxed">
+                      Click and drag (or touch and drag) over letters to select words. Words can be horizontal, vertical, or diagonal.
+                   </p>
+                   <button 
+                      onClick={generateGrid}
+                      className="w-full py-4 bg-purple-100 text-purple-700 rounded-2xl font-bold hover:bg-gold-500 hover:text-purple-900 transition-all shadow-sm flex items-center justify-center gap-2"
+                   >
+                      <RefreshCw size={18} /> Reset Grid
+                   </button>
+                </div>
+             )}
+             
+             <div className="p-6 bg-purple-900 rounded-[2rem] text-white shadow-xl relative overflow-hidden">
+                <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full blur-2xl" />
+                <p className="text-xs leading-relaxed italic opacity-80 relative z-10">
+                  &quot;Destiny Mission Global Assembly is more than a church; it is an Oasis for all, raising champions through excellence and integrity.&quot;
+                </p>
+             </div>
           </div>
 
-          {gameWon ? (
-            <div className="mt-8 p-6 bg-gold-500 rounded-2xl text-center shadow-2xl animate-bounce">
-              <Trophy size={48} className="text-purple-900 mx-auto mb-3" />
-              <h4 className="text-purple-900 font-black text-xl mb-1">AMAZING!</h4>
-              <p className="text-purple-800 text-sm font-bold mb-4">You found all the words!</p>
-              <button 
-                onClick={generateGrid}
-                className="bg-purple-900 text-white px-6 py-2 rounded-full text-sm font-bold hover:bg-purple-800 transition-colors"
-              >
-                Play Again
-              </button>
-            </div>
-          ) : (
-             <button 
-                onClick={generateGrid}
-                className="w-full mt-8 py-3 flex items-center justify-center gap-2 text-sm font-black text-purple-700 bg-purple-100 hover:bg-gold-500 hover:text-purple-900 rounded-xl transition-all shadow-sm"
-             >
-                <RefreshCw size={16} /> New Puzzle
-             </button>
-          )}
-        </div>
-        
-        <div className="p-4 bg-purple-50 rounded-2xl border border-purple-100">
-           <p className="text-[10px] text-purple-800 leading-relaxed italic">
-             &quot;Find words from our About page: our vision, mission, core values, and the spirit of Destiny Mission Global Assembly.&quot;
-           </p>
         </div>
       </div>
 

@@ -15,11 +15,13 @@ const NAV_LINKS = [
 ]
 
 export default function Navbar() {
+  const [mounted, setMounted] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const pathname = usePathname()
 
   useEffect(() => {
+    setMounted(true)
     const onScroll = () => setScrolled(window.scrollY > 20)
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
@@ -28,8 +30,10 @@ export default function Navbar() {
   // Close mobile menu on route change
   useEffect(() => setMenuOpen(false), [pathname])
 
-  const isActive = (href) =>
-    href === '/' ? pathname === '/' : pathname.startsWith(href)
+  const isActive = (href) => {
+    if (!mounted || !pathname) return false
+    return href === '/' ? pathname === '/' : pathname.startsWith(href)
+  }
 
   return (
     <>

@@ -1,6 +1,7 @@
 import SectionHeader from '@/components/ui/SectionHeader'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
+import BackButton from '@/components/ui/BackButton'
 
 export const metadata = {
   title: 'About DMGA',
@@ -26,6 +27,7 @@ export default function AboutPage() {
         className="relative py-28 px-6 text-white text-center overflow-hidden"
         style={{ background: 'linear-gradient(135deg, var(--purple-900), var(--purple-700))' }}
       >
+        <BackButton className="absolute top-8 left-8 z-20" />
         <div className="absolute top-0 right-0 w-96 h-96 rounded-full opacity-10" style={{ background: 'var(--gold-500)', transform: 'translate(30%, -30%)' }} />
         <div className="relative z-10 max-w-3xl mx-auto">
           <p className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: 'var(--gold-400)' }}>Who We Are</p>
