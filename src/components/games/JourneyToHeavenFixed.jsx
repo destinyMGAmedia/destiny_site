@@ -91,6 +91,14 @@ const SPIRITUAL_ACTIONS = [
     points: 2,
     description: 'Encourage fellow believers in faith',
     color: 'text-indigo-600'
+  },
+  {
+    id: 'support_ministry',
+    name: 'Support Ministry',
+    icon: '🏗️',
+    points: 4,
+    description: 'Give toward church projects and building expansion',
+    color: 'text-amber-600'
   }
 ]
 
@@ -201,8 +209,8 @@ const Board3D = () => {
             </mesh>
             
             <Html position={[coords.x, 0.2, coords.z]} center>
-              <div className="text-xs font-bold text-black bg-white/80 rounded px-1">
-                {i === 0 ? 'START' : i === BOARD_SIZE ? 'HEAVEN' : i}
+              <div className="text-[10px] font-black text-black bg-white/80 rounded px-1 uppercase tracking-tighter">
+                {i === 0 ? 'SIN/START' : i === BOARD_SIZE ? 'HEAVEN' : i}
               </div>
             </Html>
             
@@ -241,6 +249,9 @@ export default function JourneyToHeavenFixed({ initialState, onSave, username })
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0)
   const [playerPositions, setPlayerPositions] = useState({})
   const [playerHoliness, setPlayerHoliness] = useState({})
+  const [playerCrowns, setPlayerCrowns] = useState({})
+  const [playerHeavenRooms, setPlayerHeavenRooms] = useState({})
+  const [playerDefence, setPlayerDefence] = useState({})
   const [gamePhase, setGamePhase] = useState('waiting')
   const [diceValue, setDiceValue] = useState(null)
   const [selectedAction, setSelectedAction] = useState(null)
@@ -255,14 +266,23 @@ export default function JourneyToHeavenFixed({ initialState, onSave, username })
   const initializeGame = useCallback(() => {
     const initialPositions = {}
     const initialHoliness = {}
+    const initialCrowns = {}
+    const initialHeavenRooms = {}
+    const initialDefence = {}
     
     players.forEach(player => {
       initialPositions[player.username] = 0
       initialHoliness[player.username] = 50
+      initialCrowns[player.username] = 0
+      initialHeavenRooms[player.username] = 1
+      initialDefence[player.username] = 10
     })
     
     setPlayerPositions(initialPositions)
     setPlayerHoliness(initialHoliness)
+    setPlayerCrowns(initialCrowns)
+    setPlayerHeavenRooms(initialHeavenRooms)
+    setPlayerDefence(initialDefence)
     setCurrentPlayerIndex(0)
     setGamePhase('rolling')
   }, [players])
@@ -300,6 +320,20 @@ export default function JourneyToHeavenFixed({ initialState, onSave, username })
       ...prev,
       [playerName]: Math.min(100, (prev[playerName] || 50) + action.points)
     }))
+
+    // Special Awards based on actions
+    if (action.id === 'soul_winning') {
+      setPlayerCrowns(prev => ({ ...prev, [playerName]: (prev[playerName] || 0) + 1 }))
+      addToHistory(`${playerName} won a soul! Received a Crown 👑`)
+    }
+    if (action.id === 'giving') {
+      setPlayerHeavenRooms(prev => ({ ...prev, [playerName]: (prev[playerName] || 0) + 1 }))
+      addToHistory(`${playerName} gave to the poor! Expanding their Room in Heaven 🏠`)
+    }
+    if (action.id === 'support_ministry') {
+      setPlayerDefence(prev => ({ ...prev, [playerName]: (prev[playerName] || 0) + 15 }))
+      addToHistory(`${playerName} supported the work! Business defence increased 🛡️`)
+    }
     
     const ladder = SPIRITUAL_LADDERS.find(l => l.position === newPos)
     if (ladder) {
@@ -519,26 +553,35 @@ export default function JourneyToHeavenFixed({ initialState, onSave, username })
             </div>
           </div>
 
-          <div className="bg-black/60 backdrop-blur-md p-4 rounded-2xl border border-white/10 text-white">
-            <div className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">
-              Progress to Heaven
+          <div className="bg-black/60 backdrop-blur-md p-4 rounded-2xl border border-white/10 text-white min-w-[300px]">
+            <div className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 border-b border-white/10 pb-2 flex items-center justify-between">
+              <span>Spiritual Progress</span>
+              <span className="text-[10px]">Pos / Holy / 👑 / 🏠 / 🛡️</span>
             </div>
             {players.map((player, index) => (
-              <div key={player.username} className="flex items-center justify-between gap-4 mb-2">
-                <div className="flex items-center gap-2">
-                  <div 
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: PLAYER_COLORS[index] }}
-                  />
-                  <span className="text-sm font-bold">{player.username}</span>
+              <div key={player.username} className="flex flex-col gap-1 mb-4 last:mb-0">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: PLAYER_COLORS[index] }}
+                    />
+                    <span className="text-sm font-black tracking-tight">{player.username}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-[10px] font-mono">
+                    <span className="text-gold-400">{playerPositions[player.username] || 0}</span>
+                    <span className="text-purple-400">{playerHoliness[player.username] || 50}</span>
+                    <span className="text-red-400">{playerCrowns[player.username] || 0}</span>
+                    <span className="text-blue-400">{playerHeavenRooms[player.username] || 1}</span>
+                    <span className="text-green-400">{playerDefence[player.username] || 10}</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="text-xs">
-                    Pos: {playerPositions[player.username] || 0}/50
-                  </div>
-                  <div className="text-xs">
-                    Holiness: {playerHoliness[player.username] || 50}
-                  </div>
+                {/* Visual Progress Bar */}
+                <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                   <div 
+                     className="h-full bg-gold-500 transition-all duration-1000"
+                     style={{ width: `${((playerPositions[player.username] || 0) / BOARD_SIZE) * 100}%` }}
+                   />
                 </div>
               </div>
             ))}
@@ -622,13 +665,28 @@ export default function JourneyToHeavenFixed({ initialState, onSave, username })
           <Crown size={64} className="text-gold-400 mx-auto mb-4" />
           <h2 className="text-5xl font-black text-white mb-2">Heaven Reached!</h2>
           {winner && (
-            <div>
+            <div className="space-y-4">
               <p className="text-gold-400 font-bold text-xl mb-2">
                 {winner.player} has entered Heaven!
               </p>
-              <p className="text-white/70">
-                With {winner.holiness} holiness points
-              </p>
+              <div className="grid grid-cols-2 gap-4 text-xs">
+                 <div className="bg-white/10 p-4 rounded-2xl border border-white/5">
+                    <p className="text-slate-400 uppercase font-black tracking-widest mb-1">Final Holiness</p>
+                    <p className="text-white text-2xl font-black">{playerHoliness[winner.player]}</p>
+                 </div>
+                 <div className="bg-white/10 p-4 rounded-2xl border border-white/5">
+                    <p className="text-slate-400 uppercase font-black tracking-widest mb-1">Crowns Earned</p>
+                    <p className="text-gold-500 text-2xl font-black">{playerCrowns[winner.player]}</p>
+                 </div>
+                 <div className="bg-white/10 p-4 rounded-2xl border border-white/5">
+                    <p className="text-slate-400 uppercase font-black tracking-widest mb-1">Heaven Mansions</p>
+                    <p className="text-blue-400 text-2xl font-black">{playerHeavenRooms[winner.player]}</p>
+                 </div>
+                 <div className="bg-white/10 p-4 rounded-2xl border border-white/5">
+                    <p className="text-slate-400 uppercase font-black tracking-widest mb-1">Biz Defence</p>
+                    <p className="text-green-400 text-2xl font-black">{playerDefence[winner.player]}</p>
+                 </div>
+              </div>
             </div>
           )}
         </div>

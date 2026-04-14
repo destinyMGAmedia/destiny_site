@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 const SECTION_LABELS = {
   FIND_US:      'Find Us',
   FELLOWSHIPS:  'Fellowships',
+  ARK_CENTERS:  'Ark Centers',
   DEPARTMENTS:  'Departments',
   EVENTS:       "What's On",
   MEDIA:        'Media',

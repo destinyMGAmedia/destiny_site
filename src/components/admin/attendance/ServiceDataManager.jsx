@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { Calendar, Users, Save, Plus, Loader2, Trash2, Banknote, MessageSquare } from 'lucide-react'
-import { format } from 'date-fns'
 
 export default function ServiceDataManager({ assemblyId }) {
   const [records, setRecords] = useState([])
@@ -13,7 +12,7 @@ export default function ServiceDataManager({ assemblyId }) {
 
   // Form state
   const [form, setForm] = useState({
-    serviceDate: format(new Date(), 'yyyy-MM-dd'),
+    serviceDate: new Date().toISOString().split('T')[0],
     attendance: '',
     serviceType: 'SUNDAY',
     arkCenterId: '',
@@ -266,7 +265,7 @@ export default function ServiceDataManager({ assemblyId }) {
                 {records.map((record) => (
                   <tr key={record.id} className="hover:bg-purple-50/30 transition-colors">
                     <td className="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">
-                      {format(new Date(record.serviceDate), 'MMM d, yyyy')}
+                      {new Date(record.serviceDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex flex-col">
