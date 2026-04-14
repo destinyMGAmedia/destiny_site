@@ -41,10 +41,7 @@ if (!prisma) {
         // Default to 3 for dev, 5 for production to stay safe on free database tiers
         const limit = process.env.NODE_ENV === 'production' ? '5' : '3'
         url.searchParams.set('connection_limit', limit)
-        finalOptions.datasources.db.url = url.toString()
       }
-<<<<<<< Updated upstream
-=======
       
       // Add connection timeout for Vercel deployments - reduce from 60 to 30 seconds
       if (!url.searchParams.has('connect_timeout')) {
@@ -57,7 +54,6 @@ if (!prisma) {
       }
       
       finalOptions.datasources.db.url = url.toString()
->>>>>>> Stashed changes
       console.log(`[PRISMA_INIT] Environment: ${process.env.NODE_ENV}. Pool limit: ${url.searchParams.get('connection_limit')}`)
     } catch (e) {
       console.warn('[PRISMA_INIT] Failed to parse DATABASE_URL to add connection_limit', e)

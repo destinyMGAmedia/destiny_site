@@ -33,15 +33,6 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function AssemblyPage({ params }) {
-<<<<<<< Updated upstream
-  const { slug } = await params
-  const assembly = await prisma.assembly.findUnique({
-    where: { slug, isActive: true },
-    include: {
-      sections: {
-        where: { isVisible: true },
-        orderBy: { position: 'asc' },
-=======
   let assembly
   
   try {
@@ -82,43 +73,9 @@ export default async function AssemblyPage({ params }) {
           },
           orderBy: { name: 'asc' }
         }
->>>>>>> Stashed changes
       },
-      teamMembers: { orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }] },
-      events: {
-        where: { startDate: { gte: new Date() } },
-        orderBy: { startDate: 'asc' },
-        take: 6,
-      },
-      givingDetails: true,
-      testimonies: {
-        where: { isApproved: true },
-        orderBy: { createdAt: 'desc' },
-        take: 8,
-      },
-      mediaItems: {
-        orderBy: { createdAt: 'desc' },
-        take: 9,
-      },
-      audioContent: {
-        orderBy: { publishedAt: 'desc' },
-        take: 4,
-      },
-      arkCenters: {
-        where: { isActive: true },
-        include: {
-          leader: {
-            select: { firstName: true, lastName: true, photo: true }
-          }
-        },
-        orderBy: { name: 'asc' }
-      }
-    },
-  })
+    })
 
-<<<<<<< Updated upstream
-  if (!assembly) notFound()
-=======
     if (!assembly) {
       console.warn(`Assembly not found for slug: ${slug}`)
       notFound()
@@ -127,7 +84,6 @@ export default async function AssemblyPage({ params }) {
     console.error('Error loading assembly:', error)
     notFound()
   }
->>>>>>> Stashed changes
 
   // Build anchor nav from visible sections (excluding HERO which is above the fold)
   const anchorSections = assembly.sections.filter((s) => s.type !== 'HERO')
