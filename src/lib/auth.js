@@ -110,12 +110,18 @@ export const authOptions = {
  * GLOBAL_ADMIN   → creates assemblies, manages all admin accounts, edits any assembly
  * ASSEMBLY_ADMIN → full assembly management (content + members + finance + reports + settings)
  * APP_ADMIN      → content-only, updates page sections for their assembly
+ * CUSTOMER       → basic access, profile, giving history
+ * MEMBER         → church member access, attendance, fellowships
+ * AGENT          → specialized access for outreach or management
  */
 
 export const isSuperAdmin   = (s) => s?.user?.role === 'SUPER_ADMIN'
 export const isGlobalAdmin  = (s) => ['GLOBAL_ADMIN', 'SUPER_ADMIN'].includes(s?.user?.role)
 export const isAssemblyAdmin = (s) => ['ASSEMBLY_ADMIN', 'GLOBAL_ADMIN', 'SUPER_ADMIN'].includes(s?.user?.role)
 export const isAppAdmin     = (s) => s?.user?.role === 'APP_ADMIN'
+export const isCustomer     = (s) => s?.user?.role === 'CUSTOMER'
+export const isMember       = (s) => s?.user?.role === 'MEMBER'
+export const isAgent        = (s) => s?.user?.role === 'AGENT'
 
 // Any logged-in admin (all 4 roles)
 export const isAnyAdmin = (s) =>
@@ -148,5 +154,6 @@ export const getAdminLandingRoute = (user) => {
   if (user.role === 'SUPER_ADMIN' || user.role === 'GLOBAL_ADMIN') return '/admin/dashboard'
   if (user.role === 'ASSEMBLY_ADMIN') return `/admin/assemblies/${user.assemblySlug}`
   if (user.role === 'APP_ADMIN') return `/admin/assemblies/${user.assemblySlug}/content`
+  if (['CUSTOMER', 'MEMBER', 'AGENT'].includes(user.role)) return '/admin/dashboard'
   return '/admin/login'
 }

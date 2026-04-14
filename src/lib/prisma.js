@@ -17,7 +17,16 @@ if (process.env.DATABASE_URL) {
   }
 }
 
-const prisma = globalForPrisma.prisma ?? new PrismaClient(prismaOptions)
+let prisma = globalForPrisma.prisma
+
+// If cached prisma is missing new models, recreate it
+if (prisma && (!prisma.serviceData || !prisma.growthStage || !prisma.visitor)) {
+  prisma = undefined
+}
+
+if (!prisma) {
+  prisma = new PrismaClient(prismaOptions)
+}
 
 if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma

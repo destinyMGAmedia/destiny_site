@@ -1,12 +1,13 @@
 'use client'
 import { useState } from 'react'
+import Link from 'next/link'
 import { X } from 'lucide-react'
 
 // Dynamic QR code using a free service — generates from URL
-export default function AttendanceQR({ assemblySlug, assemblyName }) {
+export default function JoinUsQR({ assemblySlug, assemblyName }) {
   const [show, setShow] = useState(false)
-  const attendanceUrl = `${process.env.NEXT_PUBLIC_APP_URL || ''}/${assemblySlug}/attendance`
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(attendanceUrl)}`
+  const joinUrl = `${process.env.NEXT_PUBLIC_APP_URL || ''}/${assemblySlug}/join`
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(joinUrl)}`
 
   return (
     <>
@@ -16,7 +17,7 @@ export default function AttendanceQR({ assemblySlug, assemblyName }) {
           onClick={() => setShow(true)}
           className="btn-secondary btn-sm"
         >
-          📋 Mark Attendance
+          👋 Join Us / Register
         </button>
       </div>
 
@@ -38,28 +39,28 @@ export default function AttendanceQR({ assemblySlug, assemblyName }) {
               <X size={20} />
             </button>
             <h3 className="font-bold text-lg mb-1" style={{ color: 'var(--purple-900)', fontFamily: 'var(--font-serif)' }}>
-              Attendance
+              Welcome!
             </h3>
             <p className="text-sm text-gray-500 mb-4">{assemblyName}</p>
 
             <img
               src={qrUrl}
-              alt="Attendance QR Code"
+              alt="Join Us QR Code"
               className="mx-auto mb-4 rounded-xl"
               width={200}
               height={200}
             />
 
             <p className="text-xs text-gray-400 mb-4">
-              Scan with your phone camera or click the button below
+              Scan with your phone camera or click the button below to register as a visitor or member
             </p>
 
-            <a
-              href={`/${assemblySlug}/attendance`}
+            <Link
+              href={`/${assemblySlug}/join`}
               className="btn-primary w-full justify-center"
             >
-              Open Attendance Form
-            </a>
+              Open Membership Form
+            </Link>
           </div>
         </div>
       )}

@@ -1,6 +1,7 @@
 import prisma from '@/lib/prisma'
 import SectionHeader from '@/components/ui/SectionHeader'
 import { Video } from 'lucide-react'
+import BackButton from '@/components/ui/BackButton'
 
 export const metadata = {
   title: 'Media — Sermons & Music',
@@ -24,6 +25,7 @@ export default async function MediaPage() {
         className="relative py-24 px-6 text-white text-center"
         style={{ background: 'linear-gradient(135deg, var(--purple-900), var(--purple-700))' }}
       >
+        <BackButton className="absolute top-8 left-8 z-20" />
         <div className="absolute top-0 right-0 w-80 h-80 rounded-full opacity-10" style={{ background: 'var(--gold-500)', transform: 'translate(30%,-30%)' }} />
         <div className="relative z-10 max-w-2xl mx-auto">
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5" style={{ background: 'rgba(255,179,0,0.15)' }}>

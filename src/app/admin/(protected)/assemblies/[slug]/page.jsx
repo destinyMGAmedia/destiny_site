@@ -6,7 +6,7 @@ import Link from 'next/link'
 import {
   LayoutDashboard, Users, Calendar, DollarSign,
   ClipboardList, Settings, ArrowRight, Eye,
-  MessageSquare, Star, UserCheck
+  MessageSquare, Star, UserCheck, Home
 } from 'lucide-react'
 
 export async function generateMetadata({ params }) {
@@ -21,27 +21,51 @@ async function getAssemblyStats(assemblyId) {
 
   const [
     members, events, prayerPending, testimoniesPending,
-    attendanceThisMonth, birthdays
+    visitorsThisMonth, birthdays, arkCenters, arkAttendanceThisMonth,
+    headcountThisMonth
   ] = await Promise.all([
     prisma.member.count({ where: { assemblyId, status: 'ACTIVE' } }),
     prisma.event.count({ where: { assemblyId, startDate: { gte: today } } }),
     prisma.prayerRequest.count({ where: { assemblyId, status: 'PENDING' } }),
     prisma.testimony.count({ where: { assemblyId, isApproved: false } }),
-    prisma.attendanceRecord.count({ where: { assemblyId, submittedAt: { gte: startOfMonth } } }),
+    prisma.visitor.count({ where: { assemblyId, visitDate: { gte: startOfMonth } } }),
     // Members with birthday today (month + day match)
     prisma.member.findMany({
       where: { assemblyId, status: 'ACTIVE' },
       select: { firstName: true, lastName: true, dateOfBirth: true, photo: true },
     }),
+    prisma.arkCenter.count({ where: { assemblyId, isActive: true } }),
+    prisma.serviceData.aggregate({
+      where: {
+        assemblyId,
+        arkCenterId: { not: null },
+        serviceDate: { gte: startOfMonth }
+      },
+      _sum: { attendance: true }
+    }),
+    prisma.serviceData.aggregate({
+      where: { 
+        assemblyId, 
+        arkCenterId: null,
+        serviceDate: { gte: startOfMonth } 
+      },
+      _sum: { attendance: true }
+    })
   ])
 
   // Filter to today's birthdays
   const todayBirthdays = birthdays.filter((m) => {
+    if (!m.dateOfBirth) return false
     const dob = new Date(m.dateOfBirth)
     return dob.getMonth() === today.getMonth() && dob.getDate() === today.getDate()
   })
 
-  return { members, events, prayerPending, testimoniesPending, attendanceThisMonth, todayBirthdays }
+  return { 
+    members, events, prayerPending, testimoniesPending, 
+    visitorsThisMonth, todayBirthdays, arkCenters,
+    arkAttendanceThisMonth: arkAttendanceThisMonth._sum.attendance || 0,
+    headcountThisMonth: headcountThisMonth._sum.attendance || 0
+  }
 }
 
 export default async function AssemblyAdminPage({ params }) {
@@ -59,7 +83,8 @@ export default async function AssemblyAdminPage({ params }) {
   const mgmtLinks = [
     { href: 'content',    icon: LayoutDashboard, label: 'Content Sections', desc: 'Update page content' },
     { href: 'members',    icon: UserCheck,      label: 'Members',          desc: `${stats.members} active members` },
-    { href: 'attendance', icon: Calendar,       label: 'Attendance',       desc: `${stats.attendanceThisMonth} this month` },
+    { href: 'attendance', icon: Calendar,       label: 'Attendance',       desc: `${stats.headcountThisMonth} total headcount this month` },
+    { href: 'ark-centers', icon: Home,          label: 'Ark Centers',      desc: `${stats.arkCenters} centers, ${stats.arkAttendanceThisMonth} attending` },
     { href: 'finance',    icon: DollarSign,     label: 'Finance',          desc: 'Offerings & expenditure' },
     { href: 'schedule',   icon: Calendar,       label: 'Schedule',         desc: 'Service schedule' },
     { href: 'reports',    icon: ClipboardList,  label: 'Reports',          desc: 'Monthly & annual reports' },
@@ -110,6 +135,7 @@ export default async function AssemblyAdminPage({ params }) {
           { label: 'Pending Prayers',      value: stats.prayerPending,       color: '#ad1457' },
           { label: 'Pending Testimonies',  value: stats.testimoniesPending,  color: '#e65100' },
           { label: 'Attendance This Month',value: stats.attendanceThisMonth, color: '#2e7d32' },
+          { label: 'Ark Centers',          value: stats.arkCenters,          color: 'var(--purple-800)' },
         ].map((s) => (
           <div key={s.label} className="card p-4">
             <p className="text-3xl font-bold" style={{ color: s.color }}>{s.value}</p>

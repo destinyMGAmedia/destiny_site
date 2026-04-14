@@ -7,12 +7,13 @@ import Fellowships from '@/components/assembly/Fellowships'
 import Departments from '@/components/assembly/Departments'
 import AssemblyEvents from '@/components/assembly/AssemblyEvents'
 import AssemblyMedia from '@/components/assembly/AssemblyMedia'
+import ArkCenters from '@/components/assembly/ArkCenters'
 import Giving from '@/components/assembly/Giving'
 import PrayerSection from '@/components/assembly/PrayerSection'
 import TestimoniesSection from '@/components/assembly/TestimoniesSection'
 import ContactSection from '@/components/assembly/ContactSection'
 import CustomSection from '@/components/assembly/CustomSection'
-import AttendanceQR from '@/components/assembly/AttendanceQR'
+import JoinUsQR from '@/components/assembly/JoinUsQR'
 import TeamSection from '@/components/assembly/TeamSection'
 
 export async function generateMetadata({ params }) {
@@ -57,6 +58,15 @@ export default async function AssemblyPage({ params }) {
         orderBy: { publishedAt: 'desc' },
         take: 4,
       },
+      arkCenters: {
+        where: { isActive: true },
+        include: {
+          leader: {
+            select: { firstName: true, lastName: true, photo: true }
+          }
+        },
+        orderBy: { name: 'asc' }
+      }
     },
   })
 
@@ -77,6 +87,8 @@ export default async function AssemblyPage({ params }) {
         )
       case 'FELLOWSHIPS':
         return <Fellowships key={section.id} section={section} />
+      case 'ARK_CENTERS':
+        return <ArkCenters key={section.id} section={section} centers={assembly.arkCenters} />
       case 'DEPARTMENTS':
         return <Departments key={section.id} section={section} />
       case 'EVENTS':
@@ -153,8 +165,8 @@ export default async function AssemblyPage({ params }) {
       {/* Sticky Anchor Nav */}
       <AssemblyAnchorNav sections={anchorSections} />
 
-      {/* Attendance QR — shown after hero on mobile for easy scan */}
-      <AttendanceQR assemblySlug={assembly.slug} assemblyName={assembly.name} />
+      {/* Join Us QR — shown after hero on mobile for easy scan */}
+      <JoinUsQR assemblySlug={assembly.slug} assemblyName={assembly.name} />
 
       {/* Team section — shown unless admin has hidden it */}
       {heroSection?.customContent?.showLeadership !== false && (

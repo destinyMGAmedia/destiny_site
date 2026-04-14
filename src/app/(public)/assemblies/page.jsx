@@ -2,7 +2,8 @@ import prisma from '@/lib/prisma'
 import Link from 'next/link'
 import Image from 'next/image'
 import SectionHeader from '@/components/ui/SectionHeader'
-import { MapPin, ArrowRight } from 'lucide-react'
+import { MapPin, ArrowRight, Home, Users, Calendar, Clock } from 'lucide-react'
+import BackButton from '@/components/ui/BackButton'
 
 export const metadata = {
   title: 'Our Assemblies',
@@ -19,6 +20,9 @@ export default async function AssembliesPage() {
 
   return (
     <div className="section-ivory min-h-screen">
+      <div className="py-8 px-6">
+        <BackButton variant="outline" />
+      </div>
       <div className="section-container">
 
         {/* Header — title only, no CTA */}
@@ -94,8 +98,70 @@ export default async function AssembliesPage() {
             <p className="text-gray-400">No assemblies found. Check back soon.</p>
           </div>
         )}
-
       </div>
+
+      {/* Ark Centers Section */}
+      <div className="bg-white py-20 mt-20">
+        <div className="section-container">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <SectionHeader
+                label="Community"
+                title="Ark Centers"
+                subtitle="Our house fellowships (Ark Centers) provide a closer-knit community where you can grow in faith, share life together, and support one another in your local neighborhood."
+              />
+              
+              <div className="space-y-6 mt-8">
+                <div className="flex gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-purple-50 flex items-center justify-center shrink-0">
+                    <Home className="text-purple-600" size={24} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-900">Neighborhood Fellowships</h4>
+                    <p className="text-sm text-gray-500">Find a group meeting close to your home for a more personal experience.</p>
+                  </div>
+                </div>
+                
+                <div className="flex gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-purple-50 flex items-center justify-center shrink-0">
+                    <Calendar className="text-purple-600" size={24} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-900">Alternating Thursdays</h4>
+                    <p className="text-sm text-gray-500">Ark Centers usually meet every other Thursday evening. Check your local assembly for the schedule.</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-purple-50 flex items-center justify-center shrink-0">
+                    <Users className="text-purple-600" size={24} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-900">Everyone is Welcome</h4>
+                    <p className="text-sm text-gray-500">Whether you're a long-time member or just visiting, there's a place for you at an Ark Center.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="relative h-[400px] rounded-3xl overflow-hidden shadow-2xl">
+              <Image 
+                src="https://images.unsplash.com/photo-1529070538774-1843cb3265df?q=80&w=2070&auto=format&fit=crop"
+                alt="Community Fellowship"
+                fill
+                className="object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-purple-900/60 to-transparent flex items-end p-8">
+                <div className="text-white">
+                  <p className="text-2xl font-bold mb-2">"Better Together"</p>
+                  <p className="text-purple-100 opacity-90 text-sm italic">Sharing life and faith in our local communities.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   )
 }

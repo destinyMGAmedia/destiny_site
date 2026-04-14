@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
+import Link from 'next/link'
 import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react'
 
 export default function AdminLogin() {
@@ -62,7 +63,7 @@ export default function AdminLogin() {
         className="hidden lg:flex flex-col justify-center items-center w-1/2 p-12"
         style={{ background: 'var(--purple-800)' }}
       >
-        <div className="max-w-sm text-center">
+        <Link href="/" className="max-w-sm text-center block hover:opacity-80 transition-opacity">
           <Image
             src="/images/dmga-logo.png"
             alt="DMGA"
@@ -74,7 +75,7 @@ export default function AdminLogin() {
           <p className="text-white/60 text-sm leading-relaxed">
             Church Management & Content Administration Portal
           </p>
-        </div>
+        </Link>
       </div>
 
       {/* Right panel — login form */}
@@ -83,7 +84,9 @@ export default function AdminLogin() {
           <div className="bg-white rounded-2xl shadow-2xl p-8">
             {/* Mobile logo */}
             <div className="flex justify-center mb-6 lg:hidden">
-              <Image src="/images/dmga-logo.png" alt="DMGA" width={64} height={64} className="object-contain" />
+              <Link href="/" className="hover:opacity-80 transition-opacity">
+                <Image src="/images/dmga-logo.png" alt="DMGA" width={64} height={64} className="object-contain" />
+              </Link>
             </div>
 
             <h2 className="text-2xl font-bold mb-1" style={{ fontFamily: 'var(--font-serif)', color: 'var(--purple-900)' }}>

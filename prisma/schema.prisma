@@ -36,7 +36,8 @@ model Assembly {
   arkCenters       ArkCenter[]
   reports          AssemblyReport[]
   sections         AssemblySection[]
-  attendance       AttendanceRecord[]
+  serviceData      ServiceData[]
+  visitors         Visitor[]
   audioContent     AudioContent[]
   events           Event[]
   givingDetails    GivingDetails?
@@ -246,16 +247,35 @@ model GivingDetails {
   assembly      Assembly @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
 }
 
-model AttendanceRecord {
-  id          String   @id @default(cuid())
-  assemblyId  String
-  fullName    String
-  phone       String?
-  email       String?
-  serviceDate DateTime
-  serviceType String
-  submittedAt DateTime @default(now())
-  assembly    Assembly @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+model ServiceData {
+  id           String    @id @default(cuid())
+  assemblyId   String
+  arkCenterId  String?
+  serviceDate  DateTime
+  serviceType  String    // SUNDAY, MIDWEEK, ARK_CENTER, SPECIAL
+  attendance   Int
+  offering     Float?
+  tithe        Float?
+  notes        String?
+  testimony    String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  assembly     Assembly  @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+  arkCenter    ArkCenter? @relation(fields: [arkCenterId], references: [id], onDelete: Cascade)
+}
+
+model Visitor {
+  id           String    @id @default(cuid())
+  assemblyId   String
+  firstName      String
+  lastName       String
+  email        String?
+  phone        String?
+  visitDate    DateTime  @default(now())
+  followedUp   Boolean   @default(false)
+  notes        String?
+  createdAt    DateTime  @default(now())
+  assembly     Assembly  @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
 }
 
 model Game {
@@ -295,6 +315,56 @@ model MemoryVerse {
   createdAt DateTime @default(now())
 }
 
+model PlayerProgress {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  gameData  Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model GameRoom {
+  id          String       @id @default(cuid())
+  roomCode    String       @unique
+  gameType    String       @default("JOURNEY_TO_HEAVEN")
+  hostPlayer  String
+  status      RoomStatus   @default(WAITING)
+  difficulty  Difficulty   @default(MEDIUM)
+  maxPlayers  Int          @default(4)
+  gameState   Json         @default("{}")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  players     GamePlayer[]
+  invitations GameInvite[]
+}
+
+model GamePlayer {
+  id        String     @id @default(cuid())
+  roomId    String
+  username  String
+  position  Int
+  score     Int        @default(0)
+  stars     Int        @default(0)
+  status    PlayerStatus @default(ACTIVE)
+  joinedAt  DateTime   @default(now())
+  room      GameRoom   @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  
+  @@unique([roomId, username])
+}
+
+model GameInvite {
+  id          String      @id @default(cuid())
+  roomId      String
+  fromPlayer  String
+  toPlayer    String
+  status      InviteStatus @default(PENDING)
+  createdAt   DateTime    @default(now())
+  expiresAt   DateTime
+  room        GameRoom    @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  
+  @@unique([roomId, toPlayer])
+}
+
 model AssemblySection {
   id            String      @id @default(cuid())
   assemblyId    String
@@ -325,6 +395,53 @@ model ArkCenter {
   assembly    Assembly @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
   leader      Member?  @relation("ArkCenterLeader", fields: [leaderId], references: [id])
   members     Member[]
+  serviceData ServiceData[]
+}
+
+model GrowthStage {
+  id           String          @id @default(cuid())
+  level        GrowthLevel     @unique
+  title        String
+  description  String?
+  contents     GrowthContent[]
+  questions    GrowthQuestion[]
+  progress     MemberProgress[]
+}
+
+model GrowthContent {
+  id           String      @id @default(cuid())
+  stageId      String
+  title        String
+  type         String      // VIDEO, TEXT, PDF, IMAGE
+  url          String
+  body         String?
+  order        Int         @default(0)
+  stage        GrowthStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+}
+
+model GrowthQuestion {
+  id           String      @id @default(cuid())
+  stageId      String
+  question     String
+  type         String      // MULTIPLE_CHOICE, TEXT_SUMMARY, DRAG_DROP
+  options      Json?
+  correctAnswer String?
+  stage        GrowthStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+}
+
+model MemberProgress {
+  id           String      @id @default(cuid())
+  memberId     String
+  stageId      String
+  status       String      @default("ENROLLED") // ENROLLED, COMPLETED
+  testScore    Float?
+  badgeEarned  Boolean     @default(false)
+  certificateUrl String?
+  completedAt  DateTime?
+  member       Member      @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  stage        GrowthStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+
+  @@unique([memberId, stageId])
 }
 
 model Member {
@@ -334,7 +451,7 @@ model Member {
   lastName       String
   middleName     String?
   gender         Gender
-  dateOfBirth    DateTime
+  dateOfBirth    DateTime?
   photo          String?
   phone          String?
   email          String?
@@ -347,6 +464,7 @@ model Member {
   fellowship     Fellowship?
   department     Department?
   status         MemberStatus @default(ACTIVE)
+  growthLevel    GrowthLevel  @default(NEW_COMER)
   arkCenterId    String?
   emergencyName  String?
   emergencyPhone String?
@@ -356,6 +474,7 @@ model Member {
   ledArkCenter   ArkCenter[]  @relation("ArkCenterLeader")
   arkCenter      ArkCenter?   @relation(fields: [arkCenterId], references: [id])
   assembly       Assembly     @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+  progress       MemberProgress[]
 }
 
 model AssemblyReport {
@@ -408,12 +527,16 @@ enum Role {
   GLOBAL_ADMIN
   ASSEMBLY_ADMIN
   APP_ADMIN
+  CUSTOMER
+  MEMBER
+  AGENT
 }
 
 enum SectionType {
   HERO
   FIND_US
   FELLOWSHIPS
+  ARK_CENTERS
   DEPARTMENTS
   EVENTS
   MEDIA
@@ -463,6 +586,7 @@ enum Fellowship {
 }
 
 enum Department {
+  NONE
   PASTORS
   CHOIR
   SANCTUARY_KEEPERS
@@ -472,6 +596,15 @@ enum Department {
   FACILITY
   EVANGELISM
   PRAYER
+}
+
+enum GrowthLevel {
+  NEW_COMER
+  MEMBERSHIP_CLASS
+  DISCIPLESHIP_CLASS
+  LEADERS_CLASS
+  DEACON
+  PASTOR
 }
 
 enum TeamCategory {
@@ -516,4 +649,30 @@ enum GameType {
   BIBLE_SCRABBLE
   JOURNEY_TO_HEAVEN
   CORE_VALUES
+}
+
+enum RoomStatus {
+  WAITING
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum PlayerStatus {
+  ACTIVE
+  DISCONNECTED
+  FORFEITED
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
 }

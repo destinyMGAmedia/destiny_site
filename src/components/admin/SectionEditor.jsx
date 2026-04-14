@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Save, Check } from 'lucide-react'
+import { ArrowLeft, Save, Check, Home } from 'lucide-react'
 import BackgroundPicker from './BackgroundPicker'
 import ImageUploader from './ImageUploader'
 import FellowshipsEditor from './FellowshipsEditor'
@@ -181,7 +181,7 @@ const GIVING_SECTIONS = new Set(['GIVING'])
 // Sections that don't show background picker
 const NO_BG_SECTIONS = new Set(['FIND_US', 'CONTACT', 'GIVING'])
 // List-based sections that manage items internally (save their own content)
-const LIST_SECTIONS = new Set(['FELLOWSHIPS', 'DEPARTMENTS', 'EVENTS'])
+const LIST_SECTIONS = new Set(['FELLOWSHIPS', 'DEPARTMENTS', 'EVENTS', 'ARK_CENTERS'])
 
 export default function SectionEditor({ assembly, section, role }) {
   const router = useRouter()
@@ -366,6 +366,25 @@ export default function SectionEditor({ assembly, section, role }) {
         <div className="card p-6 space-y-4">
           <h2 className="font-semibold text-gray-800">Events</h2>
           <EventsEditor assembly={assembly} initialEvents={assembly.events || []} />
+        </div>
+      )}
+
+      {section.type === 'ARK_CENTERS' && (
+        <div className="card p-6 space-y-4 text-center">
+          <div className="w-16 h-16 rounded-full bg-purple-50 flex items-center justify-center mx-auto mb-4">
+            <Home className="text-purple-600" size={30} />
+          </div>
+          <h2 className="font-semibold text-gray-800">Ark Centers Data</h2>
+          <p className="text-sm text-gray-500 max-w-xs mx-auto mb-6">
+            Ark Center locations and attendance are managed through the main Ark Centers management page.
+          </p>
+          <button
+            type="button"
+            onClick={() => router.push(`/admin/assemblies/${assembly.slug}/ark-centers`)}
+            className="btn-primary justify-center"
+          >
+            Manage Ark Centers
+          </button>
         </div>
       )}
 
