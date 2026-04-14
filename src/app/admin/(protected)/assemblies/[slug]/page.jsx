@@ -134,7 +134,7 @@ export default async function AssemblyAdminPage({ params }) {
           { label: 'Upcoming Events',      value: stats.events,              color: '#1565c0' },
           { label: 'Pending Prayers',      value: stats.prayerPending,       color: '#ad1457' },
           { label: 'Pending Testimonies',  value: stats.testimoniesPending,  color: '#e65100' },
-          { label: 'Attendance This Month',value: stats.attendanceThisMonth, color: '#2e7d32' },
+          { label: 'Attendance (Month)',   value: stats.headcountThisMonth + stats.arkAttendanceThisMonth, color: '#2e7d32' },
           { label: 'Ark Centers',          value: stats.arkCenters,          color: 'var(--purple-800)' },
         ].map((s) => (
           <div key={s.label} className="card p-4">

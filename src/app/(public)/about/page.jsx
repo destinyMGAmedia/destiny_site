@@ -20,19 +20,19 @@ const VALUES = [
 
 const LEADERSHIP = [
   { 
-    name: 'Rev. John Doe', 
-    role: 'Lead Pastor & Founder', 
-    desc: 'A visionary leader and teacher of the Word, Rev. John Doe has a passion for empowering believers to fulfill their divine destiny.' 
+    name: 'Apostle Effiong Okon', 
+    role: 'General Overseer & Founder', 
+    desc: 'Apostle Effiong Okon is the founder and General Overseer of DMGA. A man of faith and vision, he has dedicated his life to raising a people of destiny across the nations.' 
   },
   { 
-    name: 'Pastor Mary Doe', 
-    role: 'Co-Pastor', 
-    desc: 'A compassionate shepherd and intercessor, Pastor Mary Doe plays a vital role in nurturing families and strengthening the church community.' 
+    name: 'Pastor (Mrs) Okon', 
+    role: 'Co-Pastor / First Lady', 
+    desc: 'The First Lady of DMGA, a pillar of grace and strength in the ministry, playing a vital role in nurturing families and strengthening the church community.' 
   },
   { 
-    name: 'Pastor David Smith', 
-    role: 'Youth & Outreach Pastor', 
-    desc: 'Committed to raising young leaders and reaching the lost through creative evangelism and mentorship.' 
+    name: 'Pastor Emmanuel Etim', 
+    role: 'Associate Pastor', 
+    desc: 'Pastor Emmanuel serves as Associate Pastor at DMGA HQ, committed to raising leaders and reaching the lost through discipleship and pastoral care.' 
   }
 ]
 
@@ -85,7 +85,7 @@ export default function AboutPage() {
               <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: 'var(--gold-500)' }}>{item.label}</p>
               <h2 className="text-2xl font-bold mb-4" style={{ fontFamily: 'var(--font-serif)', color: 'var(--purple-900)' }}>{item.title}</h2>
               <div className="w-10 h-1 rounded mb-4" style={{ background: 'var(--gold-500)' }} />
-              <p className="text-gray-600 leading-relaxed">{item.body}</p>
+              <div className="text-gray-600 leading-relaxed">{item.body}</div>
             </div>
           ))}
         </div>
