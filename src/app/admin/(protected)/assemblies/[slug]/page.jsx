@@ -30,39 +30,46 @@ async function getAssemblyStats(assemblyId) {
   const today = new Date()
   const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
 
-  const [
-    members, events, prayerPending, testimoniesPending,
-    visitorsThisMonth, birthdays, arkCenters, arkAttendanceThisMonth,
-    headcountThisMonth
-  ] = await Promise.all([
+  // Batch 1: Simple counts (4 queries in parallel)
+  const [members, events, prayerPending, testimoniesPending] = await Promise.all([
     prisma.member.count({ where: { assemblyId, status: 'ACTIVE' } }),
     prisma.event.count({ where: { assemblyId, startDate: { gte: today } } }),
     prisma.prayerRequest.count({ where: { assemblyId, status: 'PENDING' } }),
     prisma.testimony.count({ where: { assemblyId, isApproved: false } }),
+  ])
+
+  // Batch 2: More complex queries (3 queries in parallel)
+  const [visitorsThisMonth, birthdays, arkCenters] = await Promise.all([
     prisma.visitor.count({ where: { assemblyId, visitDate: { gte: startOfMonth } } }),
-    // Members with birthday today (month + day match)
     prisma.member.findMany({
       where: { assemblyId, status: 'ACTIVE' },
       select: { firstName: true, lastName: true, dateOfBirth: true, photo: true },
     }),
     prisma.arkCenter.count({ where: { assemblyId, isActive: true } }),
-    prisma.serviceData.aggregate({
-      where: {
-        assemblyId,
-        arkCenterId: { not: null },
-        serviceDate: { gte: startOfMonth }
-      },
-      _sum: { attendance: true }
-    }),
-    prisma.serviceData.aggregate({
-      where: { 
-        assemblyId, 
-        arkCenterId: null,
-        serviceDate: { gte: startOfMonth } 
-      },
-      _sum: { attendance: true }
-    })
   ])
+
+  // Batch 3: Service data aggregations (single combined query)
+  const serviceAttendance = await prisma.serviceData.groupBy({
+    by: ['arkCenterId'],
+    where: { 
+      assemblyId, 
+      serviceDate: { gte: startOfMonth } 
+    },
+    _sum: { attendance: true }
+  })
+
+  // Process attendance data
+  let arkAttendanceThisMonth = 0
+  let headcountThisMonth = 0
+  
+  serviceAttendance.forEach(service => {
+    const attendance = service._sum?.attendance || 0
+    if (service.arkCenterId) {
+      arkAttendanceThisMonth += attendance
+    } else {
+      headcountThisMonth += attendance
+    }
+  })
 
   // Filter to today's birthdays
   const todayBirthdays = birthdays.filter((m) => {
@@ -79,8 +86,8 @@ async function getAssemblyStats(assemblyId) {
     visitorsThisMonth, 
     todayBirthdays, 
     arkCenters,
-    arkAttendanceThisMonth: arkAttendanceThisMonth._sum?.attendance || 0,
-    headcountThisMonth: headcountThisMonth._sum?.attendance || 0
+    arkAttendanceThisMonth,
+    headcountThisMonth
   }
 }
 
