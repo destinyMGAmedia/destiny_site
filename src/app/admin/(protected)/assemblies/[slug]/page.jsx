@@ -9,6 +9,9 @@ import {
   MessageSquare, Star, UserCheck, Home
 } from 'lucide-react'
 
+// Force dynamic rendering for admin assembly page with authentication
+export const dynamic = 'force-dynamic'
+
 export async function generateMetadata({ params }) {
   try {
     const { slug } = await params

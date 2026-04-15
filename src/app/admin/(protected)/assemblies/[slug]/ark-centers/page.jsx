@@ -4,6 +4,9 @@ import { redirect, notFound } from 'next/navigation'
 import prisma from '@/lib/prisma'
 import ArkCentersEditor from '@/components/admin/ArkCentersEditor'
 
+// Force dynamic rendering for admin ark-centers page with authentication
+export const dynamic = 'force-dynamic'
+
 export async function generateMetadata({ params }) {
   const { slug } = await params
   const assembly = await prisma.assembly.findUnique({ where: { slug }, select: { name: true } })

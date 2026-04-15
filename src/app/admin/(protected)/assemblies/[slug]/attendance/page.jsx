@@ -6,6 +6,9 @@ import BackButton from '@/components/ui/BackButton'
 import ServiceDataManager from '@/components/admin/attendance/ServiceDataManager'
 import { Calendar, Users, TrendingUp } from 'lucide-react'
 
+// Force dynamic rendering for admin attendance page with authentication
+export const dynamic = 'force-dynamic'
+
 export default async function AssemblyAttendancePage({ params }) {
   const session = await getServerSession(authOptions)
   if (!session) redirect('/admin/login')
