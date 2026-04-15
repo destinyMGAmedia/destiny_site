@@ -16,6 +16,9 @@ import CustomSection from '@/components/assembly/CustomSection'
 import JoinUsQR from '@/components/assembly/JoinUsQR'
 import TeamSection from '@/components/assembly/TeamSection'
 
+// Force dynamic rendering for database-dependent content
+export const dynamic = 'force-dynamic'
+
 export async function generateMetadata({ params }) {
   try {
     const { slug } = await params
@@ -38,9 +41,11 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function AssemblyPage({ params }) {
+  let assembly
+  
   try {
     const { slug } = await params
-    const assembly = await prisma.assembly.findUnique({
+    assembly = await prisma.assembly.findUnique({
       where: { slug, isActive: true },
       include: {
         sections: {
@@ -79,7 +84,10 @@ export default async function AssemblyPage({ params }) {
       },
     })
 
-    if (!assembly) notFound()
+    if (!assembly) {
+      console.warn(`Assembly not found for slug: ${slug}`)
+      notFound()
+    }
   } catch (error) {
     console.error('Error loading assembly:', error)
     notFound()
