@@ -10,9 +10,14 @@ import {
 } from 'lucide-react'
 
 export async function generateMetadata({ params }) {
-  const { slug } = await params
-  const assembly = await prisma.assembly.findUnique({ where: { slug }, select: { name: true } })
-  return { title: assembly?.name || 'Assembly' }
+  try {
+    const { slug } = await params
+    const assembly = await prisma.assembly.findUnique({ where: { slug }, select: { name: true } })
+    return { title: assembly?.name || 'Assembly Dashboard' }
+  } catch (error) {
+    console.error('Error generating metadata:', error)
+    return { title: 'Assembly Dashboard' }
+  }
 }
 
 async function getAssemblyStats(assemblyId) {
@@ -69,16 +74,21 @@ async function getAssemblyStats(assemblyId) {
 }
 
 export default async function AssemblyAdminPage({ params }) {
-  const { slug } = await params
-  const session = await getServerSession(authOptions)
-  if (!session) redirect('/admin/login')
+  try {
+    const { slug } = await params
+    const session = await getServerSession(authOptions)
+    if (!session) redirect('/admin/login')
 
-  const assembly = await prisma.assembly.findUnique({ where: { slug } })
-  if (!assembly) notFound()
+    const assembly = await prisma.assembly.findUnique({ where: { slug } })
+    if (!assembly) notFound()
 
-  if (!canManageAssembly(session, assembly.id)) redirect('/admin/dashboard?error=unauthorized')
+    if (!canManageAssembly(session, assembly.id)) redirect('/admin/dashboard?error=unauthorized')
 
-  const stats = await getAssemblyStats(assembly.id)
+    const stats = await getAssemblyStats(assembly.id)
+  } catch (error) {
+    console.error('Error loading assembly admin page:', error)
+    notFound()
+  }
 
   const mgmtLinks = [
     { href: 'content',    icon: LayoutDashboard, label: 'Content Sections', desc: 'Update page content' },
