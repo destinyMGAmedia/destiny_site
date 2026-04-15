@@ -4,6 +4,9 @@ import { redirect, notFound } from 'next/navigation'
 import prisma from '@/lib/prisma'
 import TeamEditorPage from '@/components/admin/TeamEditorPage'
 
+// Force dynamic rendering for admin team page with authentication
+export const dynamic = 'force-dynamic'
+
 export async function generateMetadata({ params }) {
   const { slug } = await params
   const assembly = await prisma.assembly.findUnique({ where: { slug }, select: { name: true } })

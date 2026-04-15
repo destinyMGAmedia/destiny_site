@@ -4,6 +4,9 @@ import { redirect, notFound } from 'next/navigation'
 import prisma from '@/lib/prisma'
 import ContentDashboard from '@/components/admin/ContentDashboard'
 
+// Force dynamic rendering for admin content page with authentication
+export const dynamic = 'force-dynamic'
+
 export async function generateMetadata({ params }) {
   const { slug } = await params
   return { title: `Content — ${slug}` }

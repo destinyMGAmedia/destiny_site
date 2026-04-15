@@ -5,6 +5,9 @@ import GrowthTrackManager from '@/components/admin/GrowthTrackManager'
 
 export const metadata = { title: 'Growth Track Management' }
 
+// Force dynamic rendering for admin growth-track page with authentication
+export const dynamic = 'force-dynamic'
+
 export default async function GrowthTrackPage() {
   const session = await getServerSession(authOptions)
   if (!session || !isGlobalAdmin(session)) {

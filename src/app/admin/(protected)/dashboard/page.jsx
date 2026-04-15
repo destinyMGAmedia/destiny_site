@@ -15,6 +15,9 @@ import { MdOutlineChurch } from 'react-icons/md'
 
 export const metadata = { title: 'Dashboard' }
 
+// Force dynamic rendering for admin dashboard with authentication
+export const dynamic = 'force-dynamic'
+
 async function getAdminStats() {
   const [assemblies, admins, events, devotionals, arkCenters] = await Promise.all([
     prisma.assembly.count({ where: { isActive: true } }),
