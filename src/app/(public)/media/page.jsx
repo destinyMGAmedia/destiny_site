@@ -42,10 +42,13 @@ async function getYouTubeVideos(channelId) {
 }
 
 export default async function MediaPage() {
-  const [mainChannel, audioContent, mediaItems] = await Promise.all([
-    prisma.youtubeChannel.findUnique({
-      where: { channelType: 'MAIN_LIVE' },
-    }),
+  // Get YouTube channel first (lightweight query)
+  const mainChannel = await prisma.youtubeChannel.findUnique({
+    where: { channelType: 'MAIN_LIVE' },
+  })
+
+  // Then get media content in batch (2 queries instead of 3 concurrent)
+  const [audioContent, mediaItems] = await Promise.all([
     prisma.audioContent.findMany({
       take: 8,
       orderBy: { publishedAt: 'desc' },
