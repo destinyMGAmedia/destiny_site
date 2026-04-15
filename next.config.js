@@ -12,6 +12,11 @@ const nextConfig = {
       { protocol: 'https', hostname: '**.unsplash.com', pathname: '/**' },
     ],
   },
+
+  // This is the most important addition for your current Prisma + build issues
+  experimental: {
+    staticGenerationMaxConcurrency: 1,   // Prevents too many parallel DB connections during build
+  },
 }
 
 module.exports = nextConfig
