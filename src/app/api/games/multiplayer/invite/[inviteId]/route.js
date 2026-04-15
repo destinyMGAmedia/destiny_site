@@ -4,7 +4,7 @@ import prisma from '@/lib/prisma'
 // Respond to invitation (accept/decline)
 export async function PATCH(req, { params }) {
   try {
-    const { inviteId } = params
+    const { inviteId } = await params
     const { action, username } = await req.json()
 
     if (!['accept', 'decline'].includes(action)) {

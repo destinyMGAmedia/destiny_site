@@ -15,7 +15,10 @@ export const dynamic = 'force-dynamic'
 export async function generateMetadata({ params }) {
   try {
     const { slug } = await params
-    const assembly = await prisma.assembly.findUnique({ where: { slug }, select: { name: true } })
+    const assembly = await prisma.assembly.findUnique({ 
+      where: { slug }, 
+      select: { name: true } 
+    })
     return { title: assembly?.name || 'Assembly Dashboard' }
   } catch (error) {
     console.error('Error generating metadata:', error)
@@ -69,39 +72,63 @@ async function getAssemblyStats(assemblyId) {
   })
 
   return { 
-    members, events, prayerPending, testimoniesPending, 
-    visitorsThisMonth, todayBirthdays, arkCenters,
-    arkAttendanceThisMonth: arkAttendanceThisMonth._sum.attendance || 0,
-    headcountThisMonth: headcountThisMonth._sum.attendance || 0
+    members, 
+    events, 
+    prayerPending, 
+    testimoniesPending, 
+    visitorsThisMonth, 
+    todayBirthdays, 
+    arkCenters,
+    arkAttendanceThisMonth: arkAttendanceThisMonth._sum?.attendance || 0,
+    headcountThisMonth: headcountThisMonth._sum?.attendance || 0
   }
 }
 
 export default async function AssemblyAdminPage({ params }) {
+  const { slug } = await params
+
+  let assembly
+  let stats = {
+    members: 0,
+    events: 0,
+    prayerPending: 0,
+    testimoniesPending: 0,
+    visitorsThisMonth: 0,
+    todayBirthdays: [],
+    arkCenters: 0,
+    arkAttendanceThisMonth: 0,
+    headcountThisMonth: 0,
+  }
+
   try {
-    const { slug } = await params
     const session = await getServerSession(authOptions)
     if (!session) redirect('/admin/login')
 
-    const assembly = await prisma.assembly.findUnique({ where: { slug } })
+    assembly = await prisma.assembly.findUnique({ where: { slug } })
     if (!assembly) notFound()
 
-    if (!canManageAssembly(session, assembly.id)) redirect('/admin/dashboard?error=unauthorized')
+    if (!canManageAssembly(session, assembly.id)) {
+      redirect('/admin/dashboard?error=unauthorized')
+    }
 
-    const stats = await getAssemblyStats(assembly.id)
+    // Fetch stats safely
+    stats = await getAssemblyStats(assembly.id)
+
   } catch (error) {
     console.error('Error loading assembly admin page:', error)
-    notFound()
+    // We keep default zero stats and still try to render the page
+    // instead of calling notFound() which was too aggressive
   }
 
   const mgmtLinks = [
-    { href: 'content',    icon: LayoutDashboard, label: 'Content Sections', desc: 'Update page content' },
-    { href: 'members',    icon: UserCheck,      label: 'Members',          desc: `${stats.members} active members` },
-    { href: 'attendance', icon: Calendar,       label: 'Attendance',       desc: `${stats.headcountThisMonth} total headcount this month` },
-    { href: 'ark-centers', icon: Home,          label: 'Ark Centers',      desc: `${stats.arkCenters} centers, ${stats.arkAttendanceThisMonth} attending` },
-    { href: 'finance',    icon: DollarSign,     label: 'Finance',          desc: 'Offerings & expenditure' },
-    { href: 'schedule',   icon: Calendar,       label: 'Schedule',         desc: 'Service schedule' },
-    { href: 'reports',    icon: ClipboardList,  label: 'Reports',          desc: 'Monthly & annual reports' },
-    { href: 'settings',   icon: Settings,       label: 'Settings',         desc: 'Assembly settings' },
+    { href: 'content',     icon: LayoutDashboard, label: 'Content Sections', desc: 'Update page content' },
+    { href: 'members',     icon: UserCheck,       label: 'Members',          desc: `${stats.members} active members` },
+    { href: 'attendance',  icon: Calendar,        label: 'Attendance',       desc: `${stats.headcountThisMonth} total headcount this month` },
+    { href: 'ark-centers', icon: Home,            label: 'Ark Centers',      desc: `${stats.arkCenters} centers, ${stats.arkAttendanceThisMonth} attending` },
+    { href: 'finance',     icon: DollarSign,      label: 'Finance',          desc: 'Offerings & expenditure' },
+    { href: 'schedule',    icon: Calendar,        label: 'Schedule',         desc: 'Service schedule' },
+    { href: 'reports',     icon: ClipboardList,   label: 'Reports',          desc: 'Monthly & annual reports' },
+    { href: 'settings',    icon: Settings,        label: 'Settings',         desc: 'Assembly settings' },
   ]
 
   return (
@@ -113,13 +140,17 @@ export default async function AssemblyAdminPage({ params }) {
             className="text-2xl font-bold"
             style={{ fontFamily: 'var(--font-serif)', color: 'var(--purple-900)' }}
           >
-            {assembly.name}
+            {assembly?.name || 'Assembly'}
           </h1>
-          <p className="text-sm text-gray-500 mt-1">{assembly.city}, {assembly.country}</p>
+          <p className="text-sm text-gray-500 mt-1">
+            {assembly?.city}, {assembly?.country}
+          </p>
         </div>
-        <Link href={`/${assembly.slug}`} target="_blank" className="btn-outline btn-sm">
-          <Eye size={13} /> View Page
-        </Link>
+        {assembly && (
+          <Link href={`/${assembly.slug}`} target="_blank" className="btn-outline btn-sm">
+            <Eye size={13} /> View Page
+          </Link>
+        )}
       </div>
 
       {/* Birthday Alert */}
@@ -197,9 +228,7 @@ export default async function AssemblyAdminPage({ params }) {
           <div className="flex flex-col sm:flex-row gap-3">
             {stats.prayerPending > 0 && (
               <Link
-                href={`/admin/assemblies/${slug}/content/${
-                  /* prayer section */ 'prayer'
-                }`}
+                href={`/admin/assemblies/${slug}/content/prayer`}
                 className="card p-4 flex items-center gap-3 flex-1"
               >
                 <MessageSquare size={18} style={{ color: '#ad1457' }} />

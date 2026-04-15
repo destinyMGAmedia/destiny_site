@@ -1,3 +1,4 @@
+// src/lib/auth.js
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import bcrypt from 'bcryptjs'
@@ -6,7 +7,6 @@ import prisma from './prisma'
 export const authOptions = {
   adapter: PrismaAdapter(prisma),
 
-  // JWT strategy — required when using CredentialsProvider
   session: {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
@@ -21,45 +21,60 @@ export const authOptions = {
       },
 
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error('Email and password are required')
-        }
+        try {
+          if (!credentials?.email || !credentials?.password) {
+            throw new Error('Email and password are required')
+          }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email.toLowerCase().trim() },
-          include: {
-            assembly: { select: { id: true, slug: true, name: true } },
-          },
-        })
+          const email = credentials.email.toLowerCase().trim()
 
-        if (!user) throw new Error('No account found with this email')
-        if (!user.isActive) throw new Error('This account has been deactivated. Contact your administrator.')
+          const user = await prisma.user.findUnique({
+            where: { email },
+            include: {
+              assembly: { 
+                select: { 
+                  id: true, 
+                  slug: true, 
+                  name: true 
+                } 
+              },
+            },
+          })
 
-        const isValid = await bcrypt.compare(credentials.password, user.password)
-        if (!isValid) throw new Error('Incorrect password')
+          if (!user) throw new Error('No account found with this email')
+          if (!user.isActive) throw new Error('This account has been deactivated. Contact your administrator.')
 
-        // Record last login timestamp
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { lastLogin: new Date() },
-        })
+          const isValid = await bcrypt.compare(credentials.password, user.password)
+          if (!isValid) throw new Error('Incorrect password')
 
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          assemblyId: user.assemblyId,
-          assemblySlug: user.assembly?.slug ?? null,
-          assemblyName: user.assembly?.name ?? null,
+          // Record last login
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { lastLogin: new Date() },
+          })
+
+          console.log(`[AUTH] Successful login: ${email} (${user.role})`)
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            assemblyId: user.assemblyId,
+            assemblySlug: user.assembly?.slug ?? null,
+            assemblyName: user.assembly?.name ?? null,
+          }
+        } catch (error) {
+          console.error('[AUTH_ERROR] Login failed:', error.message)
+          throw error // Let NextAuth handle the error message
         }
       },
     }),
   ],
 
   callbacks: {
-    // Add custom fields to the JWT token on sign-in
     async jwt({ token, user, trigger, session }) {
+      // Initial sign in
       if (user) {
         token.id = user.id
         token.role = user.role
@@ -68,7 +83,7 @@ export const authOptions = {
         token.assemblyName = user.assemblyName
       }
 
-      // Allow client-side session updates (e.g. after admin reassigns a user)
+      // Handle session updates (e.g. role changes by admin)
       if (trigger === 'update' && session) {
         token.role = session.role ?? token.role
         token.assemblyId = session.assemblyId ?? token.assemblyId
@@ -79,9 +94,8 @@ export const authOptions = {
       return token
     },
 
-    // Expose JWT fields to the session object used in components
     async session({ session, token }) {
-      if (token) {
+      if (token && session.user) {
         session.user.id = token.id
         session.user.role = token.role
         session.user.assemblyId = token.assemblyId
@@ -101,59 +115,52 @@ export const authOptions = {
 }
 
 // ─────────────────────────────────────────────
-// ROLE HELPERS — use these everywhere for consistent permission checks
+// ROLE HELPERS
 // ─────────────────────────────────────────────
 
-/**
- * Role hierarchy:
- * SUPER_ADMIN    → full system, analytics, manages global admins
- * GLOBAL_ADMIN   → creates assemblies, manages all admin accounts, edits any assembly
- * ASSEMBLY_ADMIN → full assembly management (content + members + finance + reports + settings)
- * APP_ADMIN      → content-only, updates page sections for their assembly
- * CUSTOMER       → basic access, profile, giving history
- * MEMBER         → church member access, attendance, fellowships
- * AGENT          → specialized access for outreach or management
- */
-
-export const isSuperAdmin   = (s) => s?.user?.role === 'SUPER_ADMIN'
-export const isGlobalAdmin  = (s) => ['GLOBAL_ADMIN', 'SUPER_ADMIN'].includes(s?.user?.role)
+export const isSuperAdmin = (s) => s?.user?.role === 'SUPER_ADMIN'
+export const isGlobalAdmin = (s) => ['GLOBAL_ADMIN', 'SUPER_ADMIN'].includes(s?.user?.role)
 export const isAssemblyAdmin = (s) => ['ASSEMBLY_ADMIN', 'GLOBAL_ADMIN', 'SUPER_ADMIN'].includes(s?.user?.role)
-export const isAppAdmin     = (s) => s?.user?.role === 'APP_ADMIN'
-export const isCustomer     = (s) => s?.user?.role === 'CUSTOMER'
-export const isMember       = (s) => s?.user?.role === 'MEMBER'
-export const isAgent        = (s) => s?.user?.role === 'AGENT'
+export const isAppAdmin = (s) => s?.user?.role === 'APP_ADMIN'
+export const isCustomer = (s) => s?.user?.role === 'CUSTOMER'
+export const isMember = (s) => s?.user?.role === 'MEMBER'
+export const isAgent = (s) => s?.user?.role === 'AGENT'
 
-// Any logged-in admin (all 4 roles)
+// Any admin role
 export const isAnyAdmin = (s) =>
   ['SUPER_ADMIN', 'GLOBAL_ADMIN', 'ASSEMBLY_ADMIN', 'APP_ADMIN'].includes(s?.user?.role)
 
-// Content access: APP_ADMIN, ASSEMBLY_ADMIN, GLOBAL_ADMIN, SUPER_ADMIN
+// Content editing permissions
 export const canUpdateContent = (s, assemblyId) => {
   if (!s?.user) return false
   if (isGlobalAdmin(s)) return true
-  // ASSEMBLY_ADMIN and APP_ADMIN — only their own assembly
   return ['ASSEMBLY_ADMIN', 'APP_ADMIN'].includes(s.user.role) &&
     s.user.assemblyId === assemblyId
 }
 
-// Full assembly management (attendance, finance, members, reports, settings)
+// Full assembly management
 export const canManageAssembly = (s, assemblyId) => {
   if (!s?.user) return false
   if (isGlobalAdmin(s)) return true
   return s.user.role === 'ASSEMBLY_ADMIN' && s.user.assemblyId === assemblyId
 }
 
-// Admin account management
 export const canManageAdmins = (s) => isGlobalAdmin(s)
-
-// System-level (analytics, super settings)
 export const canManageSystem = (s) => isSuperAdmin(s)
 
-// Landing route after login — based on role
+// Post-login redirect based on role
 export const getAdminLandingRoute = (user) => {
-  if (user.role === 'SUPER_ADMIN' || user.role === 'GLOBAL_ADMIN') return '/admin/dashboard'
-  if (user.role === 'ASSEMBLY_ADMIN') return `/admin/assemblies/${user.assemblySlug}`
-  if (user.role === 'APP_ADMIN') return `/admin/assemblies/${user.assemblySlug}/content`
-  if (['CUSTOMER', 'MEMBER', 'AGENT'].includes(user.role)) return '/admin/dashboard'
-  return '/admin/login'
+  if (!user?.role) return '/admin/login'
+
+  if (['SUPER_ADMIN', 'GLOBAL_ADMIN'].includes(user.role)) {
+    return '/admin/dashboard'
+  }
+  if (user.role === 'ASSEMBLY_ADMIN') {
+    return `/admin/assemblies/${user.assemblySlug}`
+  }
+  if (user.role === 'APP_ADMIN') {
+    return `/admin/assemblies/${user.assemblySlug}/content`
+  }
+  // Fallback for other roles
+  return '/admin/dashboard'
 }

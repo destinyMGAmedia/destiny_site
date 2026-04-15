@@ -4,7 +4,7 @@ import prisma from '@/lib/prisma'
 // Get specific room details
 export async function GET(req, { params }) {
   try {
-    const { roomId } = params
+    const { roomId } = await params
 
     const room = await prisma.gameRoom.findUnique({
       where: { id: roomId },
@@ -32,7 +32,7 @@ export async function GET(req, { params }) {
 // Update room state or settings
 export async function PATCH(req, { params }) {
   try {
-    const { roomId } = params
+    const { roomId } = await params
     const { gameState, status, username } = await req.json()
 
     const room = await prisma.gameRoom.findUnique({
@@ -70,7 +70,7 @@ export async function PATCH(req, { params }) {
 // Delete/abandon room
 export async function DELETE(req, { params }) {
   try {
-    const { roomId } = params
+    const { roomId } = await params
     const { searchParams } = new URL(req.url)
     const username = searchParams.get('username')
 

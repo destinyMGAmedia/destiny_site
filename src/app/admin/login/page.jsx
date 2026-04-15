@@ -1,55 +1,79 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react'
+import { getAdminLandingRoute } from '@/lib/auth'
 
 export default function AdminLogin() {
   const router = useRouter()
-  const params = useSearchParams()
-  const urlError = params.get('error')
-
+  const searchParams = useSearchParams()
+  
+  const urlError = searchParams.get('error')
+  
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(
-    urlError === 'unauthorized' ? 'You do not have permission to access that page.' : null
+    urlError === 'unauthorized' 
+      ? 'You do not have permission to access that page.' 
+      : urlError 
+        ? 'An error occurred during sign in. Please try again.' 
+        : null
   )
+
+  // Clear error when user starts typing
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(null), 8000)
+      return () => clearTimeout(timer)
+    }
+  }, [error])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setLoading(true)
-    setError(null)
-
-    const result = await signIn('credentials', {
-      email: email.toLowerCase().trim(),
-      password,
-      redirect: false,
-    })
-
-    if (result?.error) {
-      setError(result.error)
-      setLoading(false)
+    
+    if (!email || !password) {
+      setError('Please enter both email and password')
       return
     }
 
-    // Fetch session to get role-based redirect
-    const sessionRes = await fetch('/api/auth/session')
-    const session = await sessionRes.json()
-    const role = session?.user?.role
-    const slug = session?.user?.assemblySlug
+    setLoading(true)
+    setError(null)
 
-    if (role === 'SUPER_ADMIN' || role === 'GLOBAL_ADMIN') {
-      router.push('/admin/dashboard')
-    } else if (role === 'ASSEMBLY_ADMIN') {
-      router.push(`/admin/assemblies/${slug}`)
-    } else if (role === 'APP_ADMIN') {
-      router.push(`/admin/assemblies/${slug}/content`)
-    } else {
-      router.push('/admin/dashboard')
+    try {
+      const result = await signIn('credentials', {
+        email: email.toLowerCase().trim(),
+        password,
+        redirect: false,
+      })
+
+      if (result?.error) {
+        setError(result.error)
+        setLoading(false)
+        return
+      }
+
+      // Successful login → Get fresh session and redirect using your helper
+      const sessionRes = await fetch('/api/auth/session')
+      const sessionData = await sessionRes.json()
+
+      if (sessionData?.user) {
+        const landingRoute = getAdminLandingRoute(sessionData.user)
+        router.push(landingRoute)
+        router.refresh() // Ensure fresh data after redirect
+      } else {
+        // Fallback
+        router.push('/admin/dashboard')
+      }
+    } catch (err) {
+      console.error('Login error:', err)
+      setError('Something went wrong. Please try again.')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -58,7 +82,7 @@ export default function AdminLogin() {
       className="min-h-screen flex"
       style={{ background: 'var(--purple-900)' }}
     >
-      {/* Left panel — branding */}
+      {/* Left branding panel */}
       <div
         className="hidden lg:flex flex-col justify-center items-center w-1/2 p-12"
         style={{ background: 'var(--purple-800)' }}
@@ -70,6 +94,7 @@ export default function AdminLogin() {
             width={240}
             height={96}
             className="object-contain mx-auto mb-6"
+            priority
           />
           <div className="w-12 h-1 mx-auto mb-4 rounded-full" style={{ background: 'var(--gold-500)' }} />
           <p className="text-white/60 text-sm leading-relaxed">
@@ -78,23 +103,32 @@ export default function AdminLogin() {
         </Link>
       </div>
 
-      {/* Right panel — login form */}
+      {/* Login form panel */}
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-md">
           <div className="bg-white rounded-2xl shadow-2xl p-8">
             {/* Mobile logo */}
             <div className="flex justify-center mb-6 lg:hidden">
               <Link href="/" className="hover:opacity-80 transition-opacity">
-                <Image src="/images/dmga-logo.png" alt="DMGA" width={64} height={64} className="object-contain" />
+                <Image 
+                  src="/images/dmga-logo.png" 
+                  alt="DMGA" 
+                  width={64} 
+                  height={64} 
+                  className="object-contain" 
+                />
               </Link>
             </div>
 
-            <h2 className="text-2xl font-bold mb-1" style={{ fontFamily: 'var(--font-serif)', color: 'var(--purple-900)' }}>
+            <h2 
+              className="text-2xl font-bold mb-1" 
+              style={{ fontFamily: 'var(--font-serif)', color: 'var(--purple-900)' }}
+            >
               Admin Login
             </h2>
             <p className="text-sm text-gray-500 mb-6">Sign in to your admin account</p>
 
-            {/* Error */}
+            {/* Error Message */}
             {error && (
               <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 border border-red-200 mb-5">
                 <AlertCircle className="text-red-500 mt-0.5 flex-shrink-0" size={16} />
@@ -116,6 +150,7 @@ export default function AdminLogin() {
                     placeholder="admin@destinymissions.org"
                     required
                     autoComplete="email"
+                    disabled={loading}
                   />
                 </div>
               </div>
@@ -133,11 +168,13 @@ export default function AdminLogin() {
                     placeholder="••••••••"
                     required
                     autoComplete="current-password"
+                    disabled={loading}
                   />
                   <button
                     type="button"
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                     onClick={() => setShowPass((v) => !v)}
+                    disabled={loading}
                     tabIndex={-1}
                   >
                     {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -145,7 +182,7 @@ export default function AdminLogin() {
                 </div>
               </div>
 
-              {/* Submit */}
+              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={loading}
