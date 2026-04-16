@@ -3,6 +3,35 @@ import { MapPin, Phone, Mail, MessageSquare, Clock } from 'lucide-react'
 
 export default function FindUs({ assembly }) {
   const services = Array.isArray(assembly.serviceTimes) ? assembly.serviceTimes : []
+  
+  // Extract URL from iframe if needed and validate
+  const extractUrlFromIframe = (input) => {
+    if (!input) return null
+    
+    // If it's already a URL, return it
+    if (input.startsWith('https://www.google.com/maps/embed')) {
+      return input
+    }
+    
+    // If it's iframe HTML, extract the src URL
+    if (input.includes('<iframe') && input.includes('src=')) {
+      const srcMatch = input.match(/src="([^"]+)"/)
+      if (srcMatch) {
+        return srcMatch[1]
+      }
+    }
+    
+    return null
+  }
+
+  const isValidEmbedUrl = (url) => {
+    if (!url) return false
+    return url.includes('google.com/maps/embed') && url.includes('pb=')
+  }
+  
+  const rawMapLink = assembly.mapLink?.trim()
+  const cleanMapLink = extractUrlFromIframe(rawMapLink) || rawMapLink
+  const hasValidMap = isValidEmbedUrl(cleanMapLink)
 
   return (
     <section id="find-us" className="section-white">
@@ -83,10 +112,10 @@ export default function FindUs({ assembly }) {
           </div>
 
           {/* Map */}
-          {assembly.mapLink ? (
+          {hasValidMap ? (
             <div className="rounded-2xl overflow-hidden shadow-lg h-80">
               <iframe
-                src={assembly.mapLink}
+                src={cleanMapLink}
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
@@ -95,6 +124,17 @@ export default function FindUs({ assembly }) {
                 referrerPolicy="no-referrer-when-downgrade"
                 title={`${assembly.name} location`}
               />
+            </div>
+          ) : cleanMapLink ? (
+            <div
+              className="rounded-2xl flex items-center justify-center h-80 bg-amber-50 border border-amber-200"
+            >
+              <div className="text-center">
+                <MapPin size={40} className="text-amber-500 mx-auto mb-3" />
+                <p className="text-sm text-amber-700 font-medium">Invalid Map URL</p>
+                <p className="text-xs text-amber-600">Please use a valid Google Maps embed URL</p>
+                <p className="text-xs text-gray-400 mt-1">Contact admin to update the map link</p>
+              </div>
             </div>
           ) : (
             <div

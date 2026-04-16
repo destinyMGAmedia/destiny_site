@@ -20,19 +20,19 @@ const VALUES = [
 
 const LEADERSHIP = [
   { 
-    name: 'Apostle Effiong Okon', 
-    role: 'General Overseer & Founder', 
-    desc: 'Apostle Effiong Okon is the founder and General Overseer of DMGA. A man of faith and vision, he has dedicated his life to raising a people of destiny across the nations.' 
+    name: 'Archbiship (Prof) Cletus Bassy', 
+    role: 'Primate', 
+    desc: 'Archbiship (Prof) Cletus Bassy is the Primate and General Overseer of DMGA. A man of faith and vision, he has dedicated his life to raising a people of destiny across the nations.' 
   },
   { 
-    name: 'Pastor (Mrs) Okon', 
-    role: 'Co-Pastor / First Lady', 
+    name: 'Bishop (Mrs) Blessing Bassey', 
+    role: 'Presbyter', 
     desc: 'The First Lady of DMGA, a pillar of grace and strength in the ministry, playing a vital role in nurturing families and strengthening the church community.' 
   },
   { 
-    name: 'Pastor Emmanuel Etim', 
-    role: 'Associate Pastor', 
-    desc: 'Pastor Emmanuel serves as Associate Pastor at DMGA HQ, committed to raising leaders and reaching the lost through discipleship and pastoral care.' 
+    name: 'Biship (Mrs) Utibe-Eno John-Udoh', 
+    role: 'Global Administrator', 
+    desc: 'Biship (Mrs) Utibe-Eno John-Udoh serves as Global Administrator at DMGA HQ, committed to raising leaders and reaching the lost through discipleship and pastoral care.' 
   }
 ]
 
@@ -53,7 +53,7 @@ export default function AboutPage() {
             About DMGA
           </h1>
           <p className="text-lg text-white/75 leading-relaxed">
-            To bring people and places into their destiny in God and raise dynamic leaders.
+            ... a prophetic church woth an apostolic mandate
           </p>
         </div>
       </div>
@@ -66,15 +66,12 @@ export default function AboutPage() {
             {
               label: 'Our Mission',
               title: 'A People of Destiny',
-              body: <>
-                <p className="mb-4">At <strong>Destiny Mission Global Assembly</strong>, we are committed to bringing men, women, and children into their God-ordained destinies. Through powerful worship, transformative teaching, and genuine fellowship, we help believers discover and fulfill their divine purpose.</p>
-                <p>Our church is a place where lives are changed, families are restored, and destinies are realized through the power of God&apos;s Word and the Holy Spirit.</p>
-              </>,
+              body:'To bring people and places into their destiny in God and raise dynamic leaders.',
             },
             {
               label: 'Our Vision',
               title: 'Impact the World',
-              body: 'To be a beacon of hope and transformation in our community and beyond, raising up a generation of believers who walk in their God-given purpose and impact the world for Christ. We envision a church where every member is empowered to fulfill their destiny and make disciples who make disciples.',
+              body: 'To establish and advance the kingdom of God on earth by discerning His voice, declaring His will, and delivering His purpose.',
             },
           ].map((item) => (
             <div
