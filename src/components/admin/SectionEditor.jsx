@@ -53,6 +53,38 @@ function FindUsForm({ assembly, onAssemblyChange }) {
     onAssemblyChange({ serviceTimes: updated })
   }
 
+  const extractUrlFromIframe = (input) => {
+    if (!input) return null
+    
+    // If it's already a URL, return it
+    if (input.startsWith('https://www.google.com/maps/embed')) {
+      return input
+    }
+    
+    // If it's iframe HTML, extract the src URL
+    if (input.includes('<iframe') && input.includes('src=')) {
+      const srcMatch = input.match(/src="([^"]+)"/)
+      if (srcMatch) {
+        return srcMatch[1]
+      }
+    }
+    
+    return null
+  }
+
+  const validateMapInput = (input) => {
+    if (!input) return { isValid: true, extractedUrl: null }
+    
+    const extractedUrl = extractUrlFromIframe(input.trim())
+    if (!extractedUrl) return { isValid: false, extractedUrl: null }
+    
+    const isValidUrl = extractedUrl.includes('google.com/maps/embed') && extractedUrl.includes('pb=')
+    return { isValid: isValidUrl, extractedUrl }
+  }
+
+  const mapValidation = validateMapInput(assembly.mapLink)
+  const mapLinkValid = mapValidation.isValid
+
   const addServiceTime = () => {
     onAssemblyChange({ serviceTimes: [...serviceTimes, { day: '', time: '', type: '' }] })
   }
@@ -68,8 +100,45 @@ function FindUsForm({ assembly, onAssemblyChange }) {
         <input className="form-input" value={assembly.address || ''} onChange={e => onAssemblyChange({ address: e.target.value })} placeholder="Street, City, State" />
       </div>
       <div>
-        <label className="form-label">Google Maps Link</label>
-        <input className="form-input" value={assembly.mapLink || ''} onChange={e => onAssemblyChange({ mapLink: e.target.value })} placeholder="https://maps.google.com/..." />
+        <label className="form-label">Google Maps Embed Code</label>
+        <textarea 
+          className={`form-input ${assembly.mapLink && !mapLinkValid ? 'border-red-300 bg-red-50' : assembly.mapLink && mapLinkValid ? 'border-green-300 bg-green-50' : ''}`}
+          rows={4}
+          value={assembly.mapLink || ''} 
+          onChange={e => {
+            const input = e.target.value
+            const validation = validateMapInput(input)
+            // Always save the original input, but the component will use extracted URL
+            onAssemblyChange({ mapLink: input })
+          }}
+          placeholder="Paste the entire iframe code from Google Maps here..."
+        />
+        
+        {assembly.mapLink && !mapLinkValid && (
+          <p className="text-xs text-red-600 mt-1">❌ Invalid embed code. Please copy the iframe from Google Maps &quot;Embed a map&quot; feature.</p>
+        )}
+        
+        {assembly.mapLink && mapLinkValid && mapValidation.extractedUrl && (
+          <div className="mt-1">
+            <p className="text-xs text-green-600">✅ Valid Google Maps embed detected!</p>
+            {assembly.mapLink !== mapValidation.extractedUrl && (
+              <p className="text-xs text-gray-500 mt-1">📎 URL will be automatically extracted: <span className="font-mono text-xs break-all">{mapValidation.extractedUrl}</span></p>
+            )}
+          </div>
+        )}
+        
+        <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-xs text-blue-800 font-semibold mb-2">📍 How to get Google Maps embed code:</p>
+          <ol className="text-xs text-blue-700 space-y-1 list-decimal list-inside">
+            <li>Open <a href="https://www.google.com/maps" target="_blank" rel="noopener" className="underline">Google Maps</a></li>
+            <li>Search for your assembly location</li>
+            <li>Click &quot;Share&quot; button</li>
+            <li>Select &quot;Embed a map&quot; tab</li>
+            <li>Choose map size (Medium recommended)</li>
+            <li><strong>Copy the entire iframe code</strong> and paste it here</li>
+          </ol>
+          <p className="text-xs text-blue-600 mt-2">💡 You can paste either the full iframe code or just the URL - both work!</p>
+        </div>
       </div>
       <div>
         <label className="form-label">Parking Notes</label>
@@ -230,11 +299,20 @@ export default function SectionEditor({ assembly, section, role }) {
       )
 
       if (ASSEMBLY_SECTIONS.has(section.type)) {
+        // Extract URL from iframe if needed before saving
+        const processedAssemblyData = { ...assemblyData }
+        if (processedAssemblyData.mapLink) {
+          const extractedUrl = extractUrlFromIframe(processedAssemblyData.mapLink)
+          if (extractedUrl) {
+            processedAssemblyData.mapLink = extractedUrl
+          }
+        }
+        
         promises.push(
           fetch(`/api/admin/assembly/${assembly.slug}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(assemblyData),
+            body: JSON.stringify(processedAssemblyData),
           })
         )
       }
