@@ -1,0 +1,62 @@
+{
+  "primate": {
+    "url": "https://res.cloudinary.com/diun1hy3v/image/upload/v1776378519/dmga/global/leadership/primate.png",
+    "public_id": "dmga/global/leadership/primate",
+    "description": "Archbishop (Prof) Cletus Bassy - Primate"
+  },
+  "presbyter": {
+    "url": "https://res.cloudinary.com/diun1hy3v/image/upload/v1776378530/dmga/global/leadership/presbyter.jpg",
+    "public_id": "dmga/global/leadership/presbyter",
+    "description": "Bishop (Mrs) Blessing Bassey - Presbyter"
+  },
+  "favicon": {
+    "url": "https://res.cloudinary.com/diun1hy3v/image/upload/v1776378534/dmga/global/branding/favicon.png",
+    "public_id": "dmga/global/branding/favicon",
+    "description": "DMGA Favicon"
+  },
+  "gallery-1": {
+    "url": "https://res.cloudinary.com/diun1hy3v/image/upload/v1776378535/dmga/global/gallery/gallery-1.jpg",
+    "public_id": "dmga/global/gallery/gallery-1",
+    "description": "Gallery Image 1"
+  },
+  "gallery-2": {
+    "url": "https://res.cloudinary.com/diun1hy3v/image/upload/v1776378537/dmga/global/gallery/gallery-2.jpg",
+    "public_id": "dmga/global/gallery/gallery-2",
+    "description": "Gallery Image 2"
+  },
+  "gallery-3": {
+    "url": "https://res.cloudinary.com/diun1hy3v/image/upload/v1776378538/dmga/global/gallery/gallery-3.jpg",
+    "public_id": "dmga/global/gallery/gallery-3",
+    "description": "Gallery Image 3"
+  },
+  "gallery-4": {
+    "url": "https://res.cloudinary.com/diun1hy3v/image/upload/v1776378539/dmga/global/gallery/gallery-4.jpg",
+    "public_id": "dmga/global/gallery/gallery-4",
+    "description": "Gallery Image 4"
+  },
+  "gallery-5": {
+    "url": "https://res.cloudinary.com/diun1hy3v/image/upload/v1776378541/dmga/global/gallery/gallery-5.jpg",
+    "public_id": "dmga/global/gallery/gallery-5",
+    "description": "Gallery Image 5"
+  },
+  "gallery-6": {
+    "url": "https://res.cloudinary.com/diun1hy3v/image/upload/v1776378542/dmga/global/gallery/gallery-6.jpg",
+    "public_id": "dmga/global/gallery/gallery-6",
+    "description": "Gallery Image 6"
+  },
+  "gallery-7": {
+    "url": "https://res.cloudinary.com/diun1hy3v/image/upload/v1776378543/dmga/global/gallery/gallery-7.jpg",
+    "public_id": "dmga/global/gallery/gallery-7",
+    "description": "Gallery Image 7"
+  },
+  "gallery-21": {
+    "url": "https://res.cloudinary.com/diun1hy3v/image/upload/v1776378544/dmga/global/gallery/gallery-21.jpg",
+    "public_id": "dmga/global/gallery/gallery-21",
+    "description": "Gallery Image 21"
+  },
+  "user-placeholder": {
+    "url": "https://res.cloudinary.com/diun1hy3v/image/upload/v1776378546/dmga/global/ui/user-placeholder.jpg",
+    "public_id": "dmga/global/ui/user-placeholder",
+    "description": "User Placeholder Image"
+  }
+}

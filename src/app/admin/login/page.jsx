@@ -89,7 +89,7 @@ export default function AdminLogin() {
       >
         <Link href="/" className="max-w-sm text-center block hover:opacity-80 transition-opacity">
           <Image
-            src="/images/dmga-logo.png"
+            src="https://res.cloudinary.com/dmga/image/upload/v1/dmga/global/branding/logo"
             alt="DMGA"
             width={240}
             height={96}
@@ -111,7 +111,7 @@ export default function AdminLogin() {
             <div className="flex justify-center mb-6 lg:hidden">
               <Link href="/" className="hover:opacity-80 transition-opacity">
                 <Image 
-                  src="/images/dmga-logo.png" 
+                  src="https://res.cloudinary.com/dmga/image/upload/v1/dmga/global/branding/logo" 
                   alt="DMGA" 
                   width={64} 
                   height={64} 

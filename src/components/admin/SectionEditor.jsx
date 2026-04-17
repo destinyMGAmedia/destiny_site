@@ -8,6 +8,26 @@ import FellowshipsEditor from './FellowshipsEditor'
 import DepartmentsEditor from './DepartmentsEditor'
 import EventsEditor from './EventsEditor'
 
+// Utility function for extracting URLs from iframe HTML
+const extractUrlFromIframe = (input) => {
+  if (!input) return null
+  
+  // If it's already a URL, return it
+  if (input.startsWith('https://www.google.com/maps/embed')) {
+    return input
+  }
+  
+  // If it's iframe HTML, extract the src URL
+  if (input.includes('<iframe') && input.includes('src=')) {
+    const srcMatch = input.match(/src="([^"]+)"/)
+    if (srcMatch) {
+      return srcMatch[1]
+    }
+  }
+  
+  return null
+}
+
 // Section-specific form components
 function HeroForm({ content, onChange, assembly, assemblySlug }) {
   return (
@@ -51,25 +71,6 @@ function FindUsForm({ assembly, onAssemblyChange }) {
   const updateServiceTime = (i, field, val) => {
     const updated = serviceTimes.map((s, idx) => idx === i ? { ...s, [field]: val } : s)
     onAssemblyChange({ serviceTimes: updated })
-  }
-
-  const extractUrlFromIframe = (input) => {
-    if (!input) return null
-    
-    // If it's already a URL, return it
-    if (input.startsWith('https://www.google.com/maps/embed')) {
-      return input
-    }
-    
-    // If it's iframe HTML, extract the src URL
-    if (input.includes('<iframe') && input.includes('src=')) {
-      const srcMatch = input.match(/src="([^"]+)"/)
-      if (srcMatch) {
-        return srcMatch[1]
-      }
-    }
-    
-    return null
   }
 
   const validateMapInput = (input) => {
@@ -205,7 +206,7 @@ function GivingForm({ giving, onChange }) {
 function ContactForm({ assembly, onAssemblyChange }) {
   return (
     <div className="space-y-5">
-      <p className="text-xs text-gray-400">Contact section pulls from the assembly's main contact details.</p>
+      <p className="text-xs text-gray-400">Contact section pulls from the assembly&apos;s main contact details.</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="form-label">Phone</label>

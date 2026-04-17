@@ -1,6 +1,7 @@
 import prisma from '@/lib/prisma'
 import HeroSection from '@/components/home/HeroSection'
 import LiveSection from '@/components/home/LiveSection'
+import FounderSection from '@/components/home/FounderSection'
 import UpcomingProgrammes from '@/components/home/UpcomingProgrammes'
 import AssembliesStrip from '@/components/home/AssembliesStrip'
 import RoyalFeedPreview from '@/components/home/RoyalFeedPreview'
@@ -81,19 +82,22 @@ export default async function HomePage() {
       {/* 2. Live Stream */}
       <LiveSection channelId={mainChannel?.channelId} />
 
-      {/* 3. Upcoming Programmes (global events) */}
+      {/* 3. Spiritual Leadership */}
+      <FounderSection />
+
+      {/* 4. Upcoming Programmes (global events) */}
       <UpcomingProgrammes events={globalEvents} />
 
-      {/* 4. Assemblies Horizontal Scroll */}
+      {/* 5. Assemblies Horizontal Scroll */}
       <AssembliesStrip assemblies={assemblies} />
 
-      {/* 5. Royal Feed Preview */}
+      {/* 6. Royal Feed Preview */}
       <RoyalFeedPreview devotional={todayDevotional} />
 
-      {/* 6. Creative Arts Preview */}
+      {/* 7. Creative Arts Preview */}
       <CreativeArtsPreview />
 
-      {/* 7. Games Preview */}
+      {/* 8. Games Preview */}
       <GamesPreview featuredGame={featuredGame} />
     </>
   )

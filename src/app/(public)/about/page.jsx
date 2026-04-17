@@ -1,5 +1,6 @@
 import SectionHeader from '@/components/ui/SectionHeader'
 import Link from 'next/link'
+import Image from 'next/image'
 import { ArrowRight, User } from 'lucide-react'
 import BackButton from '@/components/ui/BackButton'
 
@@ -22,12 +23,14 @@ const LEADERSHIP = [
   { 
     name: 'Archbiship (Prof) Cletus Bassy', 
     role: 'Primate', 
-    desc: 'Archbiship (Prof) Cletus Bassy is the Primate and General Overseer of DMGA. A man of faith and vision, he has dedicated his life to raising a people of destiny across the nations.' 
+    desc: 'Archbiship (Prof) Cletus Bassy is the Primate and General Overseer of DMGA. A man of faith and vision, he has dedicated his life to raising a people of destiny across the nations.',
+    image: 'https://res.cloudinary.com/diun1hy3v/image/upload/v1776378519/dmga/global/leadership/primate.png'
   },
   { 
     name: 'Bishop (Mrs) Blessing Bassey', 
     role: 'Presbyter', 
-    desc: 'The First Lady of DMGA, a pillar of grace and strength in the ministry, playing a vital role in nurturing families and strengthening the church community.' 
+    desc: 'The First Lady of DMGA, a pillar of grace and strength in the ministry, playing a vital role in nurturing families and strengthening the church community.',
+    image: 'https://res.cloudinary.com/diun1hy3v/image/upload/v1776378530/dmga/global/leadership/presbyter.jpg'
   },
   { 
     name: 'Biship (Mrs) Utibe-Eno John-Udoh', 
@@ -179,10 +182,19 @@ export default function AboutPage() {
             {LEADERSHIP.map((leader) => (
               <div key={leader.name} className="card p-0 overflow-hidden text-center group">
                 <div className="h-64 bg-purple-50 flex items-center justify-center relative overflow-hidden">
-                  <div className="w-24 h-24 rounded-full bg-purple-900/10 flex items-center justify-center text-purple-900 group-hover:scale-110 transition-transform">
-                    <User size={40} />
-                  </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-purple-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  {leader.image ? (
+                    <Image 
+                      src={leader.image}
+                      alt={leader.name}
+                      fill
+                      className="object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="w-24 h-24 rounded-full bg-purple-900/10 flex items-center justify-center text-purple-900 group-hover:scale-110 transition-transform">
+                      <User size={40} />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-linear-to-t from-purple-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
                 <div className="p-8">
                   <h4 className="text-xl font-bold text-purple-900" style={{ fontFamily: 'var(--font-serif)' }}>{leader.name}</h4>
