@@ -10,6 +10,7 @@ const prismaOptions = {
 // This prevents Prisma from throwing a validation error during build time
 // (e.g., when collecting page data for layouts or static pages).
 if (process.env.DATABASE_URL) {
+<<<<<<< HEAD
   try {
     const url = new URL(process.env.DATABASE_URL)
 
@@ -42,6 +43,12 @@ if (process.env.DATABASE_URL) {
         url: process.env.DATABASE_URL,
       },
     }
+=======
+  prismaOptions.datasources = {
+    db: {
+      url: process.env.DATABASE_URL,
+    },
+>>>>>>> origin/main
   }
 }
 
@@ -72,11 +79,16 @@ const handler = {
                 const isConnErr =
                   err?.code === 'P1001' ||
                   err?.message?.includes('ECONNREFUSED') ||
+<<<<<<< HEAD
                   err?.message?.includes("Can't reach database") ||
                   err?.message?.includes('too many clients') ||
                   err?.message?.includes('remaining connection slots')
                 if (isConnErr && attempt < 2) {
                   console.warn(`[PRISMA_RETRY] Connection failed (attempt ${attempt + 1}/3):`, err.message)
+=======
+                  err?.message?.includes("Can't reach database")
+                if (isConnErr && attempt < 2) {
+>>>>>>> origin/main
                   await new Promise(r => setTimeout(r, 1000 * (attempt + 1)))
                   try { await target.$connect() } catch (_) {}
                   continue
@@ -95,4 +107,8 @@ const handler = {
   },
 }
 
+<<<<<<< HEAD
 export default new Proxy(prisma, handler)
+=======
+export default new Proxy(prisma, handler)
+>>>>>>> origin/main

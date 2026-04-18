@@ -4,13 +4,19 @@ import { CheckCircle, RefreshCw, Info, Trophy } from 'lucide-react'
 
 const WORDS = [
   'DESTINY', 'MISSION', 'VISION', 'INTEGRITY', 'PIONEER', 'LEADERSHIP', 
+<<<<<<< HEAD
   'EXCELLENCE', 'ACTION', 'DEVOTION', 'CHAMPION', 'CHAMPIONS', 'VICTORY', 
   'ASSEMBLY', 'OASIS', 'FELLOWSHIP', 'WORSHIP', 'DIGNIFIED', 'REIGN',
   'TRANSFORM', 'NATIONS', 'BUILDING', 'PASTURES', 'DYNAMO'
+=======
+  'EXCELLENCE', 'ACTION', 'DEVOTION', 'CHAMPION', 'VICTORY', 'ASSEMBLY', 
+  'OASIS', 'FELLOWSHIP', 'WORSHIP', 'DIGNIFIED', 'DYNAMO'
+>>>>>>> origin/main
 ]
 
 const GRID_SIZE = 12
 
+<<<<<<< HEAD
 export default function BibleWordSearch({ initialState, onSave }) {
   const [grid, setGrid] = useState(initialState?.grid || [])
   const [foundWords, setFoundWords] = useState(initialState?.foundWords || [])
@@ -28,6 +34,18 @@ export default function BibleWordSearch({ initialState, onSave }) {
     }
   }, [grid, foundWords, foundPaths, gameWon, onSave])
 
+=======
+export default function BibleWordSearch() {
+  const [grid, setGrid] = useState([])
+  const [foundWords, setFoundWords] = useState([])
+  const [foundPaths, setFoundPaths] = useState([])
+  const [selecting, setSelecting] = useState(false)
+  const [selectionStart, setSelectionStart] = useState(null)
+  const [selectionPath, setSelectionPath] = useState([])
+  const [gameWon, setGameWon] = useState(false)
+  const gridRef = useRef(null)
+
+>>>>>>> origin/main
   const generateGrid = useCallback(() => {
     const newGrid = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(''))
     const directions = [
@@ -81,9 +99,13 @@ export default function BibleWordSearch({ initialState, onSave }) {
   }, [])
 
   useEffect(() => {
+<<<<<<< HEAD
     if (grid.length === 0) {
       generateGrid()
     }
+=======
+    generateGrid()
+>>>>>>> origin/main
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -155,6 +177,7 @@ export default function BibleWordSearch({ initialState, onSave }) {
   const isCellInFoundPath = (r, c) => foundPaths.some(path => path.some(p => p.r === r && p.c === c))
 
   return (
+<<<<<<< HEAD
     <div className="flex flex-col gap-10 select-none w-full min-h-screen bg-lavender-50/30">
       {/* Grid Side (Top) */}
       <div className="w-full py-12 flex items-center justify-center bg-white/40 backdrop-blur-md border-b border-purple-100">
@@ -162,6 +185,15 @@ export default function BibleWordSearch({ initialState, onSave }) {
           ref={gridRef}
           className="grid grid-cols-12 gap-1 bg-purple-100 p-3 md:p-6 rounded-[2.5rem] shadow-2xl border-8 border-white cursor-crosshair mx-auto overflow-hidden touch-none"
           style={{ width: 'min(90vw, 600px)', aspectRatio: '1/1' }}
+=======
+    <div className="flex flex-col lg:flex-row gap-10 select-none">
+      {/* Word Search Grid */}
+      <div className="flex-1">
+        <div 
+          ref={gridRef}
+          className="grid grid-cols-12 gap-1 bg-purple-100 p-2 rounded-2xl shadow-xl border-4 border-purple-200 cursor-crosshair mx-auto overflow-hidden"
+          style={{ maxWidth: '500px', aspectRatio: '1/1' }}
+>>>>>>> origin/main
         >
           {grid.map((row, r) => 
             row.map((letter, c) => (
@@ -169,6 +201,7 @@ export default function BibleWordSearch({ initialState, onSave }) {
                 key={`${r}-${c}`}
                 onMouseDown={() => handleMouseDown(r, c)}
                 onMouseEnter={() => handleMouseEnter(r, c)}
+<<<<<<< HEAD
                 onTouchStart={(e) => {
                   e.preventDefault();
                   const touch = e.touches[0];
@@ -179,6 +212,12 @@ export default function BibleWordSearch({ initialState, onSave }) {
                   flex items-center justify-center rounded-lg font-black text-xs md:text-xl transition-all duration-150
                   ${isCellSelected(r, c) ? 'bg-gold-500 text-purple-900 scale-110 z-20 shadow-lg' : 
                     isCellInFoundPath(r, c) ? 'bg-purple-900 text-white font-bold' : 'bg-white text-gray-700 hover:bg-purple-50'}
+=======
+                className={`
+                  flex items-center justify-center rounded-lg font-black text-sm md:text-base transition-all duration-150
+                  ${isCellSelected(r, c) ? 'bg-gold-500 text-purple-900 scale-110 z-20 shadow-lg' : 
+                    isCellInFoundPath(r, c) ? 'bg-purple-900/10 text-purple-900 font-bold' : 'bg-white text-gray-700 hover:bg-purple-50'}
+>>>>>>> origin/main
                 `}
               >
                 {letter}
@@ -188,6 +227,7 @@ export default function BibleWordSearch({ initialState, onSave }) {
         </div>
       </div>
 
+<<<<<<< HEAD
       {/* Word List Side (Bottom) */}
       <div className="w-full max-w-6xl mx-auto px-6 pb-20">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
@@ -267,6 +307,62 @@ export default function BibleWordSearch({ initialState, onSave }) {
              </div>
           </div>
 
+=======
+      {/* Word List and Status */}
+      <div className="w-full lg:w-80 flex flex-col gap-6">
+        <div className="card p-6 border-purple-100 bg-white/50 backdrop-blur-sm shadow-xl flex-1">
+          <div className="flex items-center justify-between mb-6">
+             <h3 className="font-bold text-purple-900 flex items-center gap-2">
+                <Info size={18} className="text-gold-600" /> Word List
+             </h3>
+             <span className="text-xs font-black px-2 py-1 bg-purple-100 text-purple-700 rounded-full">
+                {foundWords.length} / {WORDS.length}
+             </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+            {WORDS.map((word) => (
+              <div 
+                key={word} 
+                className={`
+                  px-3 py-2 rounded-xl text-[10px] md:text-xs font-bold transition-all border
+                  ${foundWords.includes(word) ? 
+                    'bg-green-100 border-green-200 text-green-700 line-through opacity-60' : 
+                    'bg-white border-purple-50 text-gray-500'}
+                `}
+              >
+                {word}
+              </div>
+            ))}
+          </div>
+
+          {gameWon ? (
+            <div className="mt-8 p-6 bg-gold-500 rounded-2xl text-center shadow-2xl animate-bounce">
+              <Trophy size={48} className="text-purple-900 mx-auto mb-3" />
+              <h4 className="text-purple-900 font-black text-xl mb-1">AMAZING!</h4>
+              <p className="text-purple-800 text-sm font-bold mb-4">You found all the words!</p>
+              <button 
+                onClick={generateGrid}
+                className="bg-purple-900 text-white px-6 py-2 rounded-full text-sm font-bold hover:bg-purple-800 transition-colors"
+              >
+                Play Again
+              </button>
+            </div>
+          ) : (
+             <button 
+                onClick={generateGrid}
+                className="w-full mt-8 py-3 flex items-center justify-center gap-2 text-sm font-black text-purple-700 bg-purple-100 hover:bg-gold-500 hover:text-purple-900 rounded-xl transition-all shadow-sm"
+             >
+                <RefreshCw size={16} /> New Puzzle
+             </button>
+          )}
+        </div>
+        
+        <div className="p-4 bg-purple-50 rounded-2xl border border-purple-100">
+           <p className="text-[10px] text-purple-800 leading-relaxed italic">
+             &quot;Find words from our About page: our vision, mission, core values, and the spirit of Destiny Mission Global Assembly.&quot;
+           </p>
+>>>>>>> origin/main
         </div>
       </div>
 

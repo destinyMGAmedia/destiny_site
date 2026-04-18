@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 // src/lib/auth.js
+=======
+>>>>>>> origin/main
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import bcrypt from 'bcryptjs'
@@ -7,6 +10,10 @@ import prisma from './prisma'
 export const authOptions = {
   adapter: PrismaAdapter(prisma),
 
+<<<<<<< HEAD
+=======
+  // JWT strategy — required when using CredentialsProvider
+>>>>>>> origin/main
   session: {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
@@ -21,6 +28,7 @@ export const authOptions = {
       },
 
       async authorize(credentials) {
+<<<<<<< HEAD
         try {
           if (!credentials?.email || !credentials?.password) {
             throw new Error('Email and password are required')
@@ -67,14 +75,52 @@ export const authOptions = {
         } catch (error) {
           console.error('[AUTH_ERROR] Login failed:', error.message)
           throw error // Let NextAuth handle the error message
+=======
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error('Email and password are required')
+        }
+
+        const user = await prisma.user.findUnique({
+          where: { email: credentials.email.toLowerCase().trim() },
+          include: {
+            assembly: { select: { id: true, slug: true, name: true } },
+          },
+        })
+
+        if (!user) throw new Error('No account found with this email')
+        if (!user.isActive) throw new Error('This account has been deactivated. Contact your administrator.')
+
+        const isValid = await bcrypt.compare(credentials.password, user.password)
+        if (!isValid) throw new Error('Incorrect password')
+
+        // Record last login timestamp
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { lastLogin: new Date() },
+        })
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          assemblyId: user.assemblyId,
+          assemblySlug: user.assembly?.slug ?? null,
+          assemblyName: user.assembly?.name ?? null,
+>>>>>>> origin/main
         }
       },
     }),
   ],
 
   callbacks: {
+<<<<<<< HEAD
     async jwt({ token, user, trigger, session }) {
       // Initial sign in
+=======
+    // Add custom fields to the JWT token on sign-in
+    async jwt({ token, user, trigger, session }) {
+>>>>>>> origin/main
       if (user) {
         token.id = user.id
         token.role = user.role
@@ -83,7 +129,11 @@ export const authOptions = {
         token.assemblyName = user.assemblyName
       }
 
+<<<<<<< HEAD
       // Handle session updates (e.g. role changes by admin)
+=======
+      // Allow client-side session updates (e.g. after admin reassigns a user)
+>>>>>>> origin/main
       if (trigger === 'update' && session) {
         token.role = session.role ?? token.role
         token.assemblyId = session.assemblyId ?? token.assemblyId
@@ -94,8 +144,14 @@ export const authOptions = {
       return token
     },
 
+<<<<<<< HEAD
     async session({ session, token }) {
       if (token && session.user) {
+=======
+    // Expose JWT fields to the session object used in components
+    async session({ session, token }) {
+      if (token) {
+>>>>>>> origin/main
         session.user.id = token.id
         session.user.role = token.role
         session.user.assemblyId = token.assemblyId
@@ -115,6 +171,7 @@ export const authOptions = {
 }
 
 // ─────────────────────────────────────────────
+<<<<<<< HEAD
 // ROLE HELPERS
 // ─────────────────────────────────────────────
 
@@ -134,17 +191,49 @@ export const isAnyAdmin = (s) =>
 export const canUpdateContent = (s, assemblyId) => {
   if (!s?.user) return false
   if (isGlobalAdmin(s)) return true
+=======
+// ROLE HELPERS — use these everywhere for consistent permission checks
+// ─────────────────────────────────────────────
+
+/**
+ * Role hierarchy:
+ * SUPER_ADMIN    → full system, analytics, manages global admins
+ * GLOBAL_ADMIN   → creates assemblies, manages all admin accounts, edits any assembly
+ * ASSEMBLY_ADMIN → full assembly management (content + members + finance + reports + settings)
+ * APP_ADMIN      → content-only, updates page sections for their assembly
+ */
+
+export const isSuperAdmin   = (s) => s?.user?.role === 'SUPER_ADMIN'
+export const isGlobalAdmin  = (s) => ['GLOBAL_ADMIN', 'SUPER_ADMIN'].includes(s?.user?.role)
+export const isAssemblyAdmin = (s) => ['ASSEMBLY_ADMIN', 'GLOBAL_ADMIN', 'SUPER_ADMIN'].includes(s?.user?.role)
+export const isAppAdmin     = (s) => s?.user?.role === 'APP_ADMIN'
+
+// Any logged-in admin (all 4 roles)
+export const isAnyAdmin = (s) =>
+  ['SUPER_ADMIN', 'GLOBAL_ADMIN', 'ASSEMBLY_ADMIN', 'APP_ADMIN'].includes(s?.user?.role)
+
+// Content access: APP_ADMIN, ASSEMBLY_ADMIN, GLOBAL_ADMIN, SUPER_ADMIN
+export const canUpdateContent = (s, assemblyId) => {
+  if (!s?.user) return false
+  if (isGlobalAdmin(s)) return true
+  // ASSEMBLY_ADMIN and APP_ADMIN — only their own assembly
+>>>>>>> origin/main
   return ['ASSEMBLY_ADMIN', 'APP_ADMIN'].includes(s.user.role) &&
     s.user.assemblyId === assemblyId
 }
 
+<<<<<<< HEAD
 // Full assembly management
+=======
+// Full assembly management (attendance, finance, members, reports, settings)
+>>>>>>> origin/main
 export const canManageAssembly = (s, assemblyId) => {
   if (!s?.user) return false
   if (isGlobalAdmin(s)) return true
   return s.user.role === 'ASSEMBLY_ADMIN' && s.user.assemblyId === assemblyId
 }
 
+<<<<<<< HEAD
 export const canManageAdmins = (s) => isGlobalAdmin(s)
 export const canManageSystem = (s) => isSuperAdmin(s)
 
@@ -164,3 +253,18 @@ export const getAdminLandingRoute = (user) => {
   // Fallback for other roles
   return '/admin/dashboard'
 }
+=======
+// Admin account management
+export const canManageAdmins = (s) => isGlobalAdmin(s)
+
+// System-level (analytics, super settings)
+export const canManageSystem = (s) => isSuperAdmin(s)
+
+// Landing route after login — based on role
+export const getAdminLandingRoute = (user) => {
+  if (user.role === 'SUPER_ADMIN' || user.role === 'GLOBAL_ADMIN') return '/admin/dashboard'
+  if (user.role === 'ASSEMBLY_ADMIN') return `/admin/assemblies/${user.assemblySlug}`
+  if (user.role === 'APP_ADMIN') return `/admin/assemblies/${user.assemblySlug}/content`
+  return '/admin/login'
+}
+>>>>>>> origin/main

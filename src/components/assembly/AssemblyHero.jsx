@@ -2,7 +2,10 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+<<<<<<< HEAD
 import BackButton from '@/components/ui/BackButton'
+=======
+>>>>>>> origin/main
 
 function resolveBg(bg) {
   if (!bg) return null
@@ -48,7 +51,10 @@ export default function AssemblyHero({ assembly, heroSection }) {
 
   return (
     <section id="hero" className="relative min-h-[70vh] flex items-end">
+<<<<<<< HEAD
       <BackButton className="absolute top-8 left-8 z-20" />
+=======
+>>>>>>> origin/main
       {/* Background */}
       <div className="absolute inset-0 z-0">
         {bgStyle ? (

@@ -32,6 +32,7 @@ export async function POST(req) {
 
     const fullScheduledAt = new Date(scheduledDate)
     const [hours, minutes] = (publishTime || '00:00').split(':')
+<<<<<<< HEAD
     
     // Adjust based on targetTimezone to ensure it's stored in correct UTC
     // Default WAT (UTC+1)
@@ -43,6 +44,9 @@ export async function POST(req) {
     // UTC = Local - Offset
     const utcHours = parseInt(hours) - offset
     fullScheduledAt.setUTCHours(utcHours, parseInt(minutes), 0, 0)
+=======
+    fullScheduledAt.setHours(parseInt(hours), parseInt(minutes), 0, 0)
+>>>>>>> origin/main
 
     const devotional = await prisma.devotional.create({
       data: {

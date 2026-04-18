@@ -1,13 +1,18 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+<<<<<<< HEAD
 import { ArrowLeft, Save, Check, Home } from 'lucide-react'
+=======
+import { ArrowLeft, Save, Check } from 'lucide-react'
+>>>>>>> origin/main
 import BackgroundPicker from './BackgroundPicker'
 import ImageUploader from './ImageUploader'
 import FellowshipsEditor from './FellowshipsEditor'
 import DepartmentsEditor from './DepartmentsEditor'
 import EventsEditor from './EventsEditor'
 
+<<<<<<< HEAD
 // Utility function for extracting URLs from iframe HTML
 const extractUrlFromIframe = (input) => {
   if (!input) return null
@@ -28,6 +33,8 @@ const extractUrlFromIframe = (input) => {
   return null
 }
 
+=======
+>>>>>>> origin/main
 // Section-specific form components
 function HeroForm({ content, onChange, assembly, assemblySlug }) {
   return (
@@ -73,6 +80,7 @@ function FindUsForm({ assembly, onAssemblyChange }) {
     onAssemblyChange({ serviceTimes: updated })
   }
 
+<<<<<<< HEAD
   const validateMapInput = (input) => {
     if (!input) return { isValid: true, extractedUrl: null }
     
@@ -86,6 +94,8 @@ function FindUsForm({ assembly, onAssemblyChange }) {
   const mapValidation = validateMapInput(assembly.mapLink)
   const mapLinkValid = mapValidation.isValid
 
+=======
+>>>>>>> origin/main
   const addServiceTime = () => {
     onAssemblyChange({ serviceTimes: [...serviceTimes, { day: '', time: '', type: '' }] })
   }
@@ -101,6 +111,7 @@ function FindUsForm({ assembly, onAssemblyChange }) {
         <input className="form-input" value={assembly.address || ''} onChange={e => onAssemblyChange({ address: e.target.value })} placeholder="Street, City, State" />
       </div>
       <div>
+<<<<<<< HEAD
         <label className="form-label">Google Maps Embed Code</label>
         <textarea 
           className={`form-input ${assembly.mapLink && !mapLinkValid ? 'border-red-300 bg-red-50' : assembly.mapLink && mapLinkValid ? 'border-green-300 bg-green-50' : ''}`}
@@ -140,6 +151,10 @@ function FindUsForm({ assembly, onAssemblyChange }) {
           </ol>
           <p className="text-xs text-blue-600 mt-2">💡 You can paste either the full iframe code or just the URL - both work!</p>
         </div>
+=======
+        <label className="form-label">Google Maps Link</label>
+        <input className="form-input" value={assembly.mapLink || ''} onChange={e => onAssemblyChange({ mapLink: e.target.value })} placeholder="https://maps.google.com/..." />
+>>>>>>> origin/main
       </div>
       <div>
         <label className="form-label">Parking Notes</label>
@@ -206,7 +221,11 @@ function GivingForm({ giving, onChange }) {
 function ContactForm({ assembly, onAssemblyChange }) {
   return (
     <div className="space-y-5">
+<<<<<<< HEAD
       <p className="text-xs text-gray-400">Contact section pulls from the assembly&apos;s main contact details.</p>
+=======
+      <p className="text-xs text-gray-400">Contact section pulls from the assembly's main contact details.</p>
+>>>>>>> origin/main
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="form-label">Phone</label>
@@ -251,7 +270,11 @@ const GIVING_SECTIONS = new Set(['GIVING'])
 // Sections that don't show background picker
 const NO_BG_SECTIONS = new Set(['FIND_US', 'CONTACT', 'GIVING'])
 // List-based sections that manage items internally (save their own content)
+<<<<<<< HEAD
 const LIST_SECTIONS = new Set(['FELLOWSHIPS', 'DEPARTMENTS', 'EVENTS', 'ARK_CENTERS'])
+=======
+const LIST_SECTIONS = new Set(['FELLOWSHIPS', 'DEPARTMENTS', 'EVENTS'])
+>>>>>>> origin/main
 
 export default function SectionEditor({ assembly, section, role }) {
   const router = useRouter()
@@ -300,6 +323,7 @@ export default function SectionEditor({ assembly, section, role }) {
       )
 
       if (ASSEMBLY_SECTIONS.has(section.type)) {
+<<<<<<< HEAD
         // Extract URL from iframe if needed before saving
         const processedAssemblyData = { ...assemblyData }
         if (processedAssemblyData.mapLink) {
@@ -309,11 +333,17 @@ export default function SectionEditor({ assembly, section, role }) {
           }
         }
         
+=======
+>>>>>>> origin/main
         promises.push(
           fetch(`/api/admin/assembly/${assembly.slug}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
+<<<<<<< HEAD
             body: JSON.stringify(processedAssemblyData),
+=======
+            body: JSON.stringify(assemblyData),
+>>>>>>> origin/main
           })
         )
       }
@@ -448,6 +478,7 @@ export default function SectionEditor({ assembly, section, role }) {
         </div>
       )}
 
+<<<<<<< HEAD
       {section.type === 'ARK_CENTERS' && (
         <div className="card p-6 space-y-4 text-center">
           <div className="w-16 h-16 rounded-full bg-purple-50 flex items-center justify-center mx-auto mb-4">
@@ -467,6 +498,8 @@ export default function SectionEditor({ assembly, section, role }) {
         </div>
       )}
 
+=======
+>>>>>>> origin/main
       {/* Background picker */}
       {showBgPicker && (
         <div className="card p-6">
