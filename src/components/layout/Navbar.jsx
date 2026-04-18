@@ -50,13 +50,14 @@ export default function Navbar() {
             {/* Logo */}
             <Link href="/" className="flex items-center group">
               <Image
-                src="/images/dmga-logo.png"
+                src="https://res.cloudinary.com/diun1hy3v/image/upload/c_scale,q_auto,f_auto,w_240/v1776444621/dmga-logo_ucjzvl.png"
                 alt="Destiny Mission Global Assembly"
-                width={160}
-                height={64}
-                className="object-contain object-left"
-                style={{ height: '56px', width: 'auto' }}
+                width={240}
+                height={120}
+                className="object-contain object-left h-16 w-auto max-w-none"
+                style={{ width: 'auto', height: '4rem' }}
                 priority
+                unoptimized={false}
               />
             </Link>
 

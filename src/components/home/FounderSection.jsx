@@ -2,7 +2,7 @@ import Image from 'next/image'
 import SectionHeader from '@/components/ui/SectionHeader'
 
 const cloudinaryUrls = {
-  primate: "https://res.cloudinary.com/diun1hy3v/image/upload/v1776378519/dmga/global/leadership/primate.png",
+  primate: "https://res.cloudinary.com/diun1hy3v/image/upload/q_auto/f_auto/v1776378519/dmga/global/leadership/primate.png",
   presbyter: "https://res.cloudinary.com/diun1hy3v/image/upload/v1776378530/dmga/global/leadership/presbyter.jpg"
 }
 
@@ -32,7 +32,9 @@ export default function FounderSection() {
                     width={500}
                     height={700}
                     className="object-cover w-full h-[500px] md:h-[600px]"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
                     priority
+                    loading="eager"
                   />
                   {/* Gradient overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-purple-900/20 via-transparent to-transparent" />
@@ -81,6 +83,8 @@ export default function FounderSection() {
                     width={400}
                     height={500}
                     className="object-cover w-full h-full"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw"
+                    loading="lazy"
                   />
                   {/* Elegant overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-purple-900/30 via-transparent to-transparent" />

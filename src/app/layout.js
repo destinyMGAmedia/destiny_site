@@ -10,8 +10,8 @@ export const metadata = {
   description: 'Igniting Faith. Transforming Lives. Reaching Nations.',
   keywords: ['church', 'destiny mission', 'global assembly', 'DMGA', 'faith', 'worship'],
   icons: {
-    icon: 'https://res.cloudinary.com/diun1hy3v/image/upload/v1776378534/dmga/global/branding/favicon.png',
-    apple: 'https://res.cloudinary.com/diun1hy3v/image/upload/v1776378534/dmga/global/branding/favicon.png',
+    icon: 'https://res.cloudinary.com/diun1hy3v/image/upload/q_auto/f_auto/v1776378534/dmga/global/branding/favicon.png',
+    apple: 'https://res.cloudinary.com/diun1hy3v/image/upload/q_auto/f_auto/v1776378534/dmga/global/branding/favicon.png',
   },
   openGraph: {
     title: 'Destiny Mission Global Assembly',

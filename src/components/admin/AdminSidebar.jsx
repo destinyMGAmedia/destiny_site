@@ -51,7 +51,15 @@ export default function AdminSidebar({ onItemClick }) {
       {/* Logo */}
       <div className="px-5 py-6 border-b border-white/10">
         <div className="flex items-center gap-3">
-          <Image src="https://res.cloudinary.com/dmga/image/upload/v1/dmga/global/branding/logo" alt="DMGA" width={36} height={36} className="object-contain flex-shrink-0" />
+          <Image
+            src="https://res.cloudinary.com/diun1hy3v/image/upload/c_scale,q_auto,f_auto,w_120/v1776444621/dmga-logo_ucjzvl.png"
+            alt="DMGA"
+            width={120}
+            height={48}
+            className="object-contain shrink-0 h-12 w-auto max-w-none"
+            unoptimized={false}
+            priority={false}
+          />
           <div>
             <p className="text-white text-sm font-bold leading-tight">DMGA Admin</p>
             <p className="text-xs leading-tight mt-0.5" style={{ color: 'var(--gold-500)' }}>

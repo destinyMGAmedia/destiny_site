@@ -69,19 +69,35 @@ export default function HeroSection({ slides }) {
       <div className="relative z-10 max-w-7xl mx-auto px-6 w-full">
         <div className="max-w-2xl">
           {/* Greeting */}
-          <p
+          {/* <p
             className="text-sm font-semibold tracking-widest uppercase mb-4 opacity-80"
             style={{ color: 'var(--gold-400)' }}
           >
             ICON
-          </p>
+          </p> */}
+           <Image
+                              src="https://res.cloudinary.com/diun1hy3v/image/upload/q_auto/f_auto/v1776378534/dmga/global/branding/favicon.png"
+                              alt="Destiny Icon"
+                              width={500}
+                              height={700}
+                              className="brightness-0 invert mb-4"
+                              style={{ height: '200px', width: 'auto' }}
+                              loading="lazy"
+                            />
 
           <h1
             className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight"
             style={{ fontFamily: 'var(--font-serif)' }}
           >
-            Welcome to Destiny <br />
-            <span style={{ color: 'var(--gold-400)' }}>Mission Global Assembly</span>
+            Welcome to  <br />
+            <span 
+            className="text-7xl md:text-9xl lg:text-[7rem] xl:text-[8rem]"
+            style={{ 
+              color: 'var(--gold-400)',
+              lineHeight: '1.0',   // Tighter spacing for larger text
+              fontFamily: '"Arial Rounded MT Bold", "Helvetica Rounded", -apple-system, BlinkMacSystemFont, sans-serif'
+            }}
+            >DESTINY</span>
           </h1>
 
           <div className="w-16 h-1 rounded-full mb-6" style={{ background: 'var(--gold-500)' }} />

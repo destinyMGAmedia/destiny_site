@@ -88,14 +88,17 @@ export default function AdminLogin() {
         style={{ background: 'var(--purple-800)' }}
       >
         <Link href="/" className="max-w-sm text-center block hover:opacity-80 transition-opacity">
+          
           <Image
-            src="https://res.cloudinary.com/dmga/image/upload/v1/dmga/global/branding/logo"
+            src="https://res.cloudinary.com/diun1hy3v/image/upload/c_scale,q_auto,f_auto,w_240/v1776444621/dmga-logo_ucjzvl.png"
             alt="DMGA"
             width={240}
             height={96}
-            className="object-contain mx-auto mb-6"
+            className="object-contain mx-auto mb-6 w-full h-auto max-w-none"
+            style={{ width: 'auto', height: 'auto', maxWidth: '15rem' }}
             priority
-          />
+            unoptimized={false}
+/>
           <div className="w-12 h-1 mx-auto mb-4 rounded-full" style={{ background: 'var(--gold-500)' }} />
           <p className="text-white/60 text-sm leading-relaxed">
             Church Management & Content Administration Portal
@@ -111,11 +114,13 @@ export default function AdminLogin() {
             <div className="flex justify-center mb-6 lg:hidden">
               <Link href="/" className="hover:opacity-80 transition-opacity">
                 <Image 
-                  src="https://res.cloudinary.com/dmga/image/upload/v1/dmga/global/branding/logo" 
+                  src="https://res.cloudinary.com/diun1hy3v/image/upload/c_scale,q_auto,f_auto,w_64/v1776444621/dmga-logo_ucjzvl.png" 
                   alt="DMGA" 
                   width={64} 
                   height={64} 
-                  className="object-contain" 
+                  className="object-contain max-w-none" 
+                  style={{ width: 'auto', height: '4rem' }}
+                  unoptimized={false}
                 />
               </Link>
             </div>

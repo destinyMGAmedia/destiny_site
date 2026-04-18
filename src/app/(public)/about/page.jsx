@@ -24,7 +24,7 @@ const LEADERSHIP = [
     name: 'Archbiship (Prof) Cletus Bassy', 
     role: 'Primate', 
     desc: 'Archbiship (Prof) Cletus Bassy is the Primate and General Overseer of DMGA. A man of faith and vision, he has dedicated his life to raising a people of destiny across the nations.',
-    image: 'https://res.cloudinary.com/diun1hy3v/image/upload/v1776378519/dmga/global/leadership/primate.png'
+    image: 'https://res.cloudinary.com/diun1hy3v/image/upload/q_auto/f_auto/v1776378519/dmga/global/leadership/primate.png'
   },
   { 
     name: 'Bishop (Mrs) Blessing Bassey', 
@@ -56,7 +56,7 @@ export default function AboutPage() {
             About DMGA
           </h1>
           <p className="text-lg text-white/75 leading-relaxed">
-            ... a prophetic church woth an apostolic mandate
+            ... a prophetic church with an apostolic mandate
           </p>
         </div>
       </div>
@@ -69,7 +69,7 @@ export default function AboutPage() {
             {
               label: 'Our Mission',
               title: 'A People of Destiny',
-              body:'To bring people and places into their destiny in God and raise dynamic leaders.',
+              body: 'To bring people and places into their destiny in God and raise dynamic leaders.',
             },
             {
               label: 'Our Vision',
@@ -172,29 +172,36 @@ export default function AboutPage() {
           </div>
         </div>
 
-        {/* CTA */}
+        {/* Leadership Section - With Margin Top Adjustment */}
         <div className="mb-20">
           <SectionHeader label="Anointed Direction" title="Our Leadership" centered />
           <p className="text-center text-gray-500 max-w-2xl mx-auto mb-12">
             Meet the anointed men and women leading Destiny Mission Global Assembly under God’s direction and grace.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {LEADERSHIP.map((leader) => (
+            {LEADERSHIP.map((leader, index) => (
               <div key={leader.name} className="card p-0 overflow-hidden text-center group">
-                <div className="h-64 bg-purple-50 flex items-center justify-center relative overflow-hidden">
+                <div className="h-72 bg-purple-50 relative overflow-hidden">
                   {leader.image ? (
                     <Image 
                       src={leader.image}
                       alt={leader.name}
                       fill
-                      className="object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                      className={`object-cover object-top group-hover:scale-105 transition-transform duration-300 ${
+                        index === 0 
+                          ? 'scale-115 -translate-y-7 mt-[5px]'   // Added mt-[-30px] to push up
+                          : '-translate-y-6'
+                      }`}
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      priority={index === 0}
+                      loading={index === 0 ? "eager" : "lazy"}
                     />
                   ) : (
                     <div className="w-24 h-24 rounded-full bg-purple-900/10 flex items-center justify-center text-purple-900 group-hover:scale-110 transition-transform">
                       <User size={40} />
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-linear-to-t from-purple-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-purple-900/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
                 <div className="p-8">
                   <h4 className="text-xl font-bold text-purple-900" style={{ fontFamily: 'var(--font-serif)' }}>{leader.name}</h4>

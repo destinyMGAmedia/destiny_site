@@ -23,15 +23,17 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <Image
-              src="/images/dmga-logo.png"
+              src="https://res.cloudinary.com/diun1hy3v/image/upload/c_scale,q_auto,f_auto,w_280/v1776444621/dmga-logo_ucjzvl.png"
               alt="Destiny Mission Global Assembly"
-              width={144}
-              height={64}
-              className="object-contain object-left brightness-0 invert mb-4"
-              style={{ height: '56px', width: 'auto' }}
+              width={280}
+              height={120}
+              className="object-contain object-left brightness-0 invert mb-6 h-24 w-auto max-w-none"
+              style={{ width: 'auto', height: '6rem' }}
+              priority={false}
+              unoptimized={false}
             />
             <p className="text-sm text-white/60 leading-relaxed">
-              Igniting Faith. Transforming Lives. Reaching Nations.
+              Prophetic church with an apostolic mandate.
             </p>
 
             {/* Social */}
@@ -80,7 +82,7 @@ export default function Footer() {
             </h4>
             <div className="space-y-3 text-sm text-white/60">
               <p className="leading-relaxed">
-                96b Line Ewet Housing Estate,<br />
+                96 B-Line Ewet Housing Estate,<br />
                 Uyo, Akwa Ibom State, Nigeria
               </p>
               <a
@@ -95,7 +97,7 @@ export default function Footer() {
                 className="flex items-center gap-2 hover:text-white transition-colors"
               >
                 <Mail size={13} />
-                hq@destinymissions.org
+                info@destinymissionglobal.org
               </a>
             </div>
           </div>
@@ -111,8 +113,8 @@ export default function Footer() {
                 <p>9:00 AM – 12:00 PM</p>
               </div>
               <div>
-                <p className="font-semibold text-white/80">Wednesday Bible Study</p>
-                <p>6:00 PM – 8:00 PM</p>
+                <p className="font-semibold text-white/80">Thursday Service</p>
+                <p>5:00 PM – 7:00 PM</p>
               </div>
             </div>
           </div>
