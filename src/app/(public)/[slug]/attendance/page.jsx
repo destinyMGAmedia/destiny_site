@@ -2,7 +2,10 @@
 import { useState } from 'react'
 import { useParams } from 'next/navigation'
 import { Check } from 'lucide-react'
+<<<<<<< HEAD
 import BackButton from '@/components/ui/BackButton'
+=======
+>>>>>>> origin/main
 
 const SERVICE_TYPES = [
   'Sunday Service',
@@ -60,7 +63,10 @@ export default function AttendancePage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'var(--ivory)' }}>
+<<<<<<< HEAD
       <BackButton className="fixed top-8 left-8 z-50" variant="outline" />
+=======
+>>>>>>> origin/main
       <div className="card p-8 max-w-md w-full">
         <div className="text-center mb-6">
           <h1

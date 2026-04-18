@@ -5,7 +5,11 @@ import {
   Pencil, Eye, EyeOff, Plus,
   ImageIcon, MapPin, Users, Briefcase,
   Calendar, Video, Gift, MessageSquare,
+<<<<<<< HEAD
   Star, Phone, LayoutDashboard, Crown, Home
+=======
+  Star, Phone, LayoutDashboard, Crown,
+>>>>>>> origin/main
 } from 'lucide-react'
 
 // Section type → icon + color
@@ -13,7 +17,10 @@ const SECTION_META = {
   HERO:        { icon: ImageIcon,      color: '#4a148c', bg: '#f3e5f5', label: 'Hero Banner' },
   FIND_US:     { icon: MapPin,         color: '#1565c0', bg: '#e3f2fd', label: 'Find Us' },
   FELLOWSHIPS: { icon: Users,          color: '#2e7d32', bg: '#e8f5e9', label: 'Fellowships' },
+<<<<<<< HEAD
   ARK_CENTERS: { icon: Home,           color: '#4a148c', bg: '#f3e5f5', label: 'Ark Centers' },
+=======
+>>>>>>> origin/main
   DEPARTMENTS: { icon: Briefcase,      color: '#e65100', bg: '#fff3e0', label: 'Departments' },
   EVENTS:      { icon: Calendar,       color: '#ad1457', bg: '#fce4ec', label: "What's On" },
   MEDIA:       { icon: Video,          color: '#006064', bg: '#e0f7fa', label: 'Media' },

@@ -7,12 +7,16 @@ import Fellowships from '@/components/assembly/Fellowships'
 import Departments from '@/components/assembly/Departments'
 import AssemblyEvents from '@/components/assembly/AssemblyEvents'
 import AssemblyMedia from '@/components/assembly/AssemblyMedia'
+<<<<<<< HEAD
 import ArkCenters from '@/components/assembly/ArkCenters'
+=======
+>>>>>>> origin/main
 import Giving from '@/components/assembly/Giving'
 import PrayerSection from '@/components/assembly/PrayerSection'
 import TestimoniesSection from '@/components/assembly/TestimoniesSection'
 import ContactSection from '@/components/assembly/ContactSection'
 import CustomSection from '@/components/assembly/CustomSection'
+<<<<<<< HEAD
 import JoinUsQR from '@/components/assembly/JoinUsQR'
 import TeamSection from '@/components/assembly/TeamSection'
 
@@ -37,10 +41,26 @@ export async function generateMetadata({ params }) {
       title: 'Assembly',
       description: 'Destiny Mission Global Assembly'
     }
+=======
+import AttendanceQR from '@/components/assembly/AttendanceQR'
+import TeamSection from '@/components/assembly/TeamSection'
+
+export async function generateMetadata({ params }) {
+  const { slug } = await params
+  const assembly = await prisma.assembly.findUnique({
+    where: { slug, isActive: true },
+    select: { name: true, tagline: true, city: true },
+  })
+  if (!assembly) return { title: 'Not Found' }
+  return {
+    title: assembly.name,
+    description: assembly.tagline || `${assembly.name} — Destiny Mission Global Assembly, ${assembly.city}`,
+>>>>>>> origin/main
   }
 }
 
 export default async function AssemblyPage({ params }) {
+<<<<<<< HEAD
   let assembly
   
   try {
@@ -92,6 +112,40 @@ export default async function AssemblyPage({ params }) {
     console.error('Error loading assembly:', error)
     notFound()
   }
+=======
+  const { slug } = await params
+  const assembly = await prisma.assembly.findUnique({
+    where: { slug, isActive: true },
+    include: {
+      sections: {
+        where: { isVisible: true },
+        orderBy: { position: 'asc' },
+      },
+      teamMembers: { orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }] },
+      events: {
+        where: { startDate: { gte: new Date() } },
+        orderBy: { startDate: 'asc' },
+        take: 6,
+      },
+      givingDetails: true,
+      testimonies: {
+        where: { isApproved: true },
+        orderBy: { createdAt: 'desc' },
+        take: 8,
+      },
+      mediaItems: {
+        orderBy: { createdAt: 'desc' },
+        take: 9,
+      },
+      audioContent: {
+        orderBy: { publishedAt: 'desc' },
+        take: 4,
+      },
+    },
+  })
+
+  if (!assembly) notFound()
+>>>>>>> origin/main
 
   // Build anchor nav from visible sections (excluding HERO which is above the fold)
   const anchorSections = assembly.sections.filter((s) => s.type !== 'HERO')
@@ -108,8 +162,11 @@ export default async function AssemblyPage({ params }) {
         )
       case 'FELLOWSHIPS':
         return <Fellowships key={section.id} section={section} />
+<<<<<<< HEAD
       case 'ARK_CENTERS':
         return <ArkCenters key={section.id} section={section} centers={assembly.arkCenters} />
+=======
+>>>>>>> origin/main
       case 'DEPARTMENTS':
         return <Departments key={section.id} section={section} />
       case 'EVENTS':
@@ -186,8 +243,13 @@ export default async function AssemblyPage({ params }) {
       {/* Sticky Anchor Nav */}
       <AssemblyAnchorNav sections={anchorSections} />
 
+<<<<<<< HEAD
       {/* Join Us QR — shown after hero on mobile for easy scan */}
       <JoinUsQR assemblySlug={assembly.slug} assemblyName={assembly.name} />
+=======
+      {/* Attendance QR — shown after hero on mobile for easy scan */}
+      <AttendanceQR assemblySlug={assembly.slug} assemblyName={assembly.name} />
+>>>>>>> origin/main
 
       {/* Team section — shown unless admin has hidden it */}
       {heroSection?.customContent?.showLeadership !== false && (

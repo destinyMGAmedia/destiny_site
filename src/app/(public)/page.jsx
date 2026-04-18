@@ -16,6 +16,7 @@ export const metadata = {
 export const revalidate = 60
 
 async function getHomeData() {
+<<<<<<< HEAD
   try {
     const [heroSlides, mainChannel, assemblies, globalEvents, todayDevotional, featuredGame] =
       await Promise.all([
@@ -67,6 +68,46 @@ async function getHomeData() {
       featuredGame: null
     }
   }
+=======
+  const [heroSlides, mainChannel, assemblies, globalEvents, todayDevotional, featuredGame] =
+    await Promise.all([
+      prisma.heroSlide.findMany({
+        where: { isActive: true },
+        orderBy: { displayOrder: 'asc' },
+      }),
+      prisma.youtubeChannel.findUnique({ where: { channelType: 'MAIN_LIVE' } }),
+      prisma.assembly.findMany({
+        where: { isActive: true },
+        select: {
+          id: true, slug: true, name: true, city: true, country: true,
+          heroImage: true, tagline: true, isHQ: true,
+        },
+        orderBy: [{ isHQ: 'desc' }, { name: 'asc' }],
+      }),
+      prisma.event.findMany({
+        where: {
+          isGlobal: true,
+          startDate: { gte: new Date() },
+        },
+        orderBy: { startDate: 'asc' },
+        take: 3,
+      }),
+      // Today's latest published devotional
+      prisma.devotional.findFirst({
+        where: {
+          scheduledDate: {
+            lte: new Date(),
+          },
+        },
+        orderBy: { scheduledDate: 'desc' },
+      }),
+      prisma.game.findFirst({
+        where: { isFeatured: true, isActive: true },
+      }),
+    ])
+
+  return { heroSlides, mainChannel, assemblies, globalEvents, todayDevotional, featuredGame }
+>>>>>>> origin/main
 }
 
 export default async function HomePage() {

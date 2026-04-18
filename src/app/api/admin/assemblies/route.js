@@ -8,7 +8,10 @@ const DEFAULT_SECTIONS = [
   { type: 'HERO',        title: 'Hero Banner',    position: 10   },
   { type: 'FIND_US',     title: 'Find Us',         position: 20   },
   { type: 'FELLOWSHIPS', title: 'Fellowships',     position: 30   },
+<<<<<<< HEAD
   { type: 'ARK_CENTERS', title: 'Ark Centers',     position: 35   },
+=======
+>>>>>>> origin/main
   { type: 'DEPARTMENTS', title: 'Departments',     position: 40   },
   { type: 'EVENTS',      title: "What's On",       position: 50   },
   { type: 'MEDIA',       title: 'Media',           position: 60   },
