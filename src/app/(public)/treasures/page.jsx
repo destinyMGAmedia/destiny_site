@@ -2,10 +2,7 @@
 import SectionHeader from '@/components/ui/SectionHeader'
 import Link from 'next/link'
 import { ArrowRight, Sparkles, Gamepad2 } from 'lucide-react'
-<<<<<<< HEAD
 import BackButton from '@/components/ui/BackButton'
-=======
->>>>>>> origin/main
 
 
 export default function TreasuresPage() {
@@ -18,10 +15,7 @@ export default function TreasuresPage() {
         className="relative py-24 px-6 text-white text-center overflow-hidden"
         style={{ background: 'linear-gradient(135deg, #6a1b9a, #4a148c)' }}
       >
-<<<<<<< HEAD
         <BackButton className="absolute top-8 left-8 z-20" />
-=======
->>>>>>> origin/main
         <div className="absolute top-0 left-0 w-64 h-64 rounded-full opacity-10" style={{ background: '#ffb300', transform: 'translate(-30%,-30%)' }} />
         <div className="absolute bottom-0 right-0 w-48 h-48 rounded-full opacity-10" style={{ background: '#e040fb', transform: 'translate(30%,30%)' }} />
         <div className="relative z-10">

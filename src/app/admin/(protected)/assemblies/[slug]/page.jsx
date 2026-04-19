@@ -6,7 +6,6 @@ import Link from 'next/link'
 import {
   LayoutDashboard, Users, Calendar, DollarSign,
   ClipboardList, Settings, ArrowRight, Eye,
-<<<<<<< HEAD
   MessageSquare, Star, UserCheck, Home
 } from 'lucide-react'
 
@@ -25,49 +24,27 @@ export async function generateMetadata({ params }) {
     console.error('Error generating metadata:', error)
     return { title: 'Assembly Dashboard' }
   }
-=======
-  MessageSquare, Star, UserCheck
-} from 'lucide-react'
-
-export async function generateMetadata({ params }) {
-  const { slug } = await params
-  const assembly = await prisma.assembly.findUnique({ where: { slug }, select: { name: true } })
-  return { title: assembly?.name || 'Assembly' }
->>>>>>> origin/main
 }
 
 async function getAssemblyStats(assemblyId) {
   const today = new Date()
   const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
 
-<<<<<<< HEAD
   // Batch 1: Simple counts (4 queries in parallel)
   const [members, events, prayerPending, testimoniesPending] = await Promise.all([
-=======
-  const [
-    members, events, prayerPending, testimoniesPending,
-    attendanceThisMonth, birthdays
-  ] = await Promise.all([
->>>>>>> origin/main
     prisma.member.count({ where: { assemblyId, status: 'ACTIVE' } }),
     prisma.event.count({ where: { assemblyId, startDate: { gte: today } } }),
     prisma.prayerRequest.count({ where: { assemblyId, status: 'PENDING' } }),
     prisma.testimony.count({ where: { assemblyId, isApproved: false } }),
-<<<<<<< HEAD
   ])
 
   // Batch 2: More complex queries (3 queries in parallel)
   const [visitorsThisMonth, birthdays, arkCenters] = await Promise.all([
     prisma.visitor.count({ where: { assemblyId, visitDate: { gte: startOfMonth } } }),
-=======
-    prisma.attendanceRecord.count({ where: { assemblyId, submittedAt: { gte: startOfMonth } } }),
-    // Members with birthday today (month + day match)
->>>>>>> origin/main
     prisma.member.findMany({
       where: { assemblyId, status: 'ACTIVE' },
       select: { firstName: true, lastName: true, dateOfBirth: true, photo: true },
     }),
-<<<<<<< HEAD
     prisma.arkCenter.count({ where: { assemblyId, isActive: true } }),
   ])
 
@@ -97,17 +74,10 @@ async function getAssemblyStats(assemblyId) {
   // Filter to today's birthdays
   const todayBirthdays = birthdays.filter((m) => {
     if (!m.dateOfBirth) return false
-=======
-  ])
-
-  // Filter to today's birthdays
-  const todayBirthdays = birthdays.filter((m) => {
->>>>>>> origin/main
     const dob = new Date(m.dateOfBirth)
     return dob.getMonth() === today.getMonth() && dob.getDate() === today.getDate()
   })
 
-<<<<<<< HEAD
   return { 
     members, 
     events, 
@@ -119,14 +89,10 @@ async function getAssemblyStats(assemblyId) {
     arkAttendanceThisMonth,
     headcountThisMonth
   }
-=======
-  return { members, events, prayerPending, testimoniesPending, attendanceThisMonth, todayBirthdays }
->>>>>>> origin/main
 }
 
 export default async function AssemblyAdminPage({ params }) {
   const { slug } = await params
-<<<<<<< HEAD
 
   let assembly
   let stats = {
@@ -170,26 +136,6 @@ export default async function AssemblyAdminPage({ params }) {
     { href: 'schedule',    icon: Calendar,        label: 'Schedule',         desc: 'Service schedule' },
     { href: 'reports',     icon: ClipboardList,   label: 'Reports',          desc: 'Monthly & annual reports' },
     { href: 'settings',    icon: Settings,        label: 'Settings',         desc: 'Assembly settings' },
-=======
-  const session = await getServerSession(authOptions)
-  if (!session) redirect('/admin/login')
-
-  const assembly = await prisma.assembly.findUnique({ where: { slug } })
-  if (!assembly) notFound()
-
-  if (!canManageAssembly(session, assembly.id)) redirect('/admin/dashboard?error=unauthorized')
-
-  const stats = await getAssemblyStats(assembly.id)
-
-  const mgmtLinks = [
-    { href: 'content',    icon: LayoutDashboard, label: 'Content Sections', desc: 'Update page content' },
-    { href: 'members',    icon: UserCheck,      label: 'Members',          desc: `${stats.members} active members` },
-    { href: 'attendance', icon: Calendar,       label: 'Attendance',       desc: `${stats.attendanceThisMonth} this month` },
-    { href: 'finance',    icon: DollarSign,     label: 'Finance',          desc: 'Offerings & expenditure' },
-    { href: 'schedule',   icon: Calendar,       label: 'Schedule',         desc: 'Service schedule' },
-    { href: 'reports',    icon: ClipboardList,  label: 'Reports',          desc: 'Monthly & annual reports' },
-    { href: 'settings',   icon: Settings,       label: 'Settings',         desc: 'Assembly settings' },
->>>>>>> origin/main
   ]
 
   return (
@@ -201,7 +147,6 @@ export default async function AssemblyAdminPage({ params }) {
             className="text-2xl font-bold"
             style={{ fontFamily: 'var(--font-serif)', color: 'var(--purple-900)' }}
           >
-<<<<<<< HEAD
             {assembly?.name || 'Assembly'}
           </h1>
           <p className="text-sm text-gray-500 mt-1">
@@ -213,15 +158,6 @@ export default async function AssemblyAdminPage({ params }) {
             <Eye size={13} /> View Page
           </Link>
         )}
-=======
-            {assembly.name}
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">{assembly.city}, {assembly.country}</p>
-        </div>
-        <Link href={`/${assembly.slug}`} target="_blank" className="btn-outline btn-sm">
-          <Eye size={13} /> View Page
-        </Link>
->>>>>>> origin/main
       </div>
 
       {/* Birthday Alert */}
@@ -249,12 +185,8 @@ export default async function AssemblyAdminPage({ params }) {
           { label: 'Upcoming Events',      value: stats.events,              color: '#1565c0' },
           { label: 'Pending Prayers',      value: stats.prayerPending,       color: '#ad1457' },
           { label: 'Pending Testimonies',  value: stats.testimoniesPending,  color: '#e65100' },
-<<<<<<< HEAD
           { label: 'Attendance (Month)',   value: stats.headcountThisMonth + stats.arkAttendanceThisMonth, color: '#2e7d32' },
           { label: 'Ark Centers',          value: stats.arkCenters,          color: 'var(--purple-800)' },
-=======
-          { label: 'Attendance This Month',value: stats.attendanceThisMonth, color: '#2e7d32' },
->>>>>>> origin/main
         ].map((s) => (
           <div key={s.label} className="card p-4">
             <p className="text-3xl font-bold" style={{ color: s.color }}>{s.value}</p>
@@ -303,13 +235,7 @@ export default async function AssemblyAdminPage({ params }) {
           <div className="flex flex-col sm:flex-row gap-3">
             {stats.prayerPending > 0 && (
               <Link
-<<<<<<< HEAD
                 href={`/admin/assemblies/${slug}/content/prayer`}
-=======
-                href={`/admin/assemblies/${slug}/content/${
-                  /* prayer section */ 'prayer'
-                }`}
->>>>>>> origin/main
                 className="card p-4 flex items-center gap-3 flex-1"
               >
                 <MessageSquare size={18} style={{ color: '#ad1457' }} />
@@ -342,8 +268,4 @@ export default async function AssemblyAdminPage({ params }) {
       )}
     </div>
   )
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> origin/main

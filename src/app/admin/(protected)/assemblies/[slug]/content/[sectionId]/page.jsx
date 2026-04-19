@@ -4,7 +4,6 @@ import { redirect, notFound } from 'next/navigation'
 import prisma from '@/lib/prisma'
 import SectionEditor from '@/components/admin/SectionEditor'
 
-<<<<<<< HEAD
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
 
@@ -69,34 +68,6 @@ export default async function SectionEditPage({ params }) {
     // Graceful fallback instead of hard notFound()
     redirect('/admin/dashboard?error=server_error')
   }
-=======
-export async function generateMetadata({ params }) {
-  const { sectionId } = await params
-  const section = await prisma.assemblySection.findUnique({ where: { id: sectionId } })
-  return { title: `Edit ${section?.title || 'Section'}` }
-}
-
-export default async function SectionEditPage({ params }) {
-  const session = await getServerSession(authOptions)
-  const { slug, sectionId } = await params
-
-  if (!session) redirect('/admin/login')
-
-  const [assembly, section] = await Promise.all([
-    prisma.assembly.findUnique({
-      where: { slug },
-      include: {
-        givingDetails: true,
-        teamMembers: { orderBy: [{ department: 'asc' }, { displayOrder: 'asc' }] },
-        events: { orderBy: { startDate: 'desc' } },
-      },
-    }),
-    prisma.assemblySection.findUnique({ where: { id: sectionId } }),
-  ])
-
-  if (!assembly || !section) notFound()
-  if (!canUpdateContent(session, assembly.id)) redirect('/admin/dashboard?error=unauthorized')
->>>>>>> origin/main
 
   return (
     <SectionEditor
@@ -105,8 +76,4 @@ export default async function SectionEditPage({ params }) {
       role={session.user.role}
     />
   )
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> origin/main

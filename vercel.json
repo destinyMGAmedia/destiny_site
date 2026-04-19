@@ -1,5 +1,4 @@
 {
-<<<<<<< HEAD
   "framework": "nextjs",
   "functions": {
     "src/app/**/*.{js,jsx}": {
@@ -11,7 +10,4 @@
       "SKIP_ENV_VALIDATION": "1"
     }
   }
-=======
-  "framework": "nextjs"
->>>>>>> origin/main
 }
