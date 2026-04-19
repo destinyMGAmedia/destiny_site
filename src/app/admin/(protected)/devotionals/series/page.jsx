@@ -4,12 +4,9 @@ export const metadata = {
   title: 'Schedule Devotional Series — DMGA Admin',
 }
 
-<<<<<<< HEAD
 // Force dynamic rendering for admin pages that use authentication
 export const dynamic = 'force-dynamic'
 
-=======
->>>>>>> origin/main
 export default function SeriesDevotionalPage() {
   return (
     <div className="space-y-6">

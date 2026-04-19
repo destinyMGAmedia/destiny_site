@@ -4,10 +4,7 @@ import { useEffect, useState } from 'react'
 const SECTION_LABELS = {
   FIND_US:      'Find Us',
   FELLOWSHIPS:  'Fellowships',
-<<<<<<< HEAD
   ARK_CENTERS:  'Ark Centers',
-=======
->>>>>>> origin/main
   DEPARTMENTS:  'Departments',
   EVENTS:       "What's On",
   MEDIA:        'Media',
