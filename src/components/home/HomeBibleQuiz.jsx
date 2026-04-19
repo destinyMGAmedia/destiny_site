@@ -62,7 +62,6 @@ function shuffle(arr) {
   return a
 }
 
-<<<<<<< HEAD
 export default function HomeBibleQuiz({ initialState, onSave }) {
   const [questions, setQuestions] = useState(initialState?.questions || [])
   const [current, setCurrent] = useState(initialState?.current || 0)
@@ -81,18 +80,6 @@ export default function HomeBibleQuiz({ initialState, onSave }) {
       onSave({ questions, current, selected, score, done })
     }
   }, [questions, current, selected, score, done, onSave])
-=======
-export default function HomeBibleQuiz() {
-  const [questions, setQuestions] = useState([])
-  const [current, setCurrent] = useState(0)
-  const [selected, setSelected] = useState(null)
-  const [score, setScore] = useState(0)
-  const [done, setDone] = useState(false)
-
-  useEffect(() => {
-    setQuestions(shuffle(QUESTIONS).slice(0, 5))
-  }, [])
->>>>>>> origin/main
 
   function init() {
     setQuestions(shuffle(QUESTIONS).slice(0, 5))

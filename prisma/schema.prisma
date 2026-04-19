@@ -606,7 +606,6 @@ enum GrowthLevel {
   DEACON
   PASTOR
 }
-
 enum TeamCategory {
   FELLOWSHIP
   DEPARTMENT

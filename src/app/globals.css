@@ -286,11 +286,7 @@ h1, h2, h3, h4 {
 .admin-sidebar {
   background: var(--purple-900);
   min-height: 100vh;
-<<<<<<< HEAD
   width: 100%;
-=======
-  width: 260px;
->>>>>>> origin/main
   flex-shrink: 0;
 }
 

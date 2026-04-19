@@ -1,43 +1,29 @@
 import { getServerSession } from 'next-auth'
-<<<<<<< HEAD
 import { 
   authOptions, isGlobalAdmin, isAssemblyAdmin, 
   isAppAdmin, isCustomer, isMember, isAgent 
 } from '@/lib/auth'
-=======
-import { authOptions, isGlobalAdmin } from '@/lib/auth'
->>>>>>> origin/main
 import { redirect } from 'next/navigation'
 import prisma from '@/lib/prisma'
 import Link from 'next/link'
 import {
   Users, MapPin, Calendar, BookOpen,
-<<<<<<< HEAD
   Grid3x3, ImageIcon, Video, Plus, ArrowRight,
   Heart, CreditCard, ClipboardList, Briefcase, User as UserIcon
-=======
-  Grid3x3, ImageIcon, Video, Plus, ArrowRight
->>>>>>> origin/main
 } from 'lucide-react'
 import { MdOutlineChurch } from 'react-icons/md'
 
 export const metadata = { title: 'Dashboard' }
 
-<<<<<<< HEAD
 // Force dynamic rendering for admin dashboard with authentication
 export const dynamic = 'force-dynamic'
 
 async function getAdminStats() {
   const [assemblies, admins, events, devotionals, arkCenters] = await Promise.all([
-=======
-async function getStats() {
-  const [assemblies, admins, events, devotionals] = await Promise.all([
->>>>>>> origin/main
     prisma.assembly.count({ where: { isActive: true } }),
     prisma.user.count({ where: { isActive: true } }),
     prisma.event.count({ where: { startDate: { gte: new Date() } } }),
     prisma.devotional.count({ where: { scheduledDate: { gte: new Date() } } }),
-<<<<<<< HEAD
     prisma.arkCenter.count({ where: { isActive: true } }),
   ])
   return { assemblies, admins, events, devotionals, arkCenters }
@@ -79,26 +65,10 @@ async function getAssemblies() {
     monthlyArkAttendance: monthlyArkAttendance[a.id] || 0,
     monthlyHeadcount: monthlyHeadcount[a.id] || 0
   }))
-=======
-  ])
-  return { assemblies, admins, events, devotionals }
-}
-
-async function getAssemblies() {
-  return prisma.assembly.findMany({
-    where: { isActive: true },
-    select: {
-      slug: true, name: true, city: true, country: true, isHQ: true,
-      _count: { select: { members: true, events: true } },
-    },
-    orderBy: [{ isHQ: 'desc' }, { name: 'asc' }],
-  })
->>>>>>> origin/main
 }
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions)
-<<<<<<< HEAD
   if (!session) redirect('/admin/login')
 
   const role = session.user.role
@@ -175,16 +145,6 @@ export default async function DashboardPage() {
     { label: 'Active Assemblies', value: stats.assemblies, icon: MdOutlineChurch, color: 'var(--purple-800)', bg: 'var(--purple-50)' },
     { label: 'Ark Centers',       value: stats.arkCenters,  icon: Users,           color: '#ad1457', bg: '#fce4ec' },
     { label: 'Upcoming Events',   value: stats.events,     icon: Calendar,        color: '#1565c0', bg: '#e3f2fd' },
-=======
-  if (!session || !isGlobalAdmin(session)) redirect('/admin/login')
-
-  const [stats, assemblies] = await Promise.all([getStats(), getAssemblies()])
-
-  const statCards = [
-    { label: 'Active Assemblies', value: stats.assemblies, icon: MdOutlineChurch, color: 'var(--purple-800)', bg: 'var(--purple-50)' },
-    { label: 'Admin Accounts',    value: stats.admins,     icon: Users,           color: '#1565c0', bg: '#e3f2fd' },
-    { label: 'Upcoming Events',   value: stats.events,     icon: Calendar,        color: '#ad1457', bg: '#fce4ec' },
->>>>>>> origin/main
     { label: 'Scheduled Devotionals', value: stats.devotionals, icon: BookOpen,   color: '#2e7d32', bg: '#e8f5e9' },
   ]
 
@@ -273,12 +233,9 @@ export default async function DashboardPage() {
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Assembly</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden sm:table-cell">Location</th>
                 <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden md:table-cell">Members</th>
-<<<<<<< HEAD
                 <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden md:table-cell">Headcount (Mo)</th>
                 <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden md:table-cell">Ark Centers</th>
                 <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden md:table-cell">Ark Attd (Mo)</th>
-=======
->>>>>>> origin/main
                 <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden md:table-cell">Events</th>
                 <th className="px-4 py-3" />
               </tr>
@@ -302,12 +259,9 @@ export default async function DashboardPage() {
                     {a.city}, {a.country}
                   </td>
                   <td className="px-4 py-3 text-center text-gray-700 hidden md:table-cell">{a._count.members}</td>
-<<<<<<< HEAD
                   <td className="px-4 py-3 text-center text-gray-700 hidden md:table-cell">{a.monthlyHeadcount}</td>
                   <td className="px-4 py-3 text-center text-gray-700 hidden md:table-cell">{a._count.arkCenters}</td>
                   <td className="px-4 py-3 text-center text-gray-700 hidden md:table-cell">{a.monthlyArkAttendance}</td>
-=======
->>>>>>> origin/main
                   <td className="px-4 py-3 text-center text-gray-700 hidden md:table-cell">{a._count.events}</td>
                   <td className="px-4 py-3">
                     <Link

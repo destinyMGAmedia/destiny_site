@@ -2,12 +2,8 @@ import prisma from '@/lib/prisma'
 import Link from 'next/link'
 import Image from 'next/image'
 import SectionHeader from '@/components/ui/SectionHeader'
-<<<<<<< HEAD
 import { MapPin, ArrowRight, Home, Users, Calendar, Clock } from 'lucide-react'
 import BackButton from '@/components/ui/BackButton'
-=======
-import { MapPin, ArrowRight } from 'lucide-react'
->>>>>>> origin/main
 
 export const metadata = {
   title: 'Our Assemblies',
@@ -17,7 +13,6 @@ export const metadata = {
 export const revalidate = 60
 
 export default async function AssembliesPage() {
-<<<<<<< HEAD
   let assemblies = []
   try {
     assemblies = await prisma.assembly.findMany({
@@ -48,26 +43,6 @@ export default async function AssembliesPage() {
       </div>
 
       <div className="section-container mt-16">
-=======
-  const assemblies = await prisma.assembly.findMany({
-    where: { isActive: true },
-    orderBy: [{ isHQ: 'desc' }, { name: 'asc' }],
-  })
-
-  return (
-    <div className="section-ivory min-h-screen">
-      <div className="section-container">
-
-        {/* Header — title only, no CTA */}
-        <div className="text-center mb-16">
-          <SectionHeader
-            label="Our Family"
-            title="Our Assemblies"
-            subtitle="A global family committed to Igniting Faith, Transforming Lives, and Reaching Nations."
-            centered
-          />
-        </div>
->>>>>>> origin/main
 
         {/* All assemblies in one grid — HQ always first */}
         {assemblies.length > 0 ? (
@@ -132,7 +107,6 @@ export default async function AssembliesPage() {
             <p className="text-gray-400">No assemblies found. Check back soon.</p>
           </div>
         )}
-<<<<<<< HEAD
       </div>
 
       {/* Ark Centers Section */}
@@ -197,10 +171,6 @@ export default async function AssembliesPage() {
         </div>
       </div>
 
-=======
-
-      </div>
->>>>>>> origin/main
     </div>
   )
 }

@@ -1,12 +1,8 @@
 import SectionHeader from '@/components/ui/SectionHeader'
 import Link from 'next/link'
-<<<<<<< HEAD
 import Image from 'next/image'
 import { ArrowRight, User } from 'lucide-react'
 import BackButton from '@/components/ui/BackButton'
-=======
-import { ArrowRight } from 'lucide-react'
->>>>>>> origin/main
 
 export const metadata = {
   title: 'About DMGA',
@@ -23,7 +19,6 @@ const VALUES = [
   { title: 'Devotion', desc: 'We maintain unwavering commitment to God, His Word, and our divine assignment.' },
 ]
 
-<<<<<<< HEAD
 const LEADERSHIP = [
   { 
     name: 'Archbiship (Prof) Cletus Bassy', 
@@ -44,8 +39,6 @@ const LEADERSHIP = [
   }
 ]
 
-=======
->>>>>>> origin/main
 export default function AboutPage() {
   return (
     <div className="section-ivory min-h-screen">
@@ -55,10 +48,7 @@ export default function AboutPage() {
         className="relative py-28 px-6 text-white text-center overflow-hidden"
         style={{ background: 'linear-gradient(135deg, var(--purple-900), var(--purple-700))' }}
       >
-<<<<<<< HEAD
         <BackButton className="absolute top-8 left-8 z-20" />
-=======
->>>>>>> origin/main
         <div className="absolute top-0 right-0 w-96 h-96 rounded-full opacity-10" style={{ background: 'var(--gold-500)', transform: 'translate(30%, -30%)' }} />
         <div className="relative z-10 max-w-3xl mx-auto">
           <p className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: 'var(--gold-400)' }}>Who We Are</p>
@@ -66,11 +56,7 @@ export default function AboutPage() {
             About DMGA
           </h1>
           <p className="text-lg text-white/75 leading-relaxed">
-<<<<<<< HEAD
             ... a prophetic church with an apostolic mandate
-=======
-            To bring people and places into their destiny in God and raise dynamic leaders.
->>>>>>> origin/main
           </p>
         </div>
       </div>
@@ -81,7 +67,6 @@ export default function AboutPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-20">
           {[
             {
-<<<<<<< HEAD
               label: 'Our Mission',
               title: 'A People of Destiny',
               body: 'To bring people and places into their destiny in God and raise dynamic leaders.',
@@ -89,15 +74,6 @@ export default function AboutPage() {
             {
               label: 'Our Vision',
               title: 'Impact the World',
-=======
-              label: 'Our Vision',
-              title: 'A People of Destiny',
-              body: 'Bringing people and places into their destiny in God and raising dynamic leaders.',
-            },
-            {
-              label: 'Our Mission',
-              title: 'A road map to fulfil destiny',
->>>>>>> origin/main
               body: 'To establish and advance the kingdom of God on earth by discerning His voice, declaring His will, and delivering His purpose.',
             },
           ].map((item) => (
@@ -109,11 +85,7 @@ export default function AboutPage() {
               <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: 'var(--gold-500)' }}>{item.label}</p>
               <h2 className="text-2xl font-bold mb-4" style={{ fontFamily: 'var(--font-serif)', color: 'var(--purple-900)' }}>{item.title}</h2>
               <div className="w-10 h-1 rounded mb-4" style={{ background: 'var(--gold-500)' }} />
-<<<<<<< HEAD
               <div className="text-gray-600 leading-relaxed">{item.body}</div>
-=======
-              <p className="text-gray-600 leading-relaxed">{item.body}</p>
->>>>>>> origin/main
             </div>
           ))}
         </div>
@@ -122,10 +94,7 @@ export default function AboutPage() {
         <div className="mb-20">
           <div className="text-center mb-12">
             <SectionHeader label="What We Stand For" title="Our Core Values" centered />
-<<<<<<< HEAD
             <h4 className="text-3xl font-black text-purple-900/10 mt-2 tracking-[0.5em] uppercase">VIP LEAD</h4>
-=======
->>>>>>> origin/main
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {VALUES.map((v, i) => (
@@ -203,8 +172,7 @@ export default function AboutPage() {
           </div>
         </div>
 
-<<<<<<< HEAD
-        {/* Leadership Section - With Margin Top Adjustment */}
+        {/* CTA */}
         <div className="mb-20">
           <SectionHeader label="Anointed Direction" title="Our Leadership" centered />
           <p className="text-center text-gray-500 max-w-2xl mx-auto mb-12">
@@ -221,7 +189,7 @@ export default function AboutPage() {
                       fill
                       className={`object-cover object-top group-hover:scale-105 transition-transform duration-300 ${
                         index === 0 
-                          ? 'scale-115 -translate-y-7 mt-[5px]'   // Added mt-[-30px] to push up
+                          ? 'scale-115 -translate-y-7'
                           : '-translate-y-6'
                       }`}
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -245,8 +213,6 @@ export default function AboutPage() {
           </div>
         </div>
 
-=======
->>>>>>> origin/main
         {/* CTA */}
         <div
           className="rounded-3xl py-14 px-8 text-center text-white relative overflow-hidden"
@@ -265,8 +231,4 @@ export default function AboutPage() {
       </div>
     </div>
   )
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> origin/main

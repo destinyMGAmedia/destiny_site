@@ -3,7 +3,6 @@ import { MapPin, Phone, Mail, MessageSquare, Clock } from 'lucide-react'
 
 export default function FindUs({ assembly }) {
   const services = Array.isArray(assembly.serviceTimes) ? assembly.serviceTimes : []
-<<<<<<< HEAD
   
   // Extract URL from iframe if needed and validate
   const extractUrlFromIframe = (input) => {
@@ -33,8 +32,6 @@ export default function FindUs({ assembly }) {
   const rawMapLink = assembly.mapLink?.trim()
   const cleanMapLink = extractUrlFromIframe(rawMapLink) || rawMapLink
   const hasValidMap = isValidEmbedUrl(cleanMapLink)
-=======
->>>>>>> origin/main
 
   return (
     <section id="find-us" className="section-white">
@@ -115,17 +112,10 @@ export default function FindUs({ assembly }) {
           </div>
 
           {/* Map */}
-<<<<<<< HEAD
           {hasValidMap ? (
             <div className="rounded-2xl overflow-hidden shadow-lg h-80">
               <iframe
                 src={cleanMapLink}
-=======
-          {assembly.mapLink ? (
-            <div className="rounded-2xl overflow-hidden shadow-lg h-80">
-              <iframe
-                src={assembly.mapLink}
->>>>>>> origin/main
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
@@ -135,7 +125,6 @@ export default function FindUs({ assembly }) {
                 title={`${assembly.name} location`}
               />
             </div>
-<<<<<<< HEAD
           ) : cleanMapLink ? (
             <div
               className="rounded-2xl flex items-center justify-center h-80 bg-amber-50 border border-amber-200"
@@ -147,8 +136,6 @@ export default function FindUs({ assembly }) {
                 <p className="text-xs text-gray-400 mt-1">Contact admin to update the map link</p>
               </div>
             </div>
-=======
->>>>>>> origin/main
           ) : (
             <div
               className="rounded-2xl flex items-center justify-center h-80"

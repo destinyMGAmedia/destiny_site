@@ -1,10 +1,6 @@
 import prisma from '@/lib/prisma'
 import HeroSection from '@/components/home/HeroSection'
 import LiveSection from '@/components/home/LiveSection'
-<<<<<<< HEAD
-import FounderSection from '@/components/home/FounderSection'
-=======
->>>>>>> origin/main
 import UpcomingProgrammes from '@/components/home/UpcomingProgrammes'
 import AssembliesStrip from '@/components/home/AssembliesStrip'
 import RoyalFeedPreview from '@/components/home/RoyalFeedPreview'
@@ -20,7 +16,6 @@ export const metadata = {
 export const revalidate = 60
 
 async function getHomeData() {
-<<<<<<< HEAD
   try {
     const [heroSlides, mainChannel, assemblies, globalEvents, todayDevotional, featuredGame] =
       await Promise.all([
@@ -72,46 +67,6 @@ async function getHomeData() {
       featuredGame: null
     }
   }
-=======
-  const [heroSlides, mainChannel, assemblies, globalEvents, todayDevotional, featuredGame] =
-    await Promise.all([
-      prisma.heroSlide.findMany({
-        where: { isActive: true },
-        orderBy: { displayOrder: 'asc' },
-      }),
-      prisma.youtubeChannel.findUnique({ where: { channelType: 'MAIN_LIVE' } }),
-      prisma.assembly.findMany({
-        where: { isActive: true },
-        select: {
-          id: true, slug: true, name: true, city: true, country: true,
-          heroImage: true, tagline: true, isHQ: true,
-        },
-        orderBy: [{ isHQ: 'desc' }, { name: 'asc' }],
-      }),
-      prisma.event.findMany({
-        where: {
-          isGlobal: true,
-          startDate: { gte: new Date() },
-        },
-        orderBy: { startDate: 'asc' },
-        take: 3,
-      }),
-      // Today's latest published devotional
-      prisma.devotional.findFirst({
-        where: {
-          scheduledDate: {
-            lte: new Date(),
-          },
-        },
-        orderBy: { scheduledDate: 'desc' },
-      }),
-      prisma.game.findFirst({
-        where: { isFeatured: true, isActive: true },
-      }),
-    ])
-
-  return { heroSlides, mainChannel, assemblies, globalEvents, todayDevotional, featuredGame }
->>>>>>> origin/main
 }
 
 export default async function HomePage() {
@@ -126,24 +81,6 @@ export default async function HomePage() {
       {/* 2. Live Stream */}
       <LiveSection channelId={mainChannel?.channelId} />
 
-<<<<<<< HEAD
-      {/* 3. Spiritual Leadership */}
-      <FounderSection />
-
-      {/* 4. Upcoming Programmes (global events) */}
-      <UpcomingProgrammes events={globalEvents} />
-
-      {/* 5. Assemblies Horizontal Scroll */}
-      <AssembliesStrip assemblies={assemblies} />
-
-      {/* 6. Royal Feed Preview */}
-      <RoyalFeedPreview devotional={todayDevotional} />
-
-      {/* 7. Creative Arts Preview */}
-      <CreativeArtsPreview />
-
-      {/* 8. Games Preview */}
-=======
       {/* 3. Upcoming Programmes (global events) */}
       <UpcomingProgrammes events={globalEvents} />
 
@@ -157,7 +94,6 @@ export default async function HomePage() {
       <CreativeArtsPreview />
 
       {/* 7. Games Preview */}
->>>>>>> origin/main
       <GamesPreview featuredGame={featuredGame} />
     </>
   )
