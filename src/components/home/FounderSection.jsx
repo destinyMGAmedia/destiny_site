@@ -98,7 +98,7 @@ export default function FounderSection() {
                     Presbyter & First Lady
                   </p>
                   <h4 className="text-2xl font-bold mb-4" style={{ fontFamily: 'var(--font-serif)', color: 'var(--purple-900)' }}>
-                    Bishop (Mrs) <br />Blessing Bassey
+                    Bishop (Dr) <br />Blessing Bassey
                   </h4>
                 </div>
 
