@@ -7,7 +7,7 @@ const cloudinaryUrls = {
 }
 
 export default function FounderSection() {
-  return (the media 
+  return (
     <section className="section-white">
       <div className="section-container">
         <SectionHeader 
