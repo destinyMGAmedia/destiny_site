@@ -3,6 +3,7 @@ import HeroSection from '@/components/home/HeroSection'
 import LiveSection from '@/components/home/LiveSection'
 import UpcomingProgrammes from '@/components/home/UpcomingProgrammes'
 import AssembliesStrip from '@/components/home/AssembliesStrip'
+import FounderSection from '@/components/home/FounderSection'
 import RoyalFeedPreview from '@/components/home/RoyalFeedPreview'
 import CreativeArtsPreview from '@/components/home/CreativeArtsPreview'
 import GamesPreview from '@/components/home/GamesPreview'
@@ -87,13 +88,16 @@ export default async function HomePage() {
       {/* 4. Assemblies Horizontal Scroll */}
       <AssembliesStrip assemblies={assemblies} />
 
-      {/* 5. Royal Feed Preview */}
+      {/* 5. Founder Section */}
+      <FounderSection />
+
+      {/* 6. Royal Feed Preview */}
       <RoyalFeedPreview devotional={todayDevotional} />
 
-      {/* 6. Creative Arts Preview */}
+      {/* 7. Creative Arts Preview */}
       <CreativeArtsPreview />
 
-      {/* 7. Games Preview */}
+      {/* 8. Games Preview */}
       <GamesPreview featuredGame={featuredGame} />
     </>
   )
