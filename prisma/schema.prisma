@@ -627,6 +627,7 @@ enum AudioCategory {
 
 enum YoutubeChannelType {
   MAIN_LIVE
+  MEDIA_GALLERY
   CREATIVE_ARTS
   TREASURES_KIDS
 }
