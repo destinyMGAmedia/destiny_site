@@ -16,7 +16,7 @@ if (process.env.DATABASE_URL) {
     // Set safe connection limits to prevent "too many connections"
     if (!url.searchParams.has('connection_limit')) {
       // Higher limit during build time for Vercel static generation
-      const limit = process.env.VERCEL_ENV ? '10' : process.env.NODE_ENV === 'production' ? '5' : '3'
+      const limit = process.env.VERCEL_ENV ? '10' : process.env.NODE_ENV === 'production' ? '5' : '5'
       url.searchParams.set('connection_limit', limit)
     }
 

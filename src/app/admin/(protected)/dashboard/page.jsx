@@ -19,13 +19,18 @@ export const metadata = { title: 'Dashboard' }
 export const dynamic = 'force-dynamic'
 
 async function getAdminStats() {
-  const [assemblies, admins, events, devotionals, arkCenters] = await Promise.all([
+  // Batch queries in smaller groups to prevent connection exhaustion
+  const [assemblies, admins] = await Promise.all([
     prisma.assembly.count({ where: { isActive: true } }),
     prisma.user.count({ where: { isActive: true } }),
+  ])
+  
+  const [events, devotionals, arkCenters] = await Promise.all([
     prisma.event.count({ where: { startDate: { gte: new Date() } } }),
     prisma.devotional.count({ where: { scheduledDate: { gte: new Date() } } }),
     prisma.arkCenter.count({ where: { isActive: true } }),
   ])
+  
   return { assemblies, admins, events, devotionals, arkCenters }
 }
 
@@ -139,7 +144,9 @@ export default async function DashboardPage() {
   // ─────────────────────────────────────────────
   // GLOBAL_ADMIN / SUPER_ADMIN DASHBOARD
   // ─────────────────────────────────────────────
-  const [stats, assemblies] = await Promise.all([getAdminStats(), getAssemblies()])
+  // Execute sequentially to prevent database connection exhaustion
+  const stats = await getAdminStats()
+  const assemblies = await getAssemblies()
 
   const statCards = [
     { label: 'Active Assemblies', value: stats.assemblies, icon: MdOutlineChurch, color: 'var(--purple-800)', bg: 'var(--purple-50)' },
