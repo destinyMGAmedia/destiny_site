@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
-import { Video, Plus, Pencil, Trash2, Youtube, Check, X, AlertCircle } from 'lucide-react'
+import { Video, Plus, Pencil, Trash2, Play, Check, X, AlertCircle } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -151,7 +151,7 @@ export default function ChannelsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Youtube className="h-8 w-8 text-red-500" />
+          <Play className="h-8 w-8 text-red-500" />
           <div>
             <h1 className="text-2xl font-bold text-gray-900">YouTube Channels</h1>
             <p className="text-gray-600">Manage YouTube channels for live streaming and video content</p>
@@ -325,7 +325,7 @@ export default function ChannelsPage() {
                   <div key={channel.id} className="border rounded-lg p-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <div className={`p-2 rounded-lg ${channel.isActive ? 'bg-green-100' : 'bg-gray-100'}`}>
-                        <Youtube className={`h-6 w-6 ${channel.isActive ? 'text-green-600' : 'text-gray-400'}`} />
+                        <Play className={`h-6 w-6 ${channel.isActive ? 'text-green-600' : 'text-gray-400'}`} />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
