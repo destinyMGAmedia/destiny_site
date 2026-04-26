@@ -31,9 +31,16 @@ async function getEvents() {
   }
 }
 
+// Helper function to safely parse date (handles both Date objects and strings)
+function safeParseDate(date) {
+  if (date instanceof Date) return date
+  if (typeof date === 'string') return parseISO(date)
+  return new Date(date)
+}
+
 function EventCard({ event }) {
-  const startDate = parseISO(event.startDate)
-  const endDate = event.endDate ? parseISO(event.endDate) : null
+  const startDate = safeParseDate(event.startDate)
+  const endDate = event.endDate ? safeParseDate(event.endDate) : null
   const isUpcoming = isAfter(startDate, new Date())
   const isPast = isBefore(startDate, new Date())
 
@@ -143,8 +150,8 @@ export default async function EventsPage() {
   const events = await getEvents()
   
   const now = new Date()
-  const upcomingEvents = events.filter(event => isAfter(parseISO(event.startDate), now))
-  const pastEvents = events.filter(event => isBefore(parseISO(event.startDate), now))
+  const upcomingEvents = events.filter(event => isAfter(safeParseDate(event.startDate), now))
+  const pastEvents = events.filter(event => isBefore(safeParseDate(event.startDate), now))
 
   return (
     <div className="min-h-screen bg-[#F9F7F5]">

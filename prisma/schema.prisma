@@ -637,7 +637,7 @@ enum GrowthLevel {
   DESTINY_CULTURE         // Level 2: Destiny Culture (Membership Course)
   MINISTRY_CLASS          // Level 3: Ministry Class
   LEADERSHIP_CLASS        // Level 4: Leadership Class
-  PASTORAL_CLASS          // Level 5: Pastoral Class
+  PASTORAL_CLASS          // Level 5: Pastoral Class (Advanced Leadership Course)
   ADVANCED_LEADERSHIP_2   // Level 6: Advanced Leadership Course 2
   ADVANCED_LEADERSHIP_3   // Level 7: Advanced Leadership Course 3
 }

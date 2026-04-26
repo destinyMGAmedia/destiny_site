@@ -51,27 +51,25 @@ export default function ProtectedAdminLayout({ children }) {
         </div>
 
         {/* Sidebar for Mobile (Docked/Slide-out) */}
-        <div 
-          className={`lg:hidden fixed inset-0 z-[100] flex transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
-        >
-          {/* Backdrop */}
-          <div 
-            className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0'}`}
-            onClick={() => setIsSidebarOpen(false)}
-          />
-          {/* Sidebar content */}
-          <div 
-            className={`relative w-[280px] h-full transition-transform duration-300 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
-          >
-            <AdminSidebar onItemClick={() => setIsSidebarOpen(false)} />
-            <button 
-              className="absolute top-4 right-[-48px] p-2 bg-white rounded-full text-purple-900 shadow-xl"
+        {isSidebarOpen && (
+          <div className="lg:hidden fixed inset-0 z-[100] flex">
+            {/* Backdrop */}
+            <div 
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
               onClick={() => setIsSidebarOpen(false)}
-            >
-              <X size={24} />
-            </button>
+            />
+            {/* Sidebar content */}
+            <div className="relative w-[280px] h-full bg-white">
+              <AdminSidebar onItemClick={() => setIsSidebarOpen(false)} />
+              <button 
+                className="absolute top-4 right-[-48px] p-2 bg-white rounded-full text-purple-900 shadow-xl"
+                onClick={() => setIsSidebarOpen(false)}
+              >
+                <X size={24} />
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
