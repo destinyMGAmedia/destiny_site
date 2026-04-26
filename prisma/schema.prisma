@@ -47,6 +47,7 @@ model Assembly {
   prayerRequests   PrayerRequest[]
   teamMembers      TeamMember[]
   testimonies      Testimony[]
+  firstTimers      FirstTimer[]
   admins           User[]
 }
 
@@ -278,6 +279,37 @@ model Visitor {
   assembly     Assembly  @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
 }
 
+model FirstTimer {
+  id             String    @id @default(cuid())
+  assemblyId     String?   // null for global registrations
+  firstName      String
+  lastName       String
+  middleName     String?
+  email          String?
+  phone          String?
+  address        String?
+  city           String?
+  state          String?
+  country        String?
+  dateOfBirth    DateTime?
+  gender         Gender?
+  occupation     String?
+  maritalStatus  String?
+  howDidYouHear  String?   // How did you hear about us?
+  prayerRequest  String?
+  isConverted    Boolean   @default(false) // Did they give their life to Christ?
+  wantsFollowUp  Boolean   @default(true)
+  followedUp     Boolean   @default(false)
+  convertedToMember Boolean @default(false) // Did they become a member?
+  memberId       String?   // If converted to member
+  notes          String?
+  registeredAt   DateTime  @default(now())
+  createdAt      DateTime  @default(now())
+  assembly       Assembly? @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+  member         Member?   @relation(fields: [memberId], references: [id])
+}
+
+
 model Game {
   id            String   @id @default(cuid())
   title         String
@@ -475,6 +507,7 @@ model Member {
   arkCenter      ArkCenter?   @relation(fields: [arkCenterId], references: [id])
   assembly       Assembly     @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
   progress       MemberProgress[]
+  firstTimers    FirstTimer[]
 }
 
 model AssemblyReport {
@@ -599,12 +632,14 @@ enum Department {
 }
 
 enum GrowthLevel {
-  NEW_COMER
-  MEMBERSHIP_CLASS
-  DISCIPLESHIP_CLASS
-  LEADERS_CLASS
-  DEACON
-  PASTOR
+  NEW_COMER               // Level 0: New to the church
+  FOUNDATIONAL_CLASS      // Level 1: Foundational Class
+  DESTINY_CULTURE         // Level 2: Destiny Culture (Membership Course)
+  MINISTRY_CLASS          // Level 3: Ministry Class
+  LEADERSHIP_CLASS        // Level 4: Leadership Class
+  PASTORAL_CLASS          // Level 5: Pastoral Class
+  ADVANCED_LEADERSHIP_2   // Level 6: Advanced Leadership Course 2
+  ADVANCED_LEADERSHIP_3   // Level 7: Advanced Leadership Course 3
 }
 enum TeamCategory {
   FELLOWSHIP

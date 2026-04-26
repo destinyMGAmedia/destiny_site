@@ -8,8 +8,18 @@ export async function GET(req, { params }) {
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { id: assemblyId } = await params
-  if (!canManageAssembly(session, assemblyId)) {
+  const { slug } = await params
+  
+  // Find assembly by slug first
+  const assembly = await prisma.assembly.findFirst({
+    where: { slug }
+  })
+  
+  if (!assembly) {
+    return NextResponse.json({ error: 'Assembly not found' }, { status: 404 })
+  }
+  
+  if (!canManageAssembly(session, assembly.id)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
@@ -20,7 +30,7 @@ export async function GET(req, { params }) {
 
   const serviceData = await prisma.serviceData.findMany({
     where: { 
-      assemblyId,
+      assemblyId: assembly.id,
       ...(serviceType ? { serviceType } : {}),
       ...(arkCenterId ? { arkCenterId } : (arkCenterId === 'none' ? { arkCenterId: null } : {}))
     },
@@ -41,8 +51,18 @@ export async function POST(req, { params }) {
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { id: assemblyId } = await params
-  if (!canManageAssembly(session, assemblyId)) {
+  const { slug } = await params
+  
+  // Find assembly by slug first
+  const assembly = await prisma.assembly.findFirst({
+    where: { slug }
+  })
+  
+  if (!assembly) {
+    return NextResponse.json({ error: 'Assembly not found' }, { status: 404 })
+  }
+  
+  if (!canManageAssembly(session, assembly.id)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
@@ -55,7 +75,7 @@ export async function POST(req, { params }) {
 
   const record = await prisma.serviceData.create({
     data: {
-      assemblyId,
+      assemblyId: assembly.id,
       arkCenterId,
       serviceDate: new Date(serviceDate),
       attendance: parseInt(attendance),
