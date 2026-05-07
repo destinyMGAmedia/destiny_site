@@ -146,6 +146,7 @@ export async function POST(req) {
     })
 
     if (firstTimer) {
+      const assemblySlug = firstTimer.assembly?.slug || null
       return NextResponse.json({
         exists: true,
         type: 'FIRST_TIMER',
@@ -155,10 +156,12 @@ export async function POST(req) {
           registeredAt: firstTimer.registeredAt,
           convertedToMember: firstTimer.convertedToMember,
           assembly: firstTimer.assembly?.name || 'Not specified',
+          assemblySlug,
           nextAction: {
             type: 'REGISTER_MEMBER',
             description: 'Complete member registration to access growth track',
-            url: '/member/register'
+            // Direct them back to their assembly join page as a MEMBER
+            url: assemblySlug ? `/${assemblySlug}/join` : '/member/portal',
           }
         }
       })

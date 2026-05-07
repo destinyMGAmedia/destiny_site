@@ -48,6 +48,8 @@ export default function NewMemberPage() {
   const firstTimerId = searchParams.get('firstTimerId') || ''
   const isConversion = !!firstTimerId
 
+  const urlAssemblyId = searchParams.get('assemblyId') || ''
+
   const [form, setForm] = useState({
     firstName: searchParams.get('firstName') || '',
     lastName: searchParams.get('lastName') || '',
@@ -62,31 +64,45 @@ export default function NewMemberPage() {
     country: 'Nigeria',
     fellowship: '',
     department: 'NONE',
-    growthLevel: 'NEW_COMER',
+    // Conversions start at FOUNDATIONAL_CLASS (first growth stage)
+    growthLevel: isConversion ? 'FOUNDATIONAL_CLASS' : 'NEW_COMER',
     arkCenterId: '',
     baptismDate: '',
     emergencyName: '',
     emergencyPhone: '',
     notes: '',
-    assemblyId: session?.user?.assemblyId || '',
+    assemblyId: urlAssemblyId || session?.user?.assemblyId || '',
   })
 
   useEffect(() => {
     if (status === 'unauthenticated') { router.replace('/admin/login'); return }
+    if (!session) return
 
-    const isGlobal = ['SUPER_ADMIN', 'GLOBAL_ADMIN'].includes(session?.user?.role)
+    const isGlobal = ['SUPER_ADMIN', 'GLOBAL_ADMIN'].includes(session.user.role)
     if (isGlobal) {
       fetch('/api/admin/assemblies')
         .then(r => r.json())
-        .then(data => setAssemblies(Array.isArray(data) ? data : data.assemblies || []))
+        .then(data => {
+          const list = Array.isArray(data) ? data : data.assemblies || []
+          setAssemblies(list)
+          // If assembly came from URL (first timer conversion), pre-select it
+          if (urlAssemblyId && !form.assemblyId) {
+            setForm(f => ({ ...f, assemblyId: urlAssemblyId }))
+          }
+        })
         .catch(() => {})
-    } else if (session?.user?.assemblyId) {
-      setForm(f => ({ ...f, assemblyId: session.user.assemblyId }))
-      // Fetch ark centers for this assembly
-      fetch(`/api/admin/assemblies/${session.user.assemblySlug}/ark-centers`)
-        .then(r => r.json())
-        .then(data => setArkCenters(Array.isArray(data) ? data : []))
-        .catch(() => {})
+    } else {
+      const resolvedId = session.user.assemblyId || urlAssemblyId
+      if (resolvedId) {
+        setForm(f => ({ ...f, assemblyId: resolvedId }))
+        const slug = session.user.assemblySlug
+        if (slug) {
+          fetch(`/api/admin/assemblies/${slug}/ark-centers`)
+            .then(r => r.json())
+            .then(data => setArkCenters(Array.isArray(data) ? data : []))
+            .catch(() => {})
+        }
+      }
     }
   }, [status, session])
 

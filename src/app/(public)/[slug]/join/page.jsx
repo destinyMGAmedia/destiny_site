@@ -15,13 +15,14 @@ export default function JoinPage() {
   const [checkEmail, setCheckEmail] = useState('')
   const [checking, setChecking] = useState(false)
   const [checkError, setCheckError] = useState('')
-  const [existingRecord, setExistingRecord] = useState(null) // lookup result when found
+  const [existingRecord, setExistingRecord] = useState(null)
   const [form, setForm] = useState({
     firstName: '', lastName: '', middleName: '', email: '', phone: '',
     gender: 'MALE', dateOfBirth: '', address: '', city: '', state: '', country: 'Nigeria',
     fellowship: 'DESTINY_TREASURES', department: 'NONE', arkCenterId: '',
     notes: ''
   })
+  const [formErrors, setFormErrors] = useState({})
   const [status, setStatus] = useState('idle')
 
   useEffect(() => {
@@ -33,6 +34,71 @@ export default function JoinPage() {
     }
   }, [slug])
 
+  // --- Validators ---
+  const sanitizePhone = (value) => value.replace(/[^\d+]/g, '').replace(/(?!^)\+/g, '')
+  const isValidPhone = (value) => /^\+?\d{7,15}$/.test(value.trim())
+  const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
+  const isValidName = (value) => /^[a-zA-Z\s'\-]{2,}$/.test(value.trim())
+  const isValidLocation = (value) => /^[a-zA-Z\s'\-,.]{2,}$/.test(value.trim())
+
+  const validateForm = () => {
+    const errors = {}
+
+    if (!form.firstName.trim()) {
+      errors.firstName = 'First name is required.'
+    } else if (!isValidName(form.firstName)) {
+      errors.firstName = 'First name should contain letters only (min. 2 characters).'
+    }
+
+    if (!form.lastName.trim()) {
+      errors.lastName = 'Last name is required.'
+    } else if (!isValidName(form.lastName)) {
+      errors.lastName = 'Last name should contain letters only (min. 2 characters).'
+    }
+
+    if (!form.phone?.trim() && !form.email?.trim()) {
+      errors.contact = 'Please provide at least a phone number or email address.'
+    }
+    if (form.phone?.trim() && !isValidPhone(form.phone)) {
+      errors.phone = 'Enter a valid phone number (digits only, 7–15 digits).'
+    }
+    if (form.email?.trim() && !isValidEmail(form.email)) {
+      errors.email = 'Enter a valid email address (e.g. name@example.com).'
+    }
+
+    if (type === 'MEMBER') {
+      if (form.dateOfBirth) {
+        const dob = new Date(form.dateOfBirth)
+        const now = new Date()
+        const ageYears = (now - dob) / (1000 * 60 * 60 * 24 * 365.25)
+        if (dob >= now) errors.dateOfBirth = 'Date of birth must be in the past.'
+        else if (ageYears < 1 || ageYears > 120) errors.dateOfBirth = 'Please enter a valid date of birth.'
+      }
+      if (form.city.trim() && !isValidLocation(form.city)) {
+        errors.city = 'City should contain letters only.'
+      }
+      if (form.state.trim() && !isValidLocation(form.state)) {
+        errors.state = 'State should contain letters only.'
+      }
+      if (form.country.trim() && !isValidLocation(form.country)) {
+        errors.country = 'Country should contain letters only.'
+      }
+    }
+
+    return errors
+  }
+
+  // Clear a specific field error when the user edits that field
+  const clearError = (field) => {
+    if (formErrors[field]) setFormErrors(prev => { const next = { ...prev }; delete next[field]; return next })
+  }
+
+  const FieldError = ({ field }) =>
+    formErrors[field]
+      ? <p className="flex items-center gap-1 text-red-500 text-xs mt-1"><AlertCircle size={12} />{formErrors[field]}</p>
+      : null
+
+  // --- Handlers ---
   const handleTypeSelect = (selectedType) => {
     setType(selectedType)
     setStep('CHECK')
@@ -42,22 +108,32 @@ export default function JoinPage() {
 
   const handleCheck = async (e) => {
     e.preventDefault()
-    if (!checkPhone && !checkEmail) {
+    if (!checkPhone.trim() && !checkEmail.trim()) {
       setCheckError('Please enter at least your phone number or email.')
+      return
+    }
+    if (checkPhone.trim() && !isValidPhone(checkPhone)) {
+      setCheckError('Enter a valid phone number (digits only, 7–15 digits).')
+      return
+    }
+    if (checkEmail.trim() && !isValidEmail(checkEmail)) {
+      setCheckError('Enter a valid email address (e.g. name@example.com).')
       return
     }
     setChecking(true)
     setCheckError('')
+    const lookupPayload = {}
+    if (checkPhone.trim()) lookupPayload.phone = checkPhone.trim()
+    if (checkEmail.trim()) lookupPayload.email = checkEmail.trim()
     try {
       const res = await fetch('/api/member/lookup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: checkPhone || undefined, email: checkEmail || undefined })
+        body: JSON.stringify(lookupPayload)
       })
       const data = await res.json()
 
       if (data.exists) {
-        // First-timer choosing MEMBER → skip FOUND screen, go straight to form
         if (data.type === 'FIRST_TIMER' && type === 'MEMBER' && !data.data.convertedToMember) {
           setForm(f => ({ ...f, phone: checkPhone, email: checkEmail }))
           setStep('FORM')
@@ -66,7 +142,6 @@ export default function JoinPage() {
           setStep('FOUND')
         }
       } else {
-        // Pre-fill form with what they entered
         setForm(f => ({ ...f, phone: checkPhone, email: checkEmail }))
         setStep('FORM')
       }
@@ -79,6 +154,12 @@ export default function JoinPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    const errors = validateForm()
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors)
+      return
+    }
+    setFormErrors({})
     setStatus('loading')
 
     const res = await fetch(`/api/assemblies/${slug}/register`, {
@@ -105,7 +186,7 @@ export default function JoinPage() {
             Registration Successful!
           </h1>
           <p className="text-gray-500 text-sm">
-            {type === 'VISITOR' 
+            {type === 'VISITOR'
               ? "Welcome! We're so glad you joined us today. We'll be in touch soon."
               : "Welcome to the family! We're excited to have you as a member of this assembly."}
           </p>
@@ -176,7 +257,7 @@ export default function JoinPage() {
                 type="tel"
                 placeholder="e.g. 08012345678"
                 value={checkPhone}
-                onChange={e => setCheckPhone(e.target.value)}
+                onChange={e => { setCheckError(''); setCheckPhone(sanitizePhone(e.target.value)) }}
               />
             </div>
             <div>
@@ -186,7 +267,7 @@ export default function JoinPage() {
                 type="email"
                 placeholder="e.g. john@example.com"
                 value={checkEmail}
-                onChange={e => setCheckEmail(e.target.value)}
+                onChange={e => { setCheckError(''); setCheckEmail(e.target.value) }}
               />
             </div>
             {checkError && (
@@ -224,10 +305,10 @@ export default function JoinPage() {
           {isMember && (
             <>
               <p className="text-sm text-gray-500 mb-6">
-                You're already registered as a member. Visit your Member Portal to access your growth track and training materials.
+                You're already registered as a member. Visit My Journey to track your growth and access training materials.
               </p>
               <button onClick={() => router.push('/member/register')} className="btn-primary w-full justify-center mb-3">
-                Go to Member Portal
+                View My Journey & Growth Track
               </button>
               <button onClick={() => router.push(`/${slug}`)} className="btn-outline w-full justify-center">
                 Back to Assembly
@@ -241,7 +322,7 @@ export default function JoinPage() {
                 <>
                   <p className="text-sm text-gray-500 mb-6">You've already completed member registration.</p>
                   <button onClick={() => router.push('/member/register')} className="btn-primary w-full justify-center">
-                    Go to Member Portal
+                    View My Journey & Growth Track
                   </button>
                 </>
               ) : (
@@ -290,45 +371,55 @@ export default function JoinPage() {
             <div>
               <label className="form-label">First Name *</label>
               <input
-                className="form-input"
+                className={`form-input ${formErrors.firstName ? 'border-red-400' : ''}`}
                 value={form.firstName}
-                onChange={(e) => setForm(f => ({ ...f, firstName: e.target.value }))}
-                required
+                onChange={(e) => { clearError('firstName'); setForm(f => ({ ...f, firstName: e.target.value })) }}
               />
+              <FieldError field="firstName" />
             </div>
             <div>
               <label className="form-label">Last Name *</label>
               <input
-                className="form-input"
+                className={`form-input ${formErrors.lastName ? 'border-red-400' : ''}`}
                 value={form.lastName}
-                onChange={(e) => setForm(f => ({ ...f, lastName: e.target.value }))}
-                required
+                onChange={(e) => { clearError('lastName'); setForm(f => ({ ...f, lastName: e.target.value })) }}
               />
+              <FieldError field="lastName" />
             </div>
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="form-label">Email</label>
+              <label className="form-label">Phone {!form.email?.trim() ? '*' : ''}</label>
               <input
-                className="form-input"
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))}
-                required={type === 'VISITOR'}
+                className={`form-input ${formErrors.phone || formErrors.contact ? 'border-red-400' : ''}`}
+                type="tel"
+                placeholder="e.g. 08012345678"
+                value={form.phone}
+                onChange={(e) => { clearError('phone'); clearError('contact'); setForm(f => ({ ...f, phone: sanitizePhone(e.target.value) })) }}
               />
+              <FieldError field="phone" />
             </div>
             <div>
-              <label className="form-label">Phone *</label>
+              <label className="form-label">Email {!form.phone?.trim() ? '*' : ''}</label>
               <input
-                className="form-input"
-                type="tel"
-                value={form.phone}
-                onChange={(e) => setForm(f => ({ ...f, phone: e.target.value }))}
-                required
+                className={`form-input ${formErrors.email || formErrors.contact ? 'border-red-400' : ''}`}
+                type="email"
+                placeholder="e.g. john@example.com"
+                value={form.email}
+                onChange={(e) => { clearError('email'); clearError('contact'); setForm(f => ({ ...f, email: e.target.value })) }}
               />
+              <FieldError field="email" />
             </div>
           </div>
+          {formErrors.contact && (
+            <p className="flex items-center gap-1 text-red-500 text-xs -mt-4">
+              <AlertCircle size={12} />{formErrors.contact}
+            </p>
+          )}
+          {!formErrors.contact && (
+            <p className="text-xs text-gray-400 -mt-2">Provide at least one: phone number or email address.</p>
+          )}
 
           {type === 'MEMBER' && (
             <>
@@ -347,11 +438,12 @@ export default function JoinPage() {
                 <div>
                   <label className="form-label">Date of Birth</label>
                   <input
-                    className="form-input"
+                    className={`form-input ${formErrors.dateOfBirth ? 'border-red-400' : ''}`}
                     type="date"
                     value={form.dateOfBirth}
-                    onChange={(e) => setForm(f => ({ ...f, dateOfBirth: e.target.value }))}
+                    onChange={(e) => { clearError('dateOfBirth'); setForm(f => ({ ...f, dateOfBirth: e.target.value })) }}
                   />
+                  <FieldError field="dateOfBirth" />
                 </div>
               </div>
 
@@ -359,26 +451,29 @@ export default function JoinPage() {
                 <div>
                   <label className="form-label">City</label>
                   <input
-                    className="form-input"
+                    className={`form-input ${formErrors.city ? 'border-red-400' : ''}`}
                     value={form.city}
-                    onChange={(e) => setForm(f => ({ ...f, city: e.target.value }))}
+                    onChange={(e) => { clearError('city'); setForm(f => ({ ...f, city: e.target.value })) }}
                   />
+                  <FieldError field="city" />
                 </div>
                 <div>
                   <label className="form-label">State</label>
                   <input
-                    className="form-input"
+                    className={`form-input ${formErrors.state ? 'border-red-400' : ''}`}
                     value={form.state}
-                    onChange={(e) => setForm(f => ({ ...f, state: e.target.value }))}
+                    onChange={(e) => { clearError('state'); setForm(f => ({ ...f, state: e.target.value })) }}
                   />
+                  <FieldError field="state" />
                 </div>
                 <div>
                   <label className="form-label">Country</label>
                   <input
-                    className="form-input"
+                    className={`form-input ${formErrors.country ? 'border-red-400' : ''}`}
                     value={form.country}
-                    onChange={(e) => setForm(f => ({ ...f, country: e.target.value }))}
+                    onChange={(e) => { clearError('country'); setForm(f => ({ ...f, country: e.target.value })) }}
                   />
+                  <FieldError field="country" />
                 </div>
               </div>
 
@@ -446,7 +541,9 @@ export default function JoinPage() {
           </div>
 
           {status === 'error' && (
-            <p className="text-red-500 text-sm">Something went wrong. Please try again.</p>
+            <div className="flex items-center gap-2 text-red-500 text-sm">
+              <AlertCircle size={16} /> Something went wrong. Please try again.
+            </div>
           )}
 
           <button

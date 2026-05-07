@@ -33,13 +33,13 @@ export default function FirstTimerManager({ firstTimers: initialData, assemblyId
 
   const handleConvertToMember = async (firstTimer) => {
     if (!canEdit) return
-    // Redirect to member registration with pre-filled data
     const params = new URLSearchParams({
       firstName: firstTimer.firstName,
       lastName: firstTimer.lastName,
       email: firstTimer.email || '',
       phone: firstTimer.phone || '',
-      firstTimerId: firstTimer.id
+      firstTimerId: firstTimer.id,
+      assemblyId: firstTimer.assemblyId || '',
     })
     window.location.href = `/admin/members/new?${params.toString()}`
   }

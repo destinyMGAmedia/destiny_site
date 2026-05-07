@@ -13,6 +13,11 @@ export default function ProtectedAdminLayout({ children }) {
   const router = useRouter()
   const pathname = usePathname()
 
+  // Close mobile sidebar on every route change — same pattern as Navbar.
+  // Without this, isSidebarOpen persists across navigations because the layout
+  // is never unmounted within the route group.
+  useEffect(() => { setIsSidebarOpen(false) }, [pathname])
+
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.replace('/admin/login')

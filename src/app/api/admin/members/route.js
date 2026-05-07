@@ -57,7 +57,22 @@ export async function POST(req) {
       await prisma.firstTimer.update({
         where: { id: firstTimerId },
         data: { convertedToMember: true, memberId: member.id }
-      }).catch(() => {}) // non-fatal if firstTimer not found
+      }).catch(() => {})
+    }
+
+    // Auto-enroll in Foundational Class (first growth stage)
+    const foundationalStage = await prisma.growthStage.findFirst({
+      where: { level: 'FOUNDATIONAL_CLASS' }
+    })
+    if (foundationalStage) {
+      await prisma.memberProgress.create({
+        data: {
+          memberId: member.id,
+          stageId: foundationalStage.id,
+          status: 'ENROLLED',
+          enrolledAt: new Date(),
+        }
+      }).catch(() => {})
     }
 
     return NextResponse.json(member, { status: 201 })
