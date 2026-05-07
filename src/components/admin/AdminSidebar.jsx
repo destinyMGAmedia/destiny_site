@@ -83,6 +83,8 @@ export default function AdminSidebar({ onItemClick }) {
 
             <NavSection title="Users">
               <NavItem href="/admin/admins" icon={Users} label="Manage Admins" active={isActive('/admin/admins')} onClick={onItemClick} />
+              <NavItem href="/admin/first-timers" icon={UserCheck} label="First Timers" active={isActive('/admin/first-timers')} onClick={onItemClick} />
+              <NavItem href="/admin/members" icon={Users} label="Members" active={isActive('/admin/members')} onClick={onItemClick} />
             </NavSection>
 
             <NavSection title="Global Content">

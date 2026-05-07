@@ -11,6 +11,7 @@ export default function ProtectedAdminLayout({ children }) {
   const { data: session, status } = useSession()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const router = useRouter()
+  const pathname = usePathname()
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -30,7 +31,6 @@ export default function ProtectedAdminLayout({ children }) {
 
   const role = session.user.role
   const slug = session.user.assemblySlug
-  const pathname = usePathname()
 
   const isAdmin = ['SUPER_ADMIN', 'GLOBAL_ADMIN', 'ASSEMBLY_ADMIN', 'APP_ADMIN'].includes(role)
   const isUserGroup = ['CUSTOMER', 'MEMBER', 'AGENT'].includes(role)

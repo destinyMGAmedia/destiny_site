@@ -1,14 +1,21 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Check, UserPlus, Users } from 'lucide-react'
+import { Check, UserPlus, Users, Search, AlertCircle } from 'lucide-react'
 import BackButton from '@/components/ui/BackButton'
 
 export default function JoinPage() {
   const { slug } = useParams()
   const router = useRouter()
+  // step: 'TYPE' → 'CHECK' → 'FOUND' | 'FORM'
+  const [step, setStep] = useState('TYPE')
   const [type, setType] = useState(null) // 'VISITOR' or 'MEMBER'
   const [arkCenters, setArkCenters] = useState([])
+  const [checkPhone, setCheckPhone] = useState('')
+  const [checkEmail, setCheckEmail] = useState('')
+  const [checking, setChecking] = useState(false)
+  const [checkError, setCheckError] = useState('')
+  const [existingRecord, setExistingRecord] = useState(null) // lookup result when found
   const [form, setForm] = useState({
     firstName: '', lastName: '', middleName: '', email: '', phone: '',
     gender: 'MALE', dateOfBirth: '', address: '', city: '', state: '', country: 'Nigeria',
@@ -19,18 +26,56 @@ export default function JoinPage() {
 
   useEffect(() => {
     if (slug) {
-      fetch(`/api/sections?slug=${slug}`)
+      fetch(`/api/admin/ark-centers?slug=${slug}`)
         .then(res => res.json())
-        .then(data => {
-            // Find assembly ID from sections if possible, or just use slug in API
-        })
-      
-      // Fetch ark centers for this assembly
-      fetch(`/api/admin/ark-centers?slug=${slug}`) // I might need to adjust this API
-        .then(res => res.json())
-        .then(data => setArkCenters(data))
+        .then(data => Array.isArray(data) ? setArkCenters(data) : setArkCenters([]))
+        .catch(() => setArkCenters([]))
     }
   }, [slug])
+
+  const handleTypeSelect = (selectedType) => {
+    setType(selectedType)
+    setStep('CHECK')
+    setCheckError('')
+    setExistingRecord(null)
+  }
+
+  const handleCheck = async (e) => {
+    e.preventDefault()
+    if (!checkPhone && !checkEmail) {
+      setCheckError('Please enter at least your phone number or email.')
+      return
+    }
+    setChecking(true)
+    setCheckError('')
+    try {
+      const res = await fetch('/api/member/lookup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: checkPhone || undefined, email: checkEmail || undefined })
+      })
+      const data = await res.json()
+
+      if (data.exists) {
+        // First-timer choosing MEMBER → skip FOUND screen, go straight to form
+        if (data.type === 'FIRST_TIMER' && type === 'MEMBER' && !data.data.convertedToMember) {
+          setForm(f => ({ ...f, phone: checkPhone, email: checkEmail }))
+          setStep('FORM')
+        } else {
+          setExistingRecord(data)
+          setStep('FOUND')
+        }
+      } else {
+        // Pre-fill form with what they entered
+        setForm(f => ({ ...f, phone: checkPhone, email: checkEmail }))
+        setStep('FORM')
+      }
+    } catch {
+      setCheckError('Could not check your details. Please try again.')
+    } finally {
+      setChecking(false)
+    }
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -72,7 +117,8 @@ export default function JoinPage() {
     )
   }
 
-  if (!type) {
+  // Step: TYPE selection
+  if (step === 'TYPE') {
     return (
       <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'var(--ivory)' }}>
         <BackButton className="fixed top-8 left-8 z-50" variant="outline" />
@@ -83,23 +129,15 @@ export default function JoinPage() {
             </h1>
             <p className="text-gray-600">Please choose how you'd like to register today</p>
           </div>
-
           <div className="grid md:grid-cols-2 gap-6">
-            <button
-              onClick={() => setType('VISITOR')}
-              className="card p-8 text-left hover:border-purple-500 transition-colors group"
-            >
+            <button onClick={() => handleTypeSelect('VISITOR')} className="card p-8 text-left hover:border-purple-500 transition-colors group">
               <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center mb-6 group-hover:bg-purple-600 group-hover:text-white transition-colors">
                 <UserPlus size={24} />
               </div>
               <h3 className="text-xl font-bold mb-2">First Timer / Visitor</h3>
               <p className="text-sm text-gray-500">I'm visiting for the first time or just checking things out. I'd like to be followed up with.</p>
             </button>
-
-            <button
-              onClick={() => setType('MEMBER')}
-              className="card p-8 text-left hover:border-gold-500 transition-colors group"
-            >
+            <button onClick={() => handleTypeSelect('MEMBER')} className="card p-8 text-left hover:border-gold-500 transition-colors group">
               <div className="w-12 h-12 rounded-xl bg-gold-100 flex items-center justify-center mb-6 group-hover:bg-gold-500 group-hover:text-white transition-colors">
                 <Users size={24} />
               </div>
@@ -112,9 +150,133 @@ export default function JoinPage() {
     )
   }
 
+  // Step: CHECK — phone/email pre-check
+  if (step === 'CHECK') {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'var(--ivory)' }}>
+        <BackButton onClick={() => setStep('TYPE')} className="fixed top-8 left-8 z-50" variant="outline" />
+        <div className="card p-10 max-w-md w-full">
+          <div className="text-center mb-8">
+            <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: 'var(--purple-100)' }}>
+              <Search size={26} style={{ color: 'var(--purple-700)' }} />
+            </div>
+            <h2 className="text-2xl font-bold mb-2" style={{ fontFamily: 'var(--font-serif)', color: 'var(--purple-900)' }}>
+              Quick Check
+            </h2>
+            <p className="text-sm text-gray-500">
+              Enter your contact details so we can check if you're already in our system.
+              You may fill one or both fields.
+            </p>
+          </div>
+          <form onSubmit={handleCheck} className="space-y-4">
+            <div>
+              <label className="form-label">Phone Number</label>
+              <input
+                className="form-input"
+                type="tel"
+                placeholder="e.g. 08012345678"
+                value={checkPhone}
+                onChange={e => setCheckPhone(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="form-label">Email Address</label>
+              <input
+                className="form-input"
+                type="email"
+                placeholder="e.g. john@example.com"
+                value={checkEmail}
+                onChange={e => setCheckEmail(e.target.value)}
+              />
+            </div>
+            {checkError && (
+              <div className="flex items-center gap-2 text-red-500 text-sm">
+                <AlertCircle size={16} /> {checkError}
+              </div>
+            )}
+            <button type="submit" disabled={checking} className="btn-primary w-full justify-center">
+              {checking ? 'Checking...' : 'Continue'}
+            </button>
+          </form>
+        </div>
+      </div>
+    )
+  }
+
+  // Step: FOUND — existing record
+  if (step === 'FOUND' && existingRecord) {
+    const isMember = existingRecord.type === 'MEMBER'
+    const isFirstTimer = existingRecord.type === 'FIRST_TIMER'
+    const choosingMember = type === 'MEMBER'
+
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'var(--ivory)' }}>
+        <BackButton onClick={() => setStep('CHECK')} className="fixed top-8 left-8 z-50" variant="outline" />
+        <div className="card p-10 max-w-md w-full text-center">
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+               style={{ background: isMember ? 'var(--gold-100)' : 'var(--purple-100)' }}>
+            {isMember ? <Users size={28} style={{ color: 'var(--gold-600)' }} /> : <UserPlus size={28} style={{ color: 'var(--purple-700)' }} />}
+          </div>
+          <h2 className="text-2xl font-bold mb-2" style={{ fontFamily: 'var(--font-serif)', color: 'var(--purple-900)' }}>
+            Welcome back, {existingRecord.data.name}!
+          </h2>
+
+          {isMember && (
+            <>
+              <p className="text-sm text-gray-500 mb-6">
+                You're already registered as a member. Visit your Member Portal to access your growth track and training materials.
+              </p>
+              <button onClick={() => router.push('/member/register')} className="btn-primary w-full justify-center mb-3">
+                Go to Member Portal
+              </button>
+              <button onClick={() => router.push(`/${slug}`)} className="btn-outline w-full justify-center">
+                Back to Assembly
+              </button>
+            </>
+          )}
+
+          {isFirstTimer && (
+            <>
+              {existingRecord.data.convertedToMember ? (
+                <>
+                  <p className="text-sm text-gray-500 mb-6">You've already completed member registration.</p>
+                  <button onClick={() => router.push('/member/register')} className="btn-primary w-full justify-center">
+                    Go to Member Portal
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-gray-500 mb-2">
+                    You're registered as a first-time visitor (registered {new Date(existingRecord.data.registeredAt).toLocaleDateString()}).
+                  </p>
+                  {choosingMember ? (
+                    <p className="text-sm text-gray-500 mb-6">Complete the form below to become a full member.</p>
+                  ) : (
+                    <p className="text-sm text-gray-500 mb-6">We'll continue following up with you. No further action needed.</p>
+                  )}
+                  {choosingMember ? (
+                    <button onClick={() => { setForm(f => ({ ...f, phone: checkPhone, email: checkEmail })); setStep('FORM') }}
+                            className="btn-primary w-full justify-center mb-3">
+                      Complete Member Registration
+                    </button>
+                  ) : (
+                    <button onClick={() => router.push(`/${slug}`)} className="btn-outline w-full justify-center">
+                      Back to Assembly
+                    </button>
+                  )}
+                </>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // Step: FORM — full registration form
   return (
     <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'var(--ivory)' }}>
-      <BackButton onClick={() => setType(null)} className="fixed top-8 left-8 z-50" variant="outline" />
+      <BackButton onClick={() => setStep('CHECK')} className="fixed top-8 left-8 z-50" variant="outline" />
       <div className="card p-8 max-w-2xl w-full">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-serif)', color: 'var(--purple-900)' }}>

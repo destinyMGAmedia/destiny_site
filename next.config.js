@@ -13,9 +13,12 @@ const nextConfig = {
     ],
   },
 
-  // This is the most important addition for your current Prisma + build issues
   experimental: {
-    staticGenerationMaxConcurrency: 1,   // Prevents too many parallel DB connections during build
+    staticGenerationMaxConcurrency: 1,
+  },
+
+  turbopack: {
+    root: __dirname,
   },
 }
 

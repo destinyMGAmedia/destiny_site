@@ -462,16 +462,18 @@ model GrowthQuestion {
 }
 
 model MemberProgress {
-  id           String      @id @default(cuid())
-  memberId     String
-  stageId      String
-  status       String      @default("ENROLLED") // ENROLLED, COMPLETED
-  testScore    Float?
-  badgeEarned  Boolean     @default(false)
-  certificateUrl String?
-  completedAt  DateTime?
-  member       Member      @relation(fields: [memberId], references: [id], onDelete: Cascade)
-  stage        GrowthStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  id                String      @id @default(cuid())
+  memberId          String
+  stageId           String
+  status            String      @default("ENROLLED") // ENROLLED, COMPLETED
+  testScore         Float?
+  badgeEarned       Boolean     @default(false)
+  certificateUrl    String?
+  completedAt       DateTime?
+  completedContents Json        @default("[]") // array of GrowthContent IDs marked complete
+  assessmentAnswers Json?       // stored TEXT_SUMMARY answers for admin review
+  member            Member      @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  stage             GrowthStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
 
   @@unique([memberId, stageId])
 }

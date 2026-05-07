@@ -1,0 +1,252 @@
+Church Weekly Reporting Module PRODUCT REQUIREMENTS DOCUMENT (PRD)
+Organization: Destiny Mission Global Assembly
+ Module: Weekly Assembly Reporting System
+
+1. Overview
+This module will digitize the Church Weekly Report Template into an online system where each assembly submits:
+Weekly Administrative Report
+Weekly Financial Report
+All data will be stored centrally and accessible to the Global Administrator via a dashboard.
+
+2. Core Structure (2 Main Sheets → 2 Web Sections)
+The system will have 2 main sections (tabs/pages):
+Weekly Administrative Report
+Weekly Financial Report
+
+SECTION 1: WEEKLY ADMINISTRATIVE REPORT (WEB FORM)
+A. Basic Information
+Fields:
+Branch Name (Dropdown)
+Reporting Week (Date Range Picker)
+Branch Pastor (Auto-filled or Dropdown)
+Administrator (Text Input)
+
+B. Thursday Service Attendance
+Input Type: Table/Grid Input
+Category
+Male
+Female
+Total (Auto-calculated)
+Adults
+
+
+
+
+
+
+Youth
+
+
+
+
+
+
+Children
+
+
+
+
+
+
+First Timers
+
+
+
+
+
+
+New Converts
+
+
+
+
+
+
+Workers
+
+
+
+
+
+
+TOTAL
+Auto
+Auto
+Auto
+
+👉 Totals should be automatically calculated
+
+C. Sunday Service Attendance
+Same structure as Thursday:
+Category
+Male
+Female
+Total
+
+
+D. Follow-up & Membership Development
+Input Type: Number Fields
+First Timers Contacted
+First Timers Retained
+New Converts in Discipleship
+Baptisms Conducted
+New Workers Added
+Members Followed Up
+Visitations Conducted
+
+E. Administrative Notes
+Input Type: Text Areas
+Major Activities This Week
+Leadership Meetings Held
+Challenges Encountered
+Headquarters Support Needed
+
+SECTION 2: WEEKLY FINANCIAL REPORT (WEB FORM)
+A. Basic Information
+Branch Name (Dropdown)
+Reporting Week (Same as Admin report — should sync)
+Finance Officer (Text Input)
+
+B. Thursday Service Income
+Income Type
+Amount (₦)
+Tithe
+
+
+Offering
+
+
+Special Seed
+
+
+Welfare
+
+
+Partnership
+
+
+Other Income
+
+
+TOTAL
+Auto-calculated
+
+
+C. Sunday Service Income
+Same structure as above
+
+D. Weekly Expenses
+Expense Category
+Amount (₦)
+Approved By
+Welfare
+
+
+
+
+Logistics
+
+
+
+
+Media
+
+
+
+
+Utilities
+
+
+
+
+Evangelism
+
+
+
+
+Maintenance
+
+
+
+
+Other
+
+
+
+
+
+
+E. Financial Summary (Auto-Generated)
+Total Income (Auto)
+Total Expenses (Auto)
+Net Balance (Auto = Income - Expenses)
+
+F. Banking Details
+Amount Banked (Number)
+Date Banked (Date Picker)
+Proof of Payment Attached (Upload Field OR Yes/No Toggle)
+
+3. System Features (Important for Developer)
+3.1 Auto Calculations
+Attendance totals
+Income totals
+Expense totals
+Net balance
+
+3.2 Validation Rules
+Required fields must be filled before submission
+Numbers only in financial fields
+No negative values
+
+3.3 Submission Flow
+User fills Administrative Report
+User fills Financial Report
+Click Submit Weekly Report
+Data saved in database
+Confirmation message displayed
+
+3.4 Admin Dashboard
+Global Admin should be able to:
+View all reports by:
+Week
+Assembly
+Filter and search
+Download reports (PDF/Excel)
+See summaries:
+Total income per week
+Attendance trends
+Assemblies that have not submitted
+
+4. Data Relationships
+Each report is linked by:
+Branch Name
+Reporting Week
+👉 This ensures Admin + Financial reports stay connected
+
+5. User Roles
+Branch Admin
+Submit weekly reports
+Global Admin
+View all reports
+Monitor performance
+Export data
+
+6. Non-Functional Requirements
+Mobile-friendly (many pastors will use phones)
+Simple UI (non-technical users)
+Secure login system
+Fast submission (low data usage preferred)
+
+7. Key Improvement (Very Important)
+👉 Add Submission Status Tracking
+Each branch should show:
+✅ Submitted
+❌ Not Submitted
+This helps leadership quickly follow up.
+
+8. Future Enhancements
+WhatsApp reminders for weekly submission
+Auto-generated monthly reports
+Graphs (attendance & finance trends)
+Multi-level admin access
+
