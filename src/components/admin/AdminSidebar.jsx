@@ -7,7 +7,7 @@ import {
   Home, Users, Settings, LogOut, ChevronRight,
   LayoutDashboard, Calendar, DollarSign, BarChart2,
   Globe, Video, BookOpen, Grid3x3, ImageIcon,
-  UserCheck, ClipboardList,
+  UserCheck, ClipboardList, TrendingUp,
 } from 'lucide-react'
 import { MdOutlineChurch } from 'react-icons/md'
 
@@ -119,6 +119,7 @@ export default function AdminSidebar({ onItemClick }) {
 
             <NavSection title="Church Management">
               <NavItem href={`${assemblyBase}/members`} icon={UserCheck} label="Members" active={isActive(`${assemblyBase}/members`)} onClick={onItemClick} />
+              <NavItem href={`${assemblyBase}/growth`} icon={TrendingUp} label="Growth Track" active={isActive(`${assemblyBase}/growth`)} onClick={onItemClick} />
               <NavItem href={`${assemblyBase}/attendance`} icon={Calendar} label="Attendance" active={isActive(`${assemblyBase}/attendance`)} onClick={onItemClick} />
               <NavItem href={`${assemblyBase}/finance`} icon={DollarSign} label="Finance" active={isActive(`${assemblyBase}/finance`)} onClick={onItemClick} />
               <NavItem href={`${assemblyBase}/schedule`} icon={Calendar} label="Schedule" active={isActive(`${assemblyBase}/schedule`)} onClick={onItemClick} />

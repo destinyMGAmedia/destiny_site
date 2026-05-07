@@ -45,6 +45,7 @@ model Assembly {
   mediaSeries      MediaSeries[]
   members          Member[]
   prayerRequests   PrayerRequest[]
+  promotionRecs    PromotionRecommendation[]
   teamMembers      TeamMember[]
   testimonies      Testimony[]
   firstTimers      FirstTimer[]
@@ -469,6 +470,7 @@ model MemberProgress {
   testScore         Float?
   badgeEarned       Boolean     @default(false)
   certificateUrl    String?
+  enrolledAt        DateTime?
   completedAt       DateTime?
   completedContents Json        @default("[]") // array of GrowthContent IDs marked complete
   assessmentAnswers Json?       // stored TEXT_SUMMARY answers for admin review
@@ -476,6 +478,23 @@ model MemberProgress {
   stage             GrowthStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
 
   @@unique([memberId, stageId])
+}
+
+model PromotionRecommendation {
+  id              String           @id @default(cuid())
+  memberId        String
+  assemblyId      String
+  fromLevel       GrowthLevel
+  toLevel         GrowthLevel
+  status          PromotionStatus  @default(PENDING)
+  notes           String?          // Reason from assembly admin
+  adminNotes      String?          // Feedback from global admin
+  recommendedById String?          // User ID of assembly admin who recommended
+  resolvedById    String?          // User ID of global admin who resolved
+  createdAt       DateTime         @default(now())
+  resolvedAt      DateTime?
+  member          Member           @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  assembly        Assembly         @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
 }
 
 model Member {
@@ -510,6 +529,7 @@ model Member {
   assembly       Assembly     @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
   progress       MemberProgress[]
   firstTimers    FirstTimer[]
+  promotionRecs  PromotionRecommendation[]
 }
 
 model AssemblyReport {
@@ -712,4 +732,10 @@ enum InviteStatus {
   ACCEPTED
   DECLINED
   EXPIRED
+}
+
+enum PromotionStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
