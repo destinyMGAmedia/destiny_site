@@ -20,12 +20,12 @@ if (process.env.DATABASE_URL) {
       url.searchParams.set('connection_limit', limit)
     }
 
-    // Add timeouts to prevent hanging connections
+    // Fail fast so the error.jsx triggers instead of a hanging blank page
     if (!url.searchParams.has('connect_timeout')) {
-      url.searchParams.set('connect_timeout', '30')
+      url.searchParams.set('connect_timeout', '10')
     }
     if (!url.searchParams.has('pool_timeout')) {
-      url.searchParams.set('pool_timeout', '30')
+      url.searchParams.set('pool_timeout', '15')
     }
 
     prismaOptions.datasources = {
@@ -78,7 +78,7 @@ const handler = {
                   err?.message?.includes('remaining connection slots')
                 if (isConnErr && attempt < 2) {
                   console.warn(`[PRISMA_RETRY] Connection failed (attempt ${attempt + 1}/3):`, err.message)
-                  await new Promise(r => setTimeout(r, 1000 * (attempt + 1)))
+                  await new Promise(r => setTimeout(r, 500 * (attempt + 1)))
                   try { await target.$connect() } catch (_) {}
                   continue
                 }

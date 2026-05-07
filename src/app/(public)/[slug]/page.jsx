@@ -20,76 +20,61 @@ import TeamSection from '@/components/assembly/TeamSection'
 export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ params }) {
-  try {
-    const { slug } = await params
-    const assembly = await prisma.assembly.findUnique({
-      where: { slug, isActive: true },
-      select: { name: true, tagline: true, city: true },
-    })
-    if (!assembly) return { title: 'Assembly Not Found' }
-    return {
-      title: assembly.name,
-      description: assembly.tagline || `${assembly.name} — Destiny Mission Global Assembly, ${assembly.city}`,
-    }
-  } catch (error) {
-    console.error('Error generating metadata:', error)
-    return {
-      title: 'Assembly',
-      description: 'Destiny Mission Global Assembly'
-    }
+  const { slug } = await params
+  const assembly = await prisma.assembly.findUnique({
+    where: { slug, isActive: true },
+    select: { name: true, tagline: true, city: true },
+  })
+  if (!assembly) return { title: 'Assembly Not Found' }
+  return {
+    title: assembly.name,
+    description: assembly.tagline || `${assembly.name} — Destiny Mission Global Assembly, ${assembly.city}`,
   }
 }
 
 export default async function AssemblyPage({ params }) {
-  let assembly
-  
-  try {
-    const { slug } = await params
-    assembly = await prisma.assembly.findUnique({
-      where: { slug, isActive: true },
-      include: {
-        sections: {
-          where: { isVisible: true },
-          orderBy: { position: 'asc' },
-        },
-        teamMembers: { orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }] },
-        events: {
-          where: { startDate: { gte: new Date() } },
-          orderBy: { startDate: 'asc' },
-          take: 6,
-        },
-        givingDetails: true,
-        testimonies: {
-          where: { isApproved: true },
-          orderBy: { createdAt: 'desc' },
-          take: 8,
-        },
-        mediaItems: {
-          orderBy: { createdAt: 'desc' },
-          take: 9,
-        },
-        audioContent: {
-          orderBy: { publishedAt: 'desc' },
-          take: 4,
-        },
-        arkCenters: {
-          where: { isActive: true },
-          include: {
-            leader: {
-              select: { firstName: true, lastName: true, photo: true }
-            }
-          },
-          orderBy: { name: 'asc' }
-        }
-      },
-    })
+  const { slug } = await params
 
-    if (!assembly) {
-      console.warn(`Assembly not found for slug: ${slug}`)
-      notFound()
-    }
-  } catch (error) {
-    console.error('Error loading assembly:', error)
+  const assembly = await prisma.assembly.findUnique({
+    where: { slug, isActive: true },
+    include: {
+      sections: {
+        where: { isVisible: true },
+        orderBy: { position: 'asc' },
+      },
+      teamMembers: { orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }] },
+      events: {
+        where: { startDate: { gte: new Date() } },
+        orderBy: { startDate: 'asc' },
+        take: 6,
+      },
+      givingDetails: true,
+      testimonies: {
+        where: { isApproved: true },
+        orderBy: { createdAt: 'desc' },
+        take: 8,
+      },
+      mediaItems: {
+        orderBy: { createdAt: 'desc' },
+        take: 9,
+      },
+      audioContent: {
+        orderBy: { publishedAt: 'desc' },
+        take: 4,
+      },
+      arkCenters: {
+        where: { isActive: true },
+        include: {
+          leader: {
+            select: { firstName: true, lastName: true, photo: true }
+          }
+        },
+        orderBy: { name: 'asc' }
+      }
+    },
+  })
+
+  if (!assembly) {
     notFound()
   }
 
