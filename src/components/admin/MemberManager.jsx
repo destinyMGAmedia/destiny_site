@@ -308,6 +308,7 @@ export default function MemberManager({ members: initialData, growthStages, asse
                                 value={member.growthLevel}
                                 onChange={(e) => handleAssignStage(member.id, e.target.value)}
                               >
+                                <option value="NEW_COMER">New Comer (No Training)</option>
                                 {growthStages.map(stage => (
                                   <option key={stage.id} value={stage.level}>
                                     {stage.title}

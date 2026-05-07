@@ -59,20 +59,30 @@ export async function POST(req) {
           url: `/growth-track/${member.growthLevel.toLowerCase()}`
         }
       } else if (currentProgress.status === 'ENROLLED') {
-        const completedLessons = currentProgress.completedLessons || 0
+        const completedLessons = Array.isArray(currentProgress.completedContents) ? currentProgress.completedContents.length : 0
         const totalLessons = currentStage?.contents.length || 0
-        
+        const LEVEL_SLUG = {
+          FOUNDATIONAL_CLASS: 'foundational_class',
+          DESTINY_CULTURE: 'destiny_culture',
+          MINISTRY_CLASS: 'ministry_class',
+          LEADERSHIP_CLASS: 'leadership_class',
+          PASTORAL_CLASS: 'pastoral_class',
+          ADVANCED_LEADERSHIP_2: 'advanced_leadership_2',
+          ADVANCED_LEADERSHIP_3: 'advanced_leadership_3',
+        }
+        const stageSlug = LEVEL_SLUG[member.growthLevel] || member.growthLevel.toLowerCase()
+
         if (completedLessons < totalLessons) {
           nextAction = {
             type: 'LESSON',
-            description: `Complete ${currentStage.title} - Lesson ${completedLessons + 1}`,
-            url: `/growth-track/${member.growthLevel.toLowerCase()}/lesson-${completedLessons + 1}`
+            description: `Continue ${currentStage.title}`,
+            url: `/growth-track/${stageSlug}`
           }
         } else if (!currentProgress.testScore) {
           nextAction = {
             type: 'TEST',
             description: `Take ${currentStage.title} assessment`,
-            url: `/growth-track/${member.growthLevel.toLowerCase()}/assessment`
+            url: `/growth-track/${stageSlug}/assessment`
           }
         }
       } else if (currentProgress.status === 'COMPLETED') {
