@@ -13,10 +13,6 @@ const nextConfig = {
     ],
   },
 
-  experimental: {
-    staticGenerationMaxConcurrency: 1,
-  },
-
   turbopack: {
     root: __dirname,
   },
