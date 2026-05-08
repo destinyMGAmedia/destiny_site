@@ -7,6 +7,12 @@ const prisma = globalForPrisma.prisma || new PrismaClient({
   datasources: {
     db: {
       url: process.env.DATABASE_URL
+      pool: {
+        min: 2,
+        max: 8,
+        acquireTimeoutMillis: 30000,
+        idleTimeoutMillis: 30000
+      }
     }
   }
 })
