@@ -19,11 +19,25 @@ export const metadata = { title: 'Dashboard' }
 export const dynamic = 'force-dynamic'
 
 async function getAdminStats() {
-  // Batch queries in smaller groups to prevent connection exhaustion
-  const [assemblies, admins] = await Promise.all([
-    prisma.assembly.count({ where: { isActive: true } }),
-    prisma.user.count({ where: { isActive: true } }),
-  ])
+  // Execute queries sequentially to prevent connection exhaustion
+  let assemblies = 0;
+  let admins = 0;
+
+  try {
+    assemblies = await prisma.assembly.count({ where: { isActive: true } });
+  } catch (error) {
+    console.error('Failed to count assemblies:', error);
+    // Retry once
+    assemblies = await prisma.assembly.count({ where: { isActive: true } });
+  }
+
+  try {
+    admins = await prisma.user.count({ where: { isActive: true } });
+  } catch (error) {
+    console.error('Failed to count admins:', error);
+    // Retry once
+    admins = await prisma.user.count({ where: { isActive: true } });
+  }
   
   const [events, devotionals, arkCenters] = await Promise.all([
     prisma.event.count({ where: { startDate: { gte: new Date() } } }),
