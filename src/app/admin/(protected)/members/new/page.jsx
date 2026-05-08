@@ -44,6 +44,7 @@ export default function NewMemberPage() {
   const [arkCenters, setArkCenters] = useState([])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [showDeleteWarning, setShowDeleteWarning] = useState(false)
 
   const firstTimerId = searchParams.get('firstTimerId') || ''
   const isConversion = !!firstTimerId
@@ -118,8 +119,10 @@ export default function NewMemberPage() {
     }
   }, [form.assemblyId, assemblies])
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  const isGlobal = ['SUPER_ADMIN', 'GLOBAL_ADMIN'].includes(session?.user?.role)
+  const isAssemblyAdmin = session?.user?.role === 'ASSEMBLY_ADMIN'
+
+  const doSubmit = async () => {
     if (!form.assemblyId) { setError('Please select an assembly.'); return }
     setSaving(true)
     setError('')
@@ -139,7 +142,14 @@ export default function NewMemberPage() {
     }
   }
 
-  const isGlobal = ['SUPER_ADMIN', 'GLOBAL_ADMIN'].includes(session?.user?.role)
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    if (isAssemblyAdmin) {
+      setShowDeleteWarning(true)
+    } else {
+      doSubmit()
+    }
+  }
 
   if (status === 'loading') {
     return <div className="flex items-center justify-center p-16"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-900" /></div>
@@ -334,6 +344,43 @@ export default function NewMemberPage() {
           </button>
         </div>
       </form>
+
+      {/* Delete-permission warning for Assembly Admins */}
+      {showDeleteWarning && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-md w-full p-8 shadow-2xl">
+            <div className="flex items-start gap-4 mb-5">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+                <AlertCircle size={22} className="text-amber-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-1">Important Notice</h3>
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  Once submitted, you will <span className="font-semibold text-gray-800">not be able to delete</span> this record.
+                  Only a <span className="font-semibold text-gray-800">Global Admin</span> can delete member records.
+                  Do you want to continue?
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-3">
+              <button
+                onClick={() => setShowDeleteWarning(false)}
+                className="btn-outline"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => { setShowDeleteWarning(false); doSubmit() }}
+                disabled={saving}
+                className="btn-primary flex items-center gap-2"
+              >
+                {saving ? <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white" /> : null}
+                {saving ? 'Saving...' : 'Yes, Submit'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

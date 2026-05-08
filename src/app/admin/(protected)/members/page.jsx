@@ -1,5 +1,5 @@
 import { getServerSession } from 'next-auth'
-import { authOptions, canManageAssembly } from '@/lib/auth'
+import { authOptions, canManageAssembly, isGlobalAdmin } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import MemberManager from '@/components/admin/MemberManager'
 import prisma from '@/lib/prisma'
@@ -11,37 +11,42 @@ export default async function MembersPage() {
   const session = await getServerSession(authOptions)
   if (!session) redirect('/admin/login')
 
-  // Get assembly based on user's role
   let assemblyId = session.user.assemblyId
   let assemblyName = 'All Assemblies'
+  let members = []
+  let growthStages = []
+  let error = null
 
-  if (assemblyId) {
-    const assembly = await prisma.assembly.findUnique({
-      where: { id: assemblyId },
-      select: { name: true }
-    })
-    assemblyName = assembly?.name || 'Unknown Assembly'
-  }
+  try {
+    if (assemblyId) {
+      const assembly = await prisma.assembly.findUnique({
+        where: { id: assemblyId },
+        select: { name: true }
+      })
+      assemblyName = assembly?.name || 'Unknown Assembly'
+    }
 
-  // Fetch members with their progress
-  const members = await prisma.member.findMany({
-    where: assemblyId ? { assemblyId } : {},
-    include: {
-      assembly: true,
-      arkCenter: true,
-      progress: {
-        include: {
-          stage: true
+    members = await prisma.member.findMany({
+      where: assemblyId ? { assemblyId } : {},
+      include: {
+        assembly: true,
+        arkCenter: true,
+        progress: {
+          include: {
+            stage: true
+          }
         }
-      }
-    },
-    orderBy: { createdAt: 'desc' }
-  })
+      },
+      orderBy: { createdAt: 'desc' }
+    })
 
-  // Get growth stages for reference
-  const growthStages = await prisma.growthStage.findMany({
-    orderBy: { level: 'asc' }
-  })
+    growthStages = await prisma.growthStage.findMany({
+      orderBy: { level: 'asc' }
+    })
+  } catch (err) {
+    console.error('[MembersPage] DB error:', err)
+    error = 'Failed to load members. The database may need a schema update — run npm run db:push.'
+  }
 
   return (
     <div className="space-y-8 fade-in p-8">
@@ -52,12 +57,19 @@ export default async function MembersPage() {
         <p className="text-gray-500 mt-1">Manage church members and track their growth progress - {assemblyName}</p>
       </div>
 
-      <MemberManager 
-        members={members} 
-        growthStages={growthStages}
-        assemblyId={assemblyId}
-        canEdit={canManageAssembly(session, assemblyId)}
-      />
+      {error ? (
+        <div className="card p-6 border border-red-200 bg-red-50">
+          <p className="text-red-700 font-medium">{error}</p>
+        </div>
+      ) : (
+        <MemberManager
+          members={members}
+          growthStages={growthStages}
+          assemblyId={assemblyId}
+          canEdit={canManageAssembly(session, assemblyId)}
+          canDelete={isGlobalAdmin(session)}
+        />
+      )}
     </div>
   )
 }

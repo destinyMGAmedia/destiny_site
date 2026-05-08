@@ -1,5 +1,6 @@
 {
   "framework": "nextjs",
+  "buildCommand": "prisma db push && npx next build",
   "functions": {
     "src/app/**/*.{js,jsx}": {
       "maxDuration": 30
