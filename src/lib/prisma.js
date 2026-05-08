@@ -19,14 +19,6 @@ const prisma = globalForPrisma.prisma || new PrismaClient({
       url: process.env.DATABASE_URL
     }
   },
-  connectionTimeout: 30000,
-  poolTimeout: 60000,
-  idleTimeout: 5000,
-  retry: {
-    maxRetries: 3,
-    initialDelay: 500,
-    multiplier: 2
-  },
   log: ['info', 'warn', 'error'].map((level) => (event) => {
     connectionLogger.log({ level, message: event.message });
   })
