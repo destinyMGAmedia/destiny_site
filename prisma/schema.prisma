@@ -53,15 +53,16 @@ model Assembly {
 }
 
 model User {
-  id         String    @id @default(cuid())
-  email      String    @unique
-  password   String
-  name       String
-  role       Role      @default(ASSEMBLY_ADMIN)
-  isActive   Boolean   @default(true)
-  assemblyId String?
-  createdAt  DateTime  @default(now())
-  lastLogin  DateTime?
+  id                String    @id @default(cuid())
+  email             String    @unique
+  password          String
+  name              String
+  role              Role      @default(ASSEMBLY_ADMIN)
+  isActive          Boolean   @default(true)
+  assemblyId        String?
+  createdAt         DateTime  @default(now())
+  lastLogin         DateTime?
+  mustChangePassword Boolean  @default(false)
   accounts   Account[]
   sessions   Session[]
   assembly   Assembly? @relation(fields: [assemblyId], references: [id])

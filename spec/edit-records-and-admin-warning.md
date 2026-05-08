@@ -1,9 +1,11 @@
 # Edit Records & Assembly Admin Warning — Spec
 
 ## Overview
+
 Add full-record edit modals to FirstTimerManager and MemberManager so both GLOBAL_ADMIN and ASSEMBLY_ADMIN can update any field on a record. Also add a styled confirmation popup on the member creation form that warns ASSEMBLY_ADMIN users they won't be able to delete the record themselves once it's submitted.
 
 ## Phase 1: Edit modal — FirstTimerManager
+
 - File: `src/components/admin/FirstTimerManager.jsx`
 - Add `editingFT` state (null or record) and `editForm` state (object of editable fields)
 - "Edit" button in actions column, visible when `canEdit`; opens modal pre-filled with record data
@@ -13,6 +15,7 @@ Add full-record edit modals to FirstTimerManager and MemberManager so both GLOBA
 - Acceptance: edit button appears for canEdit users, modal opens with correct data, save updates the row, cancel closes without changes
 
 ## Phase 2: Edit modal — MemberManager
+
 - File: `src/components/admin/MemberManager.jsx`
 - Same pattern: `editingMember` state + `editForm` state
 - "Edit" button in actions column, visible when `canEdit`
@@ -22,6 +25,7 @@ Add full-record edit modals to FirstTimerManager and MemberManager so both GLOBA
 - Acceptance: same as Phase 1
 
 ## Phase 3: Assembly admin delete warning on member creation form
+
 - File: `src/app/admin/(protected)/members/new/page.jsx`
 - Add `showWarning` boolean state, `pendingSubmit` boolean state
 - Intercept the submit button: if `session.user.role === 'ASSEMBLY_ADMIN'` and not yet confirmed → set `showWarning = true`, stop

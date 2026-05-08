@@ -272,7 +272,7 @@ export default function MemberManager({ members: initialData, growthStages, asse
                 <tr><td colSpan={(canEdit || canDelete) ? 6 : 5} className="px-6 py-12 text-center text-gray-500">No members found</td></tr>
               ) : filteredMembers.map((member) => {
                 const level = getGrowthLevelDisplay(member.growthLevel)
-                const currentProgress = member.progress.find(p => p.stage.level === member.growthLevel)
+                const currentProgress = member.progress.find(p => p.stage?.level === member.growthLevel)
                 return (
                   <tr key={member.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -364,7 +364,7 @@ export default function MemberManager({ members: initialData, growthStages, asse
                   ) : selectedMember.progress.map(prog => (
                     <div key={prog.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div>
-                        <p className="font-medium">{prog.stage.title}</p>
+                        <p className="font-medium">{prog.stage?.title || 'Unknown Stage'}</p>
                         <p className="text-sm text-gray-500">Status: {prog.status}{prog.testScore ? ` | Score: ${prog.testScore}%` : ''}</p>
                       </div>
                       {prog.status === 'COMPLETED' && <CheckCircle className="text-green-500" size={20} />}

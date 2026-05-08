@@ -4,12 +4,19 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 import BottomNav from '@/components/layout/BottomNav'
-import { Menu, X, LogOut, User as UserIcon, ArrowLeft } from 'lucide-react'
+import { Menu, X, LogOut, User as UserIcon, ArrowLeft, ShieldAlert, Eye, EyeOff } from 'lucide-react'
 import { signOut } from 'next-auth/react'
 
 export default function ProtectedAdminLayout({ children }) {
-  const { data: session, status } = useSession()
+  const { data: session, status, update: updateSession } = useSession()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [showPwModal, setShowPwModal] = useState(false)
+  const [pwForm, setPwForm] = useState({ current: '', next: '', confirm: '' })
+  const [pwSaving, setPwSaving] = useState(false)
+  const [pwError, setPwError] = useState('')
+  const [pwSuccess, setPwSuccess] = useState(false)
+  const [showCurrent, setShowCurrent] = useState(false)
+  const [showNext, setShowNext] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
 
@@ -17,6 +24,36 @@ export default function ProtectedAdminLayout({ children }) {
   // Without this, isSidebarOpen persists across navigations because the layout
   // is never unmounted within the route group.
   useEffect(() => { setIsSidebarOpen(false) }, [pathname])
+
+  // Show password change modal when the user still has a generated password
+  useEffect(() => {
+    if (session?.user?.mustChangePassword) setShowPwModal(true)
+  }, [session?.user?.mustChangePassword])
+
+  async function handlePwSubmit(e) {
+    e.preventDefault()
+    setPwError('')
+    if (pwForm.next !== pwForm.confirm) { setPwError('New passwords do not match'); return }
+    if (pwForm.next.length < 8) { setPwError('Password must be at least 8 characters'); return }
+    setPwSaving(true)
+    try {
+      const res = await fetch('/api/admin/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword: pwForm.current, newPassword: pwForm.next }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setPwError(data.error || 'Failed to change password'); return }
+      setPwSuccess(true)
+      // Clear the mustChangePassword flag in the session
+      await updateSession({ mustChangePassword: false })
+      setTimeout(() => { setShowPwModal(false); setPwSuccess(false); setPwForm({ current: '', next: '', confirm: '' }) }, 1800)
+    } catch {
+      setPwError('An error occurred. Please try again.')
+    } finally {
+      setPwSaving(false)
+    }
+  }
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -104,6 +141,17 @@ export default function ProtectedAdminLayout({ children }) {
             </div>
 
             <div className="flex items-center gap-3">
+              {session.user.mustChangePassword && (
+                <button
+                  onClick={() => setShowPwModal(true)}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold animate-pulse"
+                  style={{ background: '#fef3c7', color: '#92400e' }}
+                  title="Change your generated password"
+                >
+                  <ShieldAlert size={14} />
+                  <span className="hidden sm:inline">Change Password</span>
+                </button>
+              )}
               <div className="hidden sm:flex flex-col items-end mr-2 text-right">
                 <span className="text-xs font-bold text-gray-900 truncate max-w-[120px]">{session.user.name}</span>
                 <span className="text-[10px] text-gray-500 truncate max-w-[150px]">{session.user.email}</span>
@@ -111,7 +159,7 @@ export default function ProtectedAdminLayout({ children }) {
               <div className="w-8 h-8 lg:w-9 lg:h-9 bg-purple-100 rounded-full flex items-center justify-center text-purple-900 shadow-inner">
                 <UserIcon size={18} />
               </div>
-              <button 
+              <button
                 onClick={() => signOut({ callbackUrl: '/admin/login' })}
                 className="p-2 hover:bg-red-50 hover:text-red-500 rounded-lg transition-colors text-gray-400 group"
                 title="Sign Out"
@@ -127,6 +175,92 @@ export default function ProtectedAdminLayout({ children }) {
             </div>
           </main>
         </div>
+
+        {/* Password Change Modal */}
+        {showPwModal && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.6)' }}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+              <div className="flex items-start gap-4 mb-6">
+                <div className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#fef3c7' }}>
+                  <ShieldAlert size={22} style={{ color: '#92400e' }} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-1">Change Your Password</h3>
+                  <p className="text-sm text-gray-500 leading-relaxed">
+                    Your account was created with a generated password. For security, please set a personal password before continuing.
+                  </p>
+                </div>
+              </div>
+
+              {pwSuccess ? (
+                <div className="text-center py-4">
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3" style={{ background: '#dcfce7' }}>
+                    <span className="text-2xl">✓</span>
+                  </div>
+                  <p className="font-semibold text-green-700">Password changed successfully!</p>
+                </div>
+              ) : (
+                <form onSubmit={handlePwSubmit} className="space-y-4">
+                  <div>
+                    <label className="form-label">Current Password</label>
+                    <div className="relative">
+                      <input
+                        className="form-input pr-10"
+                        type={showCurrent ? 'text' : 'password'}
+                        value={pwForm.current}
+                        onChange={e => setPwForm(f => ({ ...f, current: e.target.value }))}
+                        required
+                        autoComplete="current-password"
+                      />
+                      <button type="button" onClick={() => setShowCurrent(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                        {showCurrent ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="form-label">New Password</label>
+                    <div className="relative">
+                      <input
+                        className="form-input pr-10"
+                        type={showNext ? 'text' : 'password'}
+                        value={pwForm.next}
+                        onChange={e => setPwForm(f => ({ ...f, next: e.target.value }))}
+                        required
+                        autoComplete="new-password"
+                      />
+                      <button type="button" onClick={() => setShowNext(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                        {showNext ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="form-label">Confirm New Password</label>
+                    <input
+                      className="form-input"
+                      type="password"
+                      value={pwForm.confirm}
+                      onChange={e => setPwForm(f => ({ ...f, confirm: e.target.value }))}
+                      required
+                      autoComplete="new-password"
+                    />
+                  </div>
+
+                  {pwError && <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{pwError}</p>}
+
+                  <div className="flex items-center justify-end gap-3 pt-2">
+                    <button type="button" onClick={() => setShowPwModal(false)} className="btn-outline">
+                      Later
+                    </button>
+                    <button type="submit" disabled={pwSaving} className="btn-primary flex items-center gap-2">
+                      {pwSaving ? <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white" /> : null}
+                      {pwSaving ? 'Saving...' : 'Change Password'}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     )
   }

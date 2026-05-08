@@ -63,6 +63,7 @@ export const authOptions = {
             assemblyId: user.assemblyId,
             assemblySlug: user.assembly?.slug ?? null,
             assemblyName: user.assembly?.name ?? null,
+            mustChangePassword: user.mustChangePassword ?? false,
           }
         } catch (error) {
           console.error('[AUTH_ERROR] Login failed:', error.message)
@@ -81,6 +82,7 @@ export const authOptions = {
         token.assemblyId = user.assemblyId
         token.assemblySlug = user.assemblySlug
         token.assemblyName = user.assemblyName
+        token.mustChangePassword = user.mustChangePassword
       }
 
       // Handle session updates (e.g. role changes by admin)
@@ -89,6 +91,9 @@ export const authOptions = {
         token.assemblyId = session.assemblyId ?? token.assemblyId
         token.assemblySlug = session.assemblySlug ?? token.assemblySlug
         token.assemblyName = session.assemblyName ?? token.assemblyName
+        if (session.mustChangePassword !== undefined) {
+          token.mustChangePassword = session.mustChangePassword
+        }
       }
 
       return token
@@ -101,6 +106,7 @@ export const authOptions = {
         session.user.assemblyId = token.assemblyId
         session.user.assemblySlug = token.assemblySlug
         session.user.assemblyName = token.assemblyName
+        session.user.mustChangePassword = token.mustChangePassword ?? false
       }
       return session
     },

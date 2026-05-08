@@ -76,6 +76,7 @@ export async function POST(req) {
       role,
       assemblyId,
       isActive: true,
+      mustChangePassword: true,
     },
     select: {
       id: true, name: true, email: true, role: true, isActive: true, createdAt: true,

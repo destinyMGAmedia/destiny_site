@@ -91,6 +91,7 @@ export async function POST(req) {
         role: 'ASSEMBLY_ADMIN',
         assemblyId: a.id,
         isActive: true,
+        mustChangePassword: true,
       },
     })
 
@@ -105,6 +106,7 @@ export async function POST(req) {
           role: 'APP_ADMIN',
           assemblyId: a.id,
           isActive: true,
+          mustChangePassword: true,
         },
       })
     }
