@@ -39,9 +39,9 @@ export default function Footer() {
             {/* Social */}
             <div className="flex gap-3 mt-5">
               {[
-                { icon: FaFacebookF, href: '#', label: 'Facebook' },
-                { icon: FaInstagram, href: '#', label: 'Instagram' },
-                { icon: FaYoutube,   href: '#', label: 'YouTube' },
+                { icon: FaFacebookF, href: 'https://www.facebook.com/DestinyMissionGlobalAssembly/', label: 'Facebook' },
+                // { icon: FaInstagram, href: '#', label: 'Instagram' },
+                // { icon: FaYoutube,   href: '#', label: 'YouTube' },
               ].map(({ icon: Icon, href, label }) => (
                 <a
                   key={label}
