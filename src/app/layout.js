@@ -10,8 +10,8 @@ export const metadata = {
   description: 'Igniting Faith. Transforming Lives. Reaching Nations.',
   keywords: ['church', 'destiny mission', 'global assembly', 'DMGA', 'faith', 'worship'],
   icons: {
-    icon: './favicon.png',
-    apple: './favicon.png',
+    icon: '/favicon.png',
+    apple: '/favicon.png',
   },
   openGraph: {
     title: 'Destiny Mission Global Assembly',
@@ -20,14 +20,9 @@ export const metadata = {
   },
 }
 
-import Head from 'next/head';
-
 export default function RootLayout({ children }) {
   return (
     <html lang="en" data-scroll-behavior="smooth">
-      <Head>
-        <link rel="icon" href="/favicon.png" type="image/png" />
-      </Head>
       <body>
         <ErrorBoundary>
           <SessionProvider>
