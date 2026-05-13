@@ -10,7 +10,7 @@ export const metadata = {
   description: 'Find a Destiny Mission Global Assembly near you.',
 }
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export default async function AssembliesPage() {
   let assemblies = []

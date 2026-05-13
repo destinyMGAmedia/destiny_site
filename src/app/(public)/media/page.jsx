@@ -8,7 +8,7 @@ export const metadata = {
   description: 'Watch sermons, listen to worship music, and view photos from DMGA.',
 }
 
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
 
 async function getYouTubeVideos(channelId) {
   if (!channelId || channelId.startsWith('PLACEHOLDER')) return []

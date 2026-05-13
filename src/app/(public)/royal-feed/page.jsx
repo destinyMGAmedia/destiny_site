@@ -7,7 +7,7 @@ export const metadata = {
   description: 'Daily devotionals and the Word of God from Destiny Mission Global Assembly.',
 }
 
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
 
 export default async function RoyalFeedPage() {
   const devotionals = await prisma.devotional.findMany({

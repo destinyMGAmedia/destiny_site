@@ -4,6 +4,8 @@ import { Calendar, MapPin, Clock, ArrowLeft, Users, Globe, Baby } from 'lucide-r
 import { format, parseISO, isAfter, isBefore } from 'date-fns'
 import prisma from '@/lib/prisma'
 
+export const dynamic = 'force-dynamic'
+
 async function getEvents() {
   try {
     const events = await prisma.event.findMany({

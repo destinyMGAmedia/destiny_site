@@ -13,8 +13,7 @@ export const metadata = {
   description: 'Igniting Faith. Transforming Lives. Reaching Nations.',
 }
 
-// Revalidate every 60s — keeps homepage fresh without full SSR on every request
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 async function getHomeData() {
   try {

@@ -42,8 +42,7 @@ export const metadata = {
   description: 'Learn about Destiny Mission Global Assembly — our vision, mission, and values.',
 }
 
-// Revalidate every 5 minutes so edits propagate quickly without full SSR cost
-export const revalidate = 300
+export const dynamic = 'force-dynamic'
 
 const VALUES = [
   { title: 'Vision', desc: "We see beyond the present, casting a compelling picture of God's future for individuals and communities." },
