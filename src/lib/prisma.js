@@ -2,49 +2,12 @@ import { PrismaClient } from '@prisma/client'
 
 const globalForPrisma = globalThis
 
-const connectionLogger = {
-  log: (event) => {
-    if (event.level === 'warn' || event.level === 'error') {
-      console.error(`[${event.level.toUpperCase()}] DB: ${event.message}`);
-    } else if (process.env.NODE_ENV === 'development') {
-      console.log(`[${event.level.toUpperCase()}] DB: ${event.message}`);
-    }
-  }
-};
-
-const prisma = globalForPrisma.prisma || new PrismaClient({
-  log: ['query', 'info', 'warn', 'error'],
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL
-    }
-  },
-  log: ['info', 'warn', 'error'].map((level) => (event) => {
-    connectionLogger.log({ level, message: event.message });
-  })
+const prisma = globalForPrisma.prisma ?? new PrismaClient({
+  log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
 })
 
-// Add cleanup handlers
-process.on('SIGINT', async () => {
-  await prisma.$disconnect();
-  process.exit(0);
-});
-
-process.on('SIGTERM', async () => {
-  await prisma.$disconnect();
-  process.exit(0);
-});
-
-// Add heartbeat every 10 minutes to keep connection alive
-setInterval(() => {
-  prisma.$queryRaw`SELECT 1`
-    .catch(() => {
-      console.log('Heartbeat failed - reconnecting...');
-      prisma.$connect();
-    });
-}, 600000);
-
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+// Always cache — prevents multiple PrismaClient instances in both dev hot-reload and prod serverless workers
+globalForPrisma.prisma = prisma
 
 export default prisma
 

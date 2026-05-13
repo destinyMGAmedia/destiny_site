@@ -24,8 +24,9 @@ const LEVEL_LABELS = {
   ADVANCED_LEADERSHIP_3: 'Advanced Leadership III',
 }
 
-// Assembly admins can directly promote up to MINISTRY_CLASS (index 3)
-const DIRECT_MAX_IDX = 3
+// Assembly admins can directly promote up to DESTINY_CULTURE (index 2)
+// Ministry Class and above require a recommendation from global admin
+const DIRECT_MAX_IDX = 2
 
 function getLevelBadgeStyle(level) {
   const idx = GROWTH_ORDER.indexOf(level)
@@ -207,7 +208,7 @@ export default function AssemblyGrowthManager({ assemblySlug, assemblyName, isGl
         <p className="text-sm text-gray-500">
           {isGlobal
             ? 'Manage member progression across all growth levels.'
-            : 'Manage member progression up to Ministry Class. Recommend members for higher levels.'}
+            : 'Manage member progression up to Destiny Culture. Recommend members for Ministry Class and above.'}
         </p>
       </div>
 
@@ -375,7 +376,7 @@ export default function AssemblyGrowthManager({ assemblySlug, assemblyName, isGl
       {!isGlobal && (
         <div className="mt-4 p-3 rounded-xl text-xs text-gray-500 flex items-center gap-3" style={{ background: 'var(--purple-50)' }}>
           <ChevronUp size={13} style={{ color: 'var(--purple-700)' }} />
-          <span><strong>Promote</strong> — directly advances up to Ministry Class</span>
+          <span><strong>Promote</strong> — directly advances up to Destiny Culture</span>
           <Star size={13} style={{ color: '#854d0e' }} />
           <span><strong>Recommend</strong> — submits to Global Admin for approval (Leadership Class and above)</span>
         </div>

@@ -96,28 +96,22 @@ export default function NewMemberPage() {
       const resolvedId = session.user.assemblyId || urlAssemblyId
       if (resolvedId) {
         setForm(f => ({ ...f, assemblyId: resolvedId }))
-        const slug = session.user.assemblySlug
-        if (slug) {
-          fetch(`/api/admin/assemblies/${slug}/ark-centers`)
-            .then(r => r.json())
-            .then(data => setArkCenters(Array.isArray(data) ? data : []))
-            .catch(() => {})
-        }
-      }
-    }
-  }, [status, session])
-
-  useEffect(() => {
-    if (form.assemblyId && assemblies.length > 0) {
-      const asm = assemblies.find(a => a.id === form.assemblyId)
-      if (asm?.slug) {
-        fetch(`/api/admin/assemblies/${asm.slug}/ark-centers`)
+        fetch(`/api/admin/ark-centers?assemblyId=${resolvedId}`)
           .then(r => r.json())
           .then(data => setArkCenters(Array.isArray(data) ? data : []))
           .catch(() => {})
       }
     }
-  }, [form.assemblyId, assemblies])
+  }, [status, session])
+
+  useEffect(() => {
+    if (form.assemblyId) {
+      fetch(`/api/admin/ark-centers?assemblyId=${form.assemblyId}`)
+        .then(r => r.json())
+        .then(data => setArkCenters(Array.isArray(data) ? data : []))
+        .catch(() => {})
+    }
+  }, [form.assemblyId])
 
   const isGlobal = ['SUPER_ADMIN', 'GLOBAL_ADMIN'].includes(session?.user?.role)
   const isAssemblyAdmin = session?.user?.role === 'ASSEMBLY_ADMIN'
@@ -184,11 +178,22 @@ export default function NewMemberPage() {
             <h3 className="font-bold text-lg mb-4">Assembly</h3>
             <div>
               <label className="form-label">Assembly *</label>
-              <select className="form-select" value={form.assemblyId}
-                onChange={e => setForm(f => ({ ...f, assemblyId: e.target.value, arkCenterId: '' }))} required>
-                <option value="">Select assembly...</option>
-                {assemblies.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-              </select>
+              {isConversion && urlAssemblyId ? (
+                <div>
+                  <div className="form-input bg-gray-50 text-gray-700 cursor-not-allowed">
+                    {assemblies.find(a => a.id === urlAssemblyId)?.name || 'Loading assembly...'}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Assembly is locked to where this person registered as a first timer. Use membership transfer to move them to a different assembly later.
+                  </p>
+                </div>
+              ) : (
+                <select className="form-select" value={form.assemblyId}
+                  onChange={e => setForm(f => ({ ...f, assemblyId: e.target.value, arkCenterId: '' }))} required>
+                  <option value="">Select assembly...</option>
+                  {assemblies.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                </select>
+              )}
             </div>
           </div>
         )}

@@ -18,7 +18,7 @@ export const revalidate = 60
 
 async function getHomeData() {
   try {
-    const [heroSlides, mainChannel, assemblies, globalEvents, todayDevotional, featuredGame] =
+    const [heroSlides, mainChannel, assemblies, globalEvents, todayDevotional, featuredGame, allGames] =
       await Promise.all([
         prisma.heroSlide.findMany({
           where: { isActive: true },
@@ -41,37 +41,56 @@ async function getHomeData() {
           orderBy: { startDate: 'asc' },
           take: 3,
         }).catch(() => []),
-        // Today's latest published devotional
         prisma.devotional.findFirst({
-          where: {
-            scheduledDate: {
-              lte: new Date(),
-            },
-          },
+          where: { scheduledDate: { lte: new Date() } },
           orderBy: { scheduledDate: 'desc' },
         }).catch(() => null),
         prisma.game.findFirst({
           where: { isFeatured: true, isActive: true },
         }).catch(() => null),
+        prisma.game.findMany({
+          select: { gameData: true, isActive: true },
+        }).catch(() => []),
       ])
 
-    return { heroSlides, mainChannel, assemblies, globalEvents, todayDevotional, featuredGame }
+    let enabledKeys = null
+    let crosswordWords = null
+    if (allGames.length > 0) {
+      enabledKeys = allGames
+        .filter(g => g.isActive)
+        .map(g => {
+          const d = g.gameData
+          return typeof d === 'object' && d !== null ? d.key : null
+        })
+        .filter(Boolean)
+
+      const crossword = allGames.find(g => {
+        const d = g.gameData
+        return typeof d === 'object' && d !== null && d.component === 'BibleWordSearch'
+      })
+      if (Array.isArray(crossword?.gameData?.words) && crossword.gameData.words.length > 0) {
+        crosswordWords = crossword.gameData.words
+      }
+    }
+
+    return { heroSlides, mainChannel, assemblies, globalEvents, todayDevotional, featuredGame, enabledKeys, crosswordWords }
   } catch (error) {
     console.error('Error fetching home data:', error)
-    // Return fallback data
     return {
       heroSlides: [],
       mainChannel: null,
       assemblies: [],
       globalEvents: [],
       todayDevotional: null,
-      featuredGame: null
+      featuredGame: null,
+      enabledKeys: null,
+      crosswordWords: null,
     }
   }
 }
 
 export default async function HomePage() {
-  const { heroSlides, mainChannel, assemblies, globalEvents, todayDevotional, featuredGame } =
+  const { heroSlides, mainChannel, assemblies, globalEvents, todayDevotional, featuredGame, enabledKeys, crosswordWords } =
     await getHomeData()
 
   return (
@@ -98,7 +117,7 @@ export default async function HomePage() {
       <CreativeArtsPreview />
 
       {/* 8. Games Preview */}
-      <GamesPreview featuredGame={featuredGame} />
+      <GamesPreview featuredGame={featuredGame} enabledKeys={enabledKeys} words={crosswordWords} />
     </>
   )
 }

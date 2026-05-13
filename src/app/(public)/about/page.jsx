@@ -3,11 +3,47 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRight, User } from 'lucide-react'
 import BackButton from '@/components/ui/BackButton'
+import prisma from '@/lib/prisma'
+
+function LeaderCard({ leader, index }) {
+  const imgPositionClass = index === 0
+    ? 'object-cover object-top group-hover:scale-105 transition-transform duration-300 scale-110 -translate-y-6'
+    : 'object-cover object-top group-hover:scale-105 transition-transform duration-300 -translate-y-4'
+  return (
+    <div className="card p-0 overflow-hidden text-center group">
+      <div className="h-72 bg-purple-50 relative overflow-hidden flex items-center justify-center">
+        {leader.photo ? (
+          <Image
+            src={leader.photo}
+            alt={leader.name}
+            fill
+            className={imgPositionClass}
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            priority={index === 0}
+          />
+        ) : (
+          <div className="w-24 h-24 rounded-full bg-purple-900/10 flex items-center justify-center text-purple-900 group-hover:scale-110 transition-transform">
+            <User size={40} />
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-purple-900/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+      </div>
+      <div className="p-8">
+        <h4 className="text-xl font-bold text-purple-900" style={{ fontFamily: 'var(--font-serif)' }}>{leader.name}</h4>
+        <p className="text-gold-600 font-bold text-xs uppercase tracking-widest mb-4">{leader.title}</p>
+        {leader.bio && <p className="text-gray-500 text-sm leading-relaxed">{leader.bio}</p>}
+      </div>
+    </div>
+  )
+}
 
 export const metadata = {
   title: 'About DMGA',
   description: 'Learn about Destiny Mission Global Assembly — our vision, mission, and values.',
 }
+
+// Revalidate every 5 minutes so edits propagate quickly without full SSR cost
+export const revalidate = 300
 
 const VALUES = [
   { title: 'Vision', desc: "We see beyond the present, casting a compelling picture of God's future for individuals and communities." },
@@ -19,27 +55,24 @@ const VALUES = [
   { title: 'Devotion', desc: 'We maintain unwavering commitment to God, His Word, and our divine assignment.' },
 ]
 
-const LEADERSHIP = [
-  { 
-    name: 'Archbiship (Prof) Cletus Bassy', 
-    role: 'Primate', 
-    desc: 'Archbiship (Prof) Cletus Bassy is the Primate and General Overseer of DMGA. A man of faith and vision, he has dedicated his life to raising a people of destiny across the nations.',
-    image: 'https://res.cloudinary.com/diun1hy3v/image/upload/q_auto/f_auto/v1776378519/dmga/global/leadership/primate.png'
-  },
-  { 
-    name: 'Bishop (Mrs) Blessing Bassey', 
-    role: 'Presbyter', 
-    desc: 'The First Lady of DMGA, a pillar of grace and strength in the ministry, playing a vital role in nurturing families and strengthening the church community.',
-    image: 'https://res.cloudinary.com/diun1hy3v/image/upload/v1776378530/dmga/global/leadership/presbyter.jpg'
-  },
-  { 
-    name: 'Biship (Mrs) Utibe-Eno John-Udoh', 
-    role: 'Global Administrator', 
-    desc: 'Biship (Mrs) Utibe-Eno John-Udoh serves as Global Administrator at DMGA HQ, committed to raising leaders and reaching the lost through discipleship and pastoral care.' 
+export default async function AboutPage() {
+  let leaders = []
+  try {
+    leaders = await prisma.globalLeader.findMany({
+      where: { isActive: true },
+      orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }],
+    })
+  } catch {
+    // DB unavailable
   }
-]
 
-export default function AboutPage() {
+  const leaderGridClass =
+    leaders.length === 1
+      ? 'grid grid-cols-1 gap-8 max-w-sm mx-auto'
+      : leaders.length === 2
+        ? 'grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl mx-auto'
+        : 'grid grid-cols-1 md:grid-cols-3 gap-8'
+
   return (
     <div className="section-ivory min-h-screen">
 
@@ -172,43 +205,15 @@ export default function AboutPage() {
           </div>
         </div>
 
-        {/* CTA */}
+        {/* Leadership */}
         <div className="mb-20">
           <SectionHeader label="Anointed Direction" title="Our Leadership" centered />
           <p className="text-center text-gray-500 max-w-2xl mx-auto mb-12">
-            Meet the anointed men and women leading Destiny Mission Global Assembly under God’s direction and grace.
+            Meet the anointed men and women leading Destiny Mission Global Assembly under God&apos;s direction and grace.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {LEADERSHIP.map((leader, index) => (
-              <div key={leader.name} className="card p-0 overflow-hidden text-center group">
-                <div className="h-72 bg-purple-50 relative overflow-hidden">
-                  {leader.image ? (
-                    <Image 
-                      src={leader.image}
-                      alt={leader.name}
-                      fill
-                      className={`object-cover object-top group-hover:scale-105 transition-transform duration-300 ${
-                        index === 0 
-                          ? 'scale-115 -translate-y-7'
-                          : '-translate-y-6'
-                      }`}
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      priority={index === 0}
-                      loading={index === 0 ? "eager" : "lazy"}
-                    />
-                  ) : (
-                    <div className="w-24 h-24 rounded-full bg-purple-900/10 flex items-center justify-center text-purple-900 group-hover:scale-110 transition-transform">
-                      <User size={40} />
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-purple-900/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
-                <div className="p-8">
-                  <h4 className="text-xl font-bold text-purple-900" style={{ fontFamily: 'var(--font-serif)' }}>{leader.name}</h4>
-                  <p className="text-gold-600 font-bold text-xs uppercase tracking-widest mb-4">{leader.role}</p>
-                  <p className="text-gray-500 text-sm leading-relaxed">{leader.desc}</p>
-                </div>
-              </div>
+          <div className={leaderGridClass}>
+            {leaders.map((leader, index) => (
+              <LeaderCard key={leader.id} leader={leader} index={index} />
             ))}
           </div>
         </div>

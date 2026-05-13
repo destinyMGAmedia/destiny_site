@@ -118,6 +118,18 @@ model TeamMember {
   assembly     Assembly     @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
 }
 
+model GlobalLeader {
+  id           String   @id @default(cuid())
+  name         String
+  title        String
+  bio          String?
+  photo        String?
+  displayOrder Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
 model Event {
   id               String         @id @default(cuid())
   assemblyId       String?
