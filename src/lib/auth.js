@@ -126,6 +126,7 @@ export const authOptions = {
 
 export const isSuperAdmin = (s) => s?.user?.role === 'SUPER_ADMIN'
 export const isGlobalAdmin = (s) => ['GLOBAL_ADMIN', 'SUPER_ADMIN'].includes(s?.user?.role)
+export const isSiteContentAdmin = (s) => s?.user?.role === 'SITE_CONTENT_ADMIN'
 export const isAssemblyAdmin = (s) => ['ASSEMBLY_ADMIN', 'GLOBAL_ADMIN', 'SUPER_ADMIN'].includes(s?.user?.role)
 export const isAppAdmin = (s) => s?.user?.role === 'APP_ADMIN'
 export const isCustomer = (s) => s?.user?.role === 'CUSTOMER'
@@ -134,7 +135,11 @@ export const isAgent = (s) => s?.user?.role === 'AGENT'
 
 // Any admin role
 export const isAnyAdmin = (s) =>
-  ['SUPER_ADMIN', 'GLOBAL_ADMIN', 'ASSEMBLY_ADMIN', 'APP_ADMIN'].includes(s?.user?.role)
+  ['SUPER_ADMIN', 'GLOBAL_ADMIN', 'SITE_CONTENT_ADMIN', 'ASSEMBLY_ADMIN', 'APP_ADMIN'].includes(s?.user?.role)
+
+// Site content editing (About page, Home page static content, etc.)
+export const canManageSiteContent = (s) =>
+  ['SUPER_ADMIN', 'GLOBAL_ADMIN', 'SITE_CONTENT_ADMIN'].includes(s?.user?.role)
 
 // Content editing permissions
 export const canUpdateContent = (s, assemblyId) => {
@@ -160,6 +165,9 @@ export const getAdminLandingRoute = (user) => {
 
   if (['SUPER_ADMIN', 'GLOBAL_ADMIN'].includes(user.role)) {
     return '/admin/dashboard'
+  }
+  if (user.role === 'SITE_CONTENT_ADMIN') {
+    return '/admin/site-content'
   }
   if (user.role === 'ASSEMBLY_ADMIN') {
     return `/admin/assemblies/${user.assemblySlug}`

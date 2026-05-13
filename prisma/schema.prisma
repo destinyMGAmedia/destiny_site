@@ -130,6 +130,13 @@ model GlobalLeader {
   updatedAt    DateTime @updatedAt
 }
 
+model SiteContent {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
 model Event {
   id               String         @id @default(cuid())
   assemblyId       String?
@@ -593,6 +600,7 @@ model ActivityFeedItem {
 enum Role {
   SUPER_ADMIN
   GLOBAL_ADMIN
+  SITE_CONTENT_ADMIN
   ASSEMBLY_ADMIN
   APP_ADMIN
   CUSTOMER

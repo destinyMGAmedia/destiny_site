@@ -72,7 +72,12 @@ async function getHomeData() {
       }
     }
 
-    return { heroSlides, mainChannel, assemblies, globalEvents, todayDevotional, featuredGame, enabledKeys, crosswordWords }
+    const founderRows = await (
+      prisma.siteContent?.findMany?.({ where: { key: { startsWith: 'home_founder' } } }) ?? Promise.resolve([])
+    ).catch(() => [])
+    const founderMap = Object.fromEntries(founderRows.map(r => [r.key, r.value]))
+
+    return { heroSlides, mainChannel, assemblies, globalEvents, todayDevotional, featuredGame, enabledKeys, crosswordWords, founderMap }
   } catch (error) {
     console.error('Error fetching home data:', error)
     return {
@@ -84,13 +89,30 @@ async function getHomeData() {
       featuredGame: null,
       enabledKeys: null,
       crosswordWords: null,
+      founderMap: {},
     }
   }
 }
 
 export default async function HomePage() {
-  const { heroSlides, mainChannel, assemblies, globalEvents, todayDevotional, featuredGame, enabledKeys, crosswordWords } =
+  const { heroSlides, mainChannel, assemblies, globalEvents, todayDevotional, featuredGame, enabledKeys, crosswordWords, founderMap } =
     await getHomeData()
+
+  const founder1 = {
+    name: founderMap.home_founder1_name,
+    title: founderMap.home_founder1_title,
+    bio1: founderMap.home_founder1_bio1,
+    bio2: founderMap.home_founder1_bio2,
+    quote: founderMap.home_founder1_quote,
+    photo: founderMap.home_founder1_photo,
+  }
+  const founder2 = {
+    name: founderMap.home_founder2_name,
+    title: founderMap.home_founder2_title,
+    bio: founderMap.home_founder2_bio,
+    tagline: founderMap.home_founder2_tagline,
+    photo: founderMap.home_founder2_photo,
+  }
 
   return (
     <>
@@ -107,7 +129,7 @@ export default async function HomePage() {
       <AssembliesStrip assemblies={assemblies} />
 
       {/* 5. Founder Section */}
-      <FounderSection />
+      <FounderSection founder1={founder1} founder2={founder2} />
 
       {/* 6. Royal Feed Preview */}
       <RoyalFeedPreview devotional={todayDevotional} />

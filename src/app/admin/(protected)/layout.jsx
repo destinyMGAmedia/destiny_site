@@ -74,11 +74,12 @@ export default function ProtectedAdminLayout({ children }) {
   const role = session.user.role
   const slug = session.user.assemblySlug
 
-  const isAdmin = ['SUPER_ADMIN', 'GLOBAL_ADMIN', 'ASSEMBLY_ADMIN', 'APP_ADMIN'].includes(role)
+  const isAdmin = ['SUPER_ADMIN', 'GLOBAL_ADMIN', 'SITE_CONTENT_ADMIN', 'ASSEMBLY_ADMIN', 'APP_ADMIN'].includes(role)
   const isUserGroup = ['CUSTOMER', 'MEMBER', 'AGENT'].includes(role)
 
-  const isAtDashboard = 
-    pathname === '/admin/dashboard' || 
+  const isAtDashboard =
+    pathname === '/admin/dashboard' ||
+    (role === 'SITE_CONTENT_ADMIN' && pathname === '/admin/site-content') ||
     (role === 'ASSEMBLY_ADMIN' && pathname === `/admin/assemblies/${slug}`) ||
     (role === 'APP_ADMIN' && pathname === `/admin/assemblies/${slug}/content`)
 

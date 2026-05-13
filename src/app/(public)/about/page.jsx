@@ -5,6 +5,21 @@ import { ArrowRight, User } from 'lucide-react'
 import BackButton from '@/components/ui/BackButton'
 import prisma from '@/lib/prisma'
 
+const DEFAULTS = {
+  about_hero_title: 'About DMGA',
+  about_hero_tagline: '... a prophetic church with an apostolic mandate',
+  about_mission_title: 'A People of Destiny',
+  about_mission_body: 'To bring people and places into their destiny in God and raise dynamic leaders.',
+  about_vision_title: 'Impact the World',
+  about_vision_body: 'To establish and advance the kingdom of God on earth by discerning His voice, declaring His will, and delivering His purpose.',
+  about_history_p1: "Destiny Mission Global Assembly began with a divine vision to bring people into alignment with God's purpose for their lives. What started as a small fellowship of believers has grown into a thriving church family committed to raising leaders, transforming communities, and reaching nations for Christ.",
+  about_history_p2: 'Over the years, the church has experienced tremendous growth in membership and impact — hosting life-changing conferences, outreaches, and discipleship programs. Through faith, dedication, and the leading of the Holy Spirit, Destiny Mission continues to stand as a beacon of light, hope, and transformation.',
+  about_declaration: 'I am wonderfully made and dignified \n\nDestined to rule and reign \n\nI am a champion because \n\nI have the seed of greatness in me.',
+  about_declaration_closing: 'Destiny Family... Champions forever!',
+  about_anthem_verse: "We're the building of the Lord, standing on the rock \nWashed by the Blood of the Lamb, destined to reign \nTo redeem this land to God and to worship in spirit and truth",
+  about_anthem_chorus: "People of Destiny, a family we are, an oasis of Love in a thirsty land \nSmall enough to know you, big enough to serve you \nHere the pastures are green and the Lord is in this place \nAnd He's building us to stand",
+}
+
 function LeaderCard({ leader, index }) {
   const imgPositionClass = index === 0
     ? 'object-cover object-top group-hover:scale-105 transition-transform duration-300 scale-110 -translate-y-6'
@@ -56,13 +71,20 @@ const VALUES = [
 
 export default async function AboutPage() {
   let leaders = []
+  let sc = { ...DEFAULTS }
   try {
-    leaders = await prisma.globalLeader.findMany({
+    const leaderRows = await prisma.globalLeader.findMany({
       where: { isActive: true },
       orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }],
     })
+    leaders = leaderRows
+
+    const contentRows = await (
+      prisma.siteContent?.findMany?.({ where: { key: { startsWith: 'about_' } } }) ?? Promise.resolve([])
+    ).catch(() => [])
+    contentRows.forEach(r => { sc[r.key] = r.value })
   } catch {
-    // DB unavailable
+    // DB unavailable — fall back to defaults
   }
 
   const leaderGridClass =
@@ -85,10 +107,10 @@ export default async function AboutPage() {
         <div className="relative z-10 max-w-3xl mx-auto">
           <p className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: 'var(--gold-400)' }}>Who We Are</p>
           <h1 className="text-4xl md:text-6xl font-bold mb-6" style={{ fontFamily: 'var(--font-serif)' }}>
-            About DMGA
+            {sc.about_hero_title}
           </h1>
           <p className="text-lg text-white/75 leading-relaxed">
-            ... a prophetic church with an apostolic mandate
+            {sc.about_hero_tagline}
           </p>
         </div>
       </div>
@@ -100,13 +122,13 @@ export default async function AboutPage() {
           {[
             {
               label: 'Our Mission',
-              title: 'A People of Destiny',
-              body: 'To bring people and places into their destiny in God and raise dynamic leaders.',
+              title: sc.about_mission_title,
+              body: sc.about_mission_body,
             },
             {
               label: 'Our Vision',
-              title: 'Impact the World',
-              body: 'To establish and advance the kingdom of God on earth by discerning His voice, declaring His will, and delivering His purpose.',
+              title: sc.about_vision_title,
+              body: sc.about_vision_body,
             },
           ].map((item) => (
             <div
@@ -149,12 +171,8 @@ export default async function AboutPage() {
           <div>
             <SectionHeader label="Our Journey" title="Our History" />
             <div className="space-y-4 text-gray-600 leading-relaxed mt-6">
-              <p>
-                Destiny Mission Global Assembly began with a divine vision to bring people into alignment with God’s purpose for their lives. What started as a small fellowship of believers has grown into a thriving church family committed to raising leaders, transforming communities, and reaching nations for Christ.
-              </p>
-              <p>
-                Over the years, the church has experienced tremendous growth in membership and impact — hosting life-changing conferences, outreaches, and discipleship programs. Through faith, dedication, and the leading of the Holy Spirit, Destiny Mission continues to stand as a beacon of light, hope, and transformation.
-              </p>
+              <p>{sc.about_history_p1}</p>
+              <p>{sc.about_history_p2}</p>
             </div>
           </div>
           <div className="grid grid-cols-1 gap-8">
@@ -166,15 +184,12 @@ export default async function AboutPage() {
                 <p className="text-gold-400 font-bold uppercase tracking-[0.2em] text-xs mb-6">Daily Proclamation</p>
                 <h3 className="text-2xl font-bold mb-6" style={{ fontFamily: 'var(--font-serif)', color: 'var(--gold-500)' }}>Our Declaration</h3>
                 <div className="space-y-6">
-                  <p className="italic text-xl md:text-2xl leading-relaxed font-medium border-l-4 border-gold-500/30 pl-6">
-                    I am wonderfully made and dignified <br /><br />
-                    Destined to rule and reign <br /><br />
-                    I am a champion because <br /><br />
-                    I have the seed of greatness in me.
+                  <p className="italic text-xl md:text-2xl leading-relaxed font-medium border-l-4 border-gold-500/30 pl-6 whitespace-pre-line">
+                    {sc.about_declaration}
                   </p>
                   <div className="space-y-4">
                     <p className="text-lg md:text-xl font-black text-gold-500 uppercase tracking-tight">
-                      Destiny Family... Champions forever!
+                      {sc.about_declaration_closing}
                     </p>
                     <p className="text-2xl md:text-3xl font-black text-white uppercase italic tracking-widest">
                       Victory!
@@ -187,18 +202,9 @@ export default async function AboutPage() {
             <div className="card p-8 border-gold-200 bg-white">
               <h3 className="text-xl font-bold mb-4" style={{ fontFamily: 'var(--font-serif)', color: 'var(--purple-900)' }}>Our Anthem</h3>
               <div className="space-y-4 text-gray-600 text-sm italic leading-relaxed">
-                <p>
-                  We&apos;re the building of the Lord, standing on the rock <br />
-                  Washed by the Blood of the Lamb, destined to reign <br />
-                  To redeem this land to God and to worship in spirit and truth
-                </p>
+                <p className="whitespace-pre-line">{sc.about_anthem_verse}</p>
                 <p className="font-bold text-purple-900 not-italic">Chorus:</p>
-                <p>
-                  People of Destiny, a family we are, an oasis of Love in a thirsty land <br />
-                  Small enough to know you, big enough to serve you <br />
-                  Here the pastures are green and the Lord is in this place <br />
-                  And He&apos;s building us to stand
-                </p>
+                <p className="whitespace-pre-line">{sc.about_anthem_chorus}</p>
               </div>
             </div>
           </div>

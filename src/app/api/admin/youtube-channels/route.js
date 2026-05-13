@@ -7,7 +7,7 @@ import prisma from '@/lib/prisma'
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user || !['SUPER_ADMIN', 'GLOBAL_ADMIN'].includes(session.user.role)) {
+    if (!session?.user || !['SUPER_ADMIN', 'GLOBAL_ADMIN', 'SITE_CONTENT_ADMIN'].includes(session.user.role)) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
     }
 
@@ -29,7 +29,7 @@ export async function GET() {
 export async function POST(request) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user || !['SUPER_ADMIN', 'GLOBAL_ADMIN'].includes(session.user.role)) {
+    if (!session?.user || !['SUPER_ADMIN', 'GLOBAL_ADMIN', 'SITE_CONTENT_ADMIN'].includes(session.user.role)) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
     }
 

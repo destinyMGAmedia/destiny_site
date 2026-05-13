@@ -1,11 +1,11 @@
 import { getServerSession } from 'next-auth'
-import { authOptions, isGlobalAdmin } from '@/lib/auth'
+import { authOptions, canManageSiteContent } from '@/lib/auth'
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 
 export async function GET() {
   const session = await getServerSession(authOptions)
-  if (!session || !isGlobalAdmin(session)) {
+  if (!session || !canManageSiteContent(session)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -18,7 +18,7 @@ export async function GET() {
 
 export async function POST(req) {
   const session = await getServerSession(authOptions)
-  if (!session || !isGlobalAdmin(session)) {
+  if (!session || !canManageSiteContent(session)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

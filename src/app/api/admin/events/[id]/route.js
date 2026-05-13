@@ -19,7 +19,7 @@ export async function PUT(req, { params }) {
   if (!event) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   // Global/Super admins can update any event, others need permission check
-  if (!['SUPER_ADMIN', 'GLOBAL_ADMIN'].includes(session.user.role)) {
+  if (!['SUPER_ADMIN', 'GLOBAL_ADMIN', 'SITE_CONTENT_ADMIN'].includes(session.user.role)) {
     if (!canUpdateContent(session, event.assemblyId)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
@@ -38,7 +38,7 @@ export async function PUT(req, { params }) {
   }
 
   // Global admins can change isGlobal and assemblyId
-  if (['SUPER_ADMIN', 'GLOBAL_ADMIN'].includes(session.user.role)) {
+  if (['SUPER_ADMIN', 'GLOBAL_ADMIN', 'SITE_CONTENT_ADMIN'].includes(session.user.role)) {
     if (isGlobal !== undefined) updateData.isGlobal = Boolean(isGlobal)
     if (assemblyId !== undefined) updateData.assemblyId = isGlobal ? null : assemblyId
   }
@@ -96,7 +96,7 @@ export async function DELETE(req, { params }) {
   if (!event) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   
   // Global/Super admins can delete any event, others need permission check
-  if (!['SUPER_ADMIN', 'GLOBAL_ADMIN'].includes(session.user.role)) {
+  if (!['SUPER_ADMIN', 'GLOBAL_ADMIN', 'SITE_CONTENT_ADMIN'].includes(session.user.role)) {
     if (!canUpdateContent(session, event.assemblyId)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }

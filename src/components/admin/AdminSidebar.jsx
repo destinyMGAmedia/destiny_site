@@ -7,7 +7,7 @@ import {
   Home, Users, Settings, LogOut, ChevronRight,
   LayoutDashboard, Calendar, DollarSign, BarChart2,
   Globe, Video, BookOpen, Grid3x3, ImageIcon,
-  UserCheck, ClipboardList, TrendingUp, Crown,
+  UserCheck, ClipboardList, TrendingUp, Crown, FileText,
 } from 'lucide-react'
 import { MdOutlineChurch } from 'react-icons/md'
 
@@ -59,7 +59,7 @@ export default function AdminSidebar({ onItemClick }) {
             </p>
           </div>
         </div>
-        {(role === 'ASSEMBLY_ADMIN') && assemblyName && (
+        {(role === 'ASSEMBLY_ADMIN' || role === 'APP_ADMIN') && assemblyName && (
           <div className="mt-3 px-2 py-1.5 rounded-lg text-xs text-white/60 bg-white/5">
             {assemblyName}
           </div>
@@ -88,6 +88,7 @@ export default function AdminSidebar({ onItemClick }) {
             </NavSection>
 
             <NavSection title="Global Content">
+              <NavItem href="/admin/site-content" icon={FileText} label="Site Content" active={isActive('/admin/site-content')} onClick={onItemClick} />
               <NavItem href="/admin/global-leaders" icon={Crown} label="Global Leaders" active={isActive('/admin/global-leaders')} onClick={onItemClick} />
               <NavItem href="/admin/devotionals" icon={BookOpen} label="Royal Feed" active={isActive('/admin/devotionals')} onClick={onItemClick} />
               <NavItem href="/admin/events" icon={Calendar} label="Global Events" active={isActive('/admin/events')} onClick={onItemClick} />
@@ -129,6 +130,22 @@ export default function AdminSidebar({ onItemClick }) {
 
             <NavSection title="Account">
               <NavItem href={`${assemblyBase}/settings`} icon={Settings} label="Settings" active={isActive(`${assemblyBase}/settings`)} onClick={onItemClick} />
+            </NavSection>
+          </>
+        )}
+
+        {/* SITE_CONTENT_ADMIN nav */}
+        {role === 'SITE_CONTENT_ADMIN' && (
+          <>
+            <NavSection title="Site Content">
+              <NavItem href="/admin/site-content" icon={FileText} label="Site Content" active={isActive('/admin/site-content')} onClick={onItemClick} />
+              <NavItem href="/admin/global-leaders" icon={Crown} label="Global Leaders" active={isActive('/admin/global-leaders')} onClick={onItemClick} />
+              <NavItem href="/admin/hero-slides" icon={ImageIcon} label="Hero Slides" active={isActive('/admin/hero-slides')} onClick={onItemClick} />
+              <NavItem href="/admin/channels" icon={Video} label="YouTube Channels" active={isActive('/admin/channels')} onClick={onItemClick} />
+            </NavSection>
+            <NavSection title="Editorial">
+              <NavItem href="/admin/devotionals" icon={BookOpen} label="Royal Feed" active={isActive('/admin/devotionals')} onClick={onItemClick} />
+              <NavItem href="/admin/events" icon={Calendar} label="Global Events" active={isActive('/admin/events')} onClick={onItemClick} />
             </NavSection>
           </>
         )}

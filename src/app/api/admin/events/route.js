@@ -11,7 +11,7 @@ export async function GET(req) {
   const assemblyId = searchParams.get('assemblyId')
   
   // Global admins can access all events without assemblyId
-  if (['SUPER_ADMIN', 'GLOBAL_ADMIN'].includes(session.user.role)) {
+  if (['SUPER_ADMIN', 'GLOBAL_ADMIN', 'SITE_CONTENT_ADMIN'].includes(session.user.role)) {
     const where = assemblyId ? { assemblyId } : {}
     const events = await prisma.event.findMany({
       where,
@@ -56,7 +56,7 @@ export async function POST(req) {
   }
 
   // Global/Super admins can create global events
-  if (['SUPER_ADMIN', 'GLOBAL_ADMIN'].includes(session.user.role)) {
+  if (['SUPER_ADMIN', 'GLOBAL_ADMIN', 'SITE_CONTENT_ADMIN'].includes(session.user.role)) {
     // For non-global events, require assemblyId
     if (!isGlobal && !assemblyId) {
       return NextResponse.json({ error: 'assemblyId required for non-global events' }, { status: 400 })

@@ -28,6 +28,24 @@ function generatePassword() {
   return pass
 }
 
+export async function GET() {
+  const session = await getServerSession(authOptions)
+  if (!session || !isGlobalAdmin(session)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  try {
+    const assemblies = await prisma.assembly.findMany({
+      select: { id: true, slug: true, name: true, city: true, country: true, isActive: true },
+      orderBy: [{ isHQ: 'desc' }, { name: 'asc' }],
+    })
+    return NextResponse.json(assemblies)
+  } catch (err) {
+    console.error('[ASSEMBLIES_GET]', err)
+    return NextResponse.json({ error: 'Failed to fetch assemblies' }, { status: 500 })
+  }
+}
+
 export async function POST(req) {
   const session = await getServerSession(authOptions)
   if (!session || !isGlobalAdmin(session)) {
