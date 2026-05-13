@@ -102,7 +102,7 @@ export default function MembersPage() {
 
   const fetchArkCenters = async () => {
     try {
-      const response = await fetch(`/api/admin/assemblies/${params.slug}/ark-centers`)
+      const response = await fetch(`/api/admin/ark-centers?slug=${params.slug}`)
       if (response.ok) {
         const data = await response.json()
         setArkCenters(data)

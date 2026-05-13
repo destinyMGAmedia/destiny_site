@@ -258,6 +258,7 @@ export default function MemberManager({ members: initialData, growthStages, asse
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Member</th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Assembly</th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Fellowship</th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Growth Level</th>
@@ -269,7 +270,7 @@ export default function MemberManager({ members: initialData, growthStages, asse
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredMembers.length === 0 ? (
-                <tr><td colSpan={(canEdit || canDelete) ? 6 : 5} className="px-6 py-12 text-center text-gray-500">No members found</td></tr>
+                <tr><td colSpan={(canEdit || canDelete) ? 7 : 6} className="px-6 py-12 text-center text-gray-500">No members found</td></tr>
               ) : filteredMembers.map((member) => {
                 const level = getGrowthLevelDisplay(member.growthLevel)
                 const currentProgress = member.progress.find(p => p.stage?.level === member.growthLevel)
@@ -280,6 +281,19 @@ export default function MemberManager({ members: initialData, growthStages, asse
                         <p className="text-sm font-medium text-gray-900">{member.firstName} {member.lastName}</p>
                         <p className="text-xs text-gray-500">Joined: {new Date(member.joinDate).toLocaleDateString()}</p>
                       </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {member.assembly ? (
+                        <a
+                          href={`/admin/assemblies/${member.assembly.slug}/growth`}
+                          className="text-sm font-medium text-purple-700 hover:underline"
+                          title="Go to growth track for this assembly"
+                        >
+                          {member.assembly.name}
+                        </a>
+                      ) : (
+                        <span className="text-sm text-gray-400">—</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-600">
@@ -315,14 +329,15 @@ export default function MemberManager({ members: initialData, growthStages, asse
                               <Pencil size={15} />
                             </button>
                           )}
-                          {canEdit && (updating === member.id ? (
-                            <span className="text-gray-400 text-xs">Updating...</span>
-                          ) : (
-                            <select className="form-select text-xs py-1 max-w-[140px]" value={member.growthLevel} onChange={(e) => handleAssignStage(member.id, e.target.value)}>
-                              <option value="NEW_COMER">New Comer</option>
-                              {growthStages.map(stage => <option key={stage.id} value={stage.level}>{stage.title}</option>)}
-                            </select>
-                          ))}
+                          {canEdit && member.assembly?.slug && (
+                            <a
+                              href={`/admin/assemblies/${member.assembly.slug}/growth`}
+                              className="text-green-600 hover:text-green-900 text-xs font-medium"
+                              title="Manage growth track"
+                            >
+                              Growth Track
+                            </a>
+                          )}
                           {canDelete && (
                             <button onClick={() => handleDelete(member.id)} disabled={deleting === member.id} className="text-red-500 hover:text-red-700 disabled:opacity-50" title="Delete member">
                               {deleting === member.id ? '...' : <Trash2 size={15} />}

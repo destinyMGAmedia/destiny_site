@@ -2,41 +2,43 @@
 import { useState } from 'react'
 import SectionHeader from '@/components/ui/SectionHeader'
 import Link from 'next/link'
-import { ChevronRight, Gamepad2, Sparkles, Grid3x3, Trophy, HelpCircle } from 'lucide-react'
-import BibleCrossword from '@/components/games/BibleCrossword'
+import { ChevronRight, Gamepad2, Grid3x3, HelpCircle } from 'lucide-react'
 import BibleWordSearch from '@/components/games/BibleWordSearch'
 import HomeBibleQuiz from '@/components/home/HomeBibleQuiz'
 
-export default function GamesPreview({ featuredGame }) {
+export default function GamesPreview({ featuredGame, enabledKeys, words }) {
   const typeMap = {
-    CROSSWORD: 'crossword',
-    WORDSEARCH: 'wordsearch',
+    WORD_SEARCH: 'crossword',
     QUIZ: 'quiz',
-    JOURNEY_TO_HEAVEN: 'journey'
+    JOURNEY_TO_HEAVEN: 'journey',
   }
-  const defaultGame = featuredGame && typeMap[featuredGame.type] ? typeMap[featuredGame.type] : 'crossword'
-  const [activeGame, setActiveGame] = useState(defaultGame)
 
-  const games = {
+  const allGames = {
     crossword: {
       title: 'DMGA Crossword',
       icon: <Grid3x3 size={16} />,
-      component: <BibleCrossword />,
-      desc: 'Solve the DMGA values puzzle based on our vision and mission.'
-    },
-    wordsearch: {
-      title: 'DMGA Word Search',
-      icon: <Trophy size={16} />,
-      component: <BibleWordSearch />,
-      desc: 'Find hidden words from our core values in the grid.'
+      component: <BibleWordSearch words={words} />,
+      desc: 'Find hidden words from our vision and mission in the grid.',
     },
     quiz: {
       title: 'Bible Challenge',
       icon: <HelpCircle size={16} />,
       component: <HomeBibleQuiz />,
-      desc: 'Test your knowledge of the Word with 5 random questions.'
-    }
+      desc: 'Test your knowledge of the Word with 5 random questions.',
+    },
   }
+
+  const games = enabledKeys === null
+    ? allGames
+    : Object.fromEntries(Object.entries(allGames).filter(([id]) => enabledKeys.includes(id)))
+
+  const gameIds = Object.keys(games)
+  const preferred = featuredGame && typeMap[featuredGame.type]
+  const defaultGame = (preferred && games[preferred]) ? preferred : (gameIds[0] ?? 'crossword')
+
+  const [activeGame, setActiveGame] = useState(defaultGame)
+
+  if (gameIds.length === 0) return null
 
   return (
     <section className="section-lavender py-24">
@@ -50,7 +52,7 @@ export default function GamesPreview({ featuredGame }) {
               title="Interactive Games"
               subtitle="Fun and faith-building games for the whole family."
             />
-            
+
             <div className="space-y-3">
               {Object.entries(games).map(([id, game]) => (
                 <button
@@ -86,23 +88,23 @@ export default function GamesPreview({ featuredGame }) {
                <div className="mb-8 flex items-center justify-between border-b border-purple-100 pb-4">
                   <div className="flex items-center gap-3">
                      <h3 className="font-bold text-xl text-purple-900" style={{ fontFamily: 'var(--font-serif)' }}>
-                        {games[activeGame].title}
+                        {games[activeGame]?.title}
                      </h3>
                      <span className="pill bg-purple-100 text-purple-600 text-[10px] font-black uppercase tracking-wider">
                         Live Preview
                      </span>
                   </div>
-                  <Link 
+                  <Link
                     href={`/games?active=${activeGame}`}
                     className="text-purple-600 hover:text-purple-900 text-xs font-bold flex items-center gap-1"
                   >
                     Play Full Screen <ChevronRight size={14} />
                   </Link>
                </div>
-               
+
                <div className="flex-1 flex flex-col items-center justify-center">
                   <div className="w-full max-w-2xl transform scale-90 md:scale-100 origin-center transition-transform">
-                    {games[activeGame].component}
+                    {games[activeGame]?.component}
                   </div>
                </div>
             </div>

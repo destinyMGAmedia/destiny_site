@@ -2,16 +2,18 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { CheckCircle, RefreshCw, Info, Trophy } from 'lucide-react'
 
-const WORDS = [
-  'DESTINY', 'MISSION', 'VISION', 'INTEGRITY', 'PIONEER', 'LEADERSHIP', 
-  'EXCELLENCE', 'ACTION', 'DEVOTION', 'CHAMPION', 'CHAMPIONS', 'VICTORY', 
+const DEFAULT_WORDS = [
+  'DESTINY', 'MISSION', 'VISION', 'INTEGRITY', 'PIONEER', 'LEADERSHIP',
+  'EXCELLENCE', 'ACTION', 'DEVOTION', 'CHAMPION', 'VICTORY',
   'ASSEMBLY', 'OASIS', 'FELLOWSHIP', 'WORSHIP', 'DIGNIFIED', 'REIGN',
   'TRANSFORM', 'NATIONS', 'BUILDING', 'PASTURES', 'DYNAMO'
 ]
 
 const GRID_SIZE = 12
 
-export default function BibleWordSearch({ initialState, onSave }) {
+export default function BibleWordSearch({ initialState, onSave, words: wordsProp }) {
+  const WORDS = (wordsProp && wordsProp.length > 0) ? wordsProp : DEFAULT_WORDS
+
   const [grid, setGrid] = useState(initialState?.grid || [])
   const [foundWords, setFoundWords] = useState(initialState?.foundWords || [])
   const [foundPaths, setFoundPaths] = useState(initialState?.foundPaths || [])

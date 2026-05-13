@@ -14,9 +14,9 @@ const GROWTH_ORDER = [
   'ADVANCED_LEADERSHIP_3',
 ]
 
-// Assembly admin can directly promote up to MINISTRY_CLASS.
-// LEADERSHIP_CLASS and above require a recommendation (global admin approval).
-const DIRECT_PROMOTE_MAX = 'MINISTRY_CLASS'
+// Assembly admin can directly promote up to DESTINY_CULTURE.
+// MINISTRY_CLASS and above require a recommendation (global admin approval).
+const DIRECT_PROMOTE_MAX = 'DESTINY_CULTURE'
 const DIRECT_PROMOTE_MAX_IDX = GROWTH_ORDER.indexOf(DIRECT_PROMOTE_MAX)
 
 export async function GET(req, { params }) {
@@ -81,10 +81,10 @@ export async function POST(req, { params }) {
   }
 
   if (action === 'PROMOTE') {
-    // Direct promotion only allowed up to MINISTRY_CLASS (or global admin can do any)
+    // Direct promotion only allowed up to DESTINY_CULTURE (or global admin can do any)
     if (!isGlobalAdmin(session) && toIdx > DIRECT_PROMOTE_MAX_IDX) {
       return NextResponse.json({
-        error: `Assembly admins can only directly promote up to ${DIRECT_PROMOTE_MAX}. Use RECOMMEND for higher levels.`
+        error: `Assembly admins can only directly promote up to ${DIRECT_PROMOTE_MAX}. Use RECOMMEND for Ministry Class and above.`
       }, { status: 403 })
     }
 
@@ -117,7 +117,7 @@ export async function POST(req, { params }) {
       return NextResponse.json({ error: 'Global admins can directly promote, no need to recommend' }, { status: 400 })
     }
     if (toIdx <= DIRECT_PROMOTE_MAX_IDX) {
-      return NextResponse.json({ error: 'Use PROMOTE for levels up to MINISTRY_CLASS' }, { status: 400 })
+      return NextResponse.json({ error: 'Use PROMOTE for levels up to DESTINY_CULTURE' }, { status: 400 })
     }
 
     // Check for existing pending recommendation

@@ -74,7 +74,7 @@ export default function TeamSection({ teamMembers }) {
       <div className="section-container">
         <SectionHeader
           label="Leadership"
-          title="Our Pastors"
+          title="Our Leaders"
           subtitle="Shepherding the flock with faith and vision"
         />
 
