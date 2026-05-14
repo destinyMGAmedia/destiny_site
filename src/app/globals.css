@@ -205,11 +205,16 @@ h1, h2, h3, h4 {
    ───────────────────────────────────────────── */
 .anchor-nav {
   position: sticky;
-  top: 64px; /* navbar height */
+  top: 64px; /* mobile: h-16 navbar */
   z-index: 40;
   background: var(--purple-900);
   overflow-x: auto;
   scrollbar-width: none;
+}
+@media (min-width: 768px) {
+  .anchor-nav {
+    top: 80px; /* desktop: h-20 navbar */
+  }
 }
 .anchor-nav::-webkit-scrollbar { display: none; }
 .anchor-nav-inner {

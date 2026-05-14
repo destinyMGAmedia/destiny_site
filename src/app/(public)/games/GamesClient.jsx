@@ -172,7 +172,7 @@ export default function GamesClient({ enabledKeys, words }) {
   return (
     <div className="section-ivory min-h-screen">
       <div
-        className="relative py-24 px-6 text-white text-center"
+        className="relative py-24 px-6 text-white text-center overflow-hidden"
         style={{ background: 'linear-gradient(135deg, var(--purple-900), var(--purple-700))' }}
       >
         <BackButton className="absolute top-8 left-8 z-20" />
@@ -255,118 +255,115 @@ export default function GamesClient({ enabledKeys, words }) {
           )}
         </div>
 
-        <div
-          ref={gameContainerRef}
-          className={`w-full bg-black relative flex flex-col overflow-hidden ${isFullscreen ? 'h-screen w-screen' : 'min-h-[600px] lg:h-[800px]'}`}
-        >
-          <div className="flex-1 relative flex flex-col min-h-0">
-            <div className="absolute top-6 right-6 z-40 flex gap-2">
-              <button
-                onClick={() => setShowControls(!showControls)}
-                className="p-3 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 text-white hover:bg-white/20 transition-all shadow-xl"
-                title="Game Controls"
-              >
-                <Keyboard size={20} />
-              </button>
-              <button
-                onClick={toggleFullscreen}
-                className="p-3 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 text-white hover:bg-white/20 transition-all shadow-xl"
-                title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
-              >
-                {isFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
-              </button>
-            </div>
+        {/* 3D Games: fixed-height black container */}
+        {(activeTab === 'promise' || activeTab === 'journey') && (
+          <div
+            ref={gameContainerRef}
+            className={`w-full bg-black relative flex flex-col overflow-hidden ${isFullscreen ? 'h-screen w-screen' : 'min-h-[600px] lg:h-[800px]'}`}
+          >
+            <div className="flex-1 relative flex flex-col min-h-0">
+              <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-40 flex gap-2">
+                <button
+                  onClick={() => setShowControls(!showControls)}
+                  className="p-2.5 sm:p-3 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 text-white hover:bg-white/20 transition-all shadow-xl"
+                  title="Game Controls"
+                >
+                  <Keyboard size={18} />
+                </button>
+                <button
+                  onClick={toggleFullscreen}
+                  className="p-2.5 sm:p-3 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 text-white hover:bg-white/20 transition-all shadow-xl"
+                  title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+                >
+                  {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+                </button>
+              </div>
 
-            {showControls && (
-              <div className="absolute top-24 right-6 z-40 w-64 p-6 text-white animate-in fade-in slide-in-from-right-4 pointer-events-none">
-                <div className="flex items-center justify-between mb-6 pointer-events-auto">
-                  <div className="flex items-center gap-2">
-                    <Keyboard size={14} className="text-gold-400" />
-                    <h4 className="font-bold text-[10px] uppercase tracking-[0.2em] text-gold-400 [text-shadow:_0_1px_2px_rgb(0_0_0_/_40%)]">Game Controls</h4>
+              {showControls && (
+                <div className="absolute top-20 right-4 sm:top-24 sm:right-6 z-40 w-56 sm:w-64 p-4 sm:p-6 text-white animate-in fade-in slide-in-from-right-4 pointer-events-none">
+                  <div className="flex items-center justify-between mb-4 sm:mb-6 pointer-events-auto">
+                    <div className="flex items-center gap-2">
+                      <Keyboard size={14} className="text-gold-400" />
+                      <h4 className="font-bold text-[10px] uppercase tracking-[0.2em] text-gold-400 [text-shadow:_0_1px_2px_rgb(0_0_0_/_40%)]">Game Controls</h4>
+                    </div>
+                    <button onClick={() => setShowControls(false)} className="text-white/40 hover:text-white text-lg">&times;</button>
                   </div>
-                  <button onClick={() => setShowControls(false)} className="text-white/40 hover:text-white text-lg">&times;</button>
+                  <div className="space-y-4 sm:space-y-6 [text-shadow:_0_1px_4px_rgb(0_0_0_/_80%)]">
+                    <div>
+                      <div className="text-[9px] text-white/40 uppercase font-black tracking-widest mb-2 sm:mb-3">Navigation</div>
+                      <div className="space-y-2 text-xs">
+                        {[['Move Forward','W / ↑'],['Move Backward','S / ↓'],['Left / Right','A/D / ←/→']].map(([label, key]) => (
+                          <div key={label} className="flex justify-between items-center">
+                            <span className="text-white/70">{label}</span>
+                            <span className="font-mono font-bold">{key}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[9px] text-white/40 uppercase font-black tracking-widest mb-2 sm:mb-3">Actions</div>
+                      <div className="space-y-2 text-xs">
+                        {[['Jump / Action','SPACE'],['Fullscreen','F / Icon'],['Toggle Help','Icon']].map(([label, key]) => (
+                          <div key={label} className="flex justify-between items-center">
+                            <span className="text-white/70">{label}</span>
+                            <span className="font-mono font-bold">{key}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    {activeTab === 'journey' && (
+                      <p className="text-[10px] text-white/50 italic leading-relaxed pt-4 border-t border-white/10">
+                        Click &quot;ROLL DICE&quot; to advance. Ladders elevate, trials backslide.
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <div className="space-y-6 [text-shadow:_0_1px_4px_rgb(0_0_0_/_80%)]">
-                  <div>
-                    <div className="text-[9px] text-white/40 uppercase font-black tracking-widest mb-3">Navigation</div>
-                    <div className="space-y-2 text-xs">
-                      {[['Move Forward','W / ↑'],['Move Backward','S / ↓'],['Left / Right','A/D / ←/→']].map(([label, key]) => (
-                        <div key={label} className="flex justify-between items-center">
-                          <span className="text-white/70">{label}</span>
-                          <span className="font-mono font-bold">{key}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-[9px] text-white/40 uppercase font-black tracking-widest mb-3">Actions</div>
-                    <div className="space-y-2 text-xs">
-                      {[['Jump / Action','SPACE'],['Fullscreen','F / Icon'],['Toggle Help','Icon']].map(([label, key]) => (
-                        <div key={label} className="flex justify-between items-center">
-                          <span className="text-white/70">{label}</span>
-                          <span className="font-mono font-bold">{key}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  {activeTab === 'journey' && (
-                    <p className="text-[10px] text-white/50 italic leading-relaxed pt-4 border-t border-white/10">
-                      Click &quot;ROLL DICE&quot; to advance. Ladders elevate, trials backslide.
-                    </p>
-                  )}
-                  {activeTab === 'crossword' && (
-                    <p className="text-[10px] text-white/50 italic leading-relaxed pt-4 border-t border-white/10">
-                      Drag over letters to find words horizontally, vertically, or diagonally.
-                    </p>
-                  )}
+              )}
+
+              <div className="flex-1 w-full relative">
+                {activeTab === 'promise' && visibleTabs.some(t => t.id === 'promise') && (
+                  <PromiseLand
+                    initialState={allProgress.promise}
+                    onSave={(state) => saveProgress('promise', state)}
+                  />
+                )}
+                {activeTab === 'journey' && visibleTabs.some(t => t.id === 'journey') && (
+                  <JourneyToHeavenFixed
+                    initialState={allProgress.journey}
+                    onSave={(state) => saveProgress('journey', state)}
+                    username={username.trim() || 'Player1'}
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Text Games: natural-height container, scrollable */}
+        {(activeTab === 'quiz' || activeTab === 'crossword') && (
+          <div ref={gameContainerRef} className="w-full bg-white">
+            {activeTab === 'quiz' && visibleTabs.some(t => t.id === 'quiz') && (
+              <div className="max-w-2xl w-full mx-auto py-10 sm:py-16 px-4 sm:px-6">
+                <SectionHeader label="Bible Challenge" title="Knowledge Quiz" centered />
+                <div className="mt-8">
+                  <HomeBibleQuiz
+                    initialState={allProgress.quiz}
+                    onSave={(state) => saveProgress('quiz', state)}
+                  />
                 </div>
               </div>
             )}
-
-            <div className="flex-1 w-full relative">
-              {activeTab === 'promise' && visibleTabs.some(t => t.id === 'promise') && (
-                <PromiseLand
-                  initialState={allProgress.promise}
-                  onSave={(state) => saveProgress('promise', state)}
+            {activeTab === 'crossword' && visibleTabs.some(t => t.id === 'crossword') && (
+              <div className="w-full">
+                <BibleWordSearch
+                  words={words}
+                  initialState={allProgress.crossword}
+                  onSave={(state) => saveProgress('crossword', state)}
                 />
-              )}
-              {activeTab === 'journey' && visibleTabs.some(t => t.id === 'journey') && (
-                <JourneyToHeavenFixed
-                  initialState={allProgress.journey}
-                  onSave={(state) => saveProgress('journey', state)}
-                  username={username.trim() || 'Player1'}
-                />
-              )}
-              {activeTab === 'quiz' && visibleTabs.some(t => t.id === 'quiz') && (
-                <div className="max-w-2xl w-full mx-auto py-20 px-6 flex items-center justify-center min-h-[600px]">
-                  <div className="w-full">
-                    <SectionHeader label="Bible Challenge" title="Knowledge Quiz" centered />
-                    <div className="mt-8">
-                      <HomeBibleQuiz
-                        initialState={allProgress.quiz}
-                        onSave={(state) => saveProgress('quiz', state)}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-              {activeTab === 'crossword' && visibleTabs.some(t => t.id === 'crossword') && (
-                <div className="w-full py-20 px-6 flex items-center justify-center min-h-[600px]">
-                  <div className="w-full max-w-5xl mx-auto">
-                    <SectionHeader label="Search & Find" title="DMGA Crossword" centered />
-                    <div className="mt-12">
-                      <BibleWordSearch
-                        words={words}
-                        initialState={allProgress.crossword}
-                        onSave={(state) => saveProgress('crossword', state)}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
-        </div>
+        )}
       </div>
     </div>
   )

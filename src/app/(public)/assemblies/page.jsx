@@ -28,7 +28,7 @@ export default async function AssembliesPage() {
     <div className="section-ivory min-h-screen">
       {/* Header */}
       <div
-        className="relative py-24 px-6 text-white text-center"
+        className="relative py-24 px-6 text-white text-center overflow-hidden"
         style={{ background: 'linear-gradient(135deg, var(--purple-900), var(--purple-700))' }}
       >
         <BackButton className="absolute top-8 left-8 z-20" />
