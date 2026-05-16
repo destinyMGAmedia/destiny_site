@@ -1,5 +1,5 @@
 'use client'
-import { Users, MapPin, Clock, Calendar, Info } from 'lucide-react'
+import { Users, MapPin, Clock, Calendar, Info, Phone } from 'lucide-react'
 import Image from 'next/image'
 
 export default function ArkCenters({ section, centers }) {
@@ -54,6 +54,12 @@ export default function ArkCenters({ section, centers }) {
                     <div className="flex items-center gap-2">
                       <Clock size={16} className="shrink-0 text-purple-500" />
                       <span className="text-sm">{center.meetingTime}</span>
+                    </div>
+                  )}
+                  {center.phone && (
+                    <div className="flex items-center gap-2">
+                      <Phone size={16} className="shrink-0 text-purple-500" />
+                      <a href={`tel:${center.phone}`} className="text-sm text-purple-700 hover:underline">{center.phone}</a>
                     </div>
                   )}
                 </div>

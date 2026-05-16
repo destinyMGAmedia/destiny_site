@@ -42,7 +42,7 @@ export async function POST(req) {
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const { name, location, meetingDay, meetingTime, leaderId, assemblyId } = body
+  const { name, location, phone, meetingDay, meetingTime, leaderId, assemblyId } = body
 
   if (!name || !assemblyId) {
     return NextResponse.json({ error: 'Name and Assembly ID are required' }, { status: 400 })
@@ -54,6 +54,7 @@ export async function POST(req) {
     data: {
       name,
       location,
+      phone: phone || null,
       meetingDay: meetingDay || 'Thursday',
       meetingTime,
       leaderId: leaderId || null,

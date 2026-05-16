@@ -439,6 +439,7 @@ model ArkCenter {
   assemblyId  String
   name        String
   location    String?
+  phone       String?
   meetingDay  String?
   meetingTime String?
   leaderId    String?
