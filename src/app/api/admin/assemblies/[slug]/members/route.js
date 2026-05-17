@@ -10,8 +10,9 @@ export async function GET(request, { params }) {
   }
 
   try {
+    const { slug } = await params
     const assembly = await prisma.assembly.findFirst({
-      where: { slug: params.slug }
+      where: { slug }
     })
 
     if (!assembly) {
@@ -50,8 +51,9 @@ export async function POST(request, { params }) {
   }
 
   try {
+    const { slug } = await params
     const assembly = await prisma.assembly.findFirst({
-      where: { slug: params.slug }
+      where: { slug }
     })
 
     if (!assembly) {

@@ -10,8 +10,9 @@ export async function PUT(request, { params }) {
   }
 
   try {
+    const { slug, id } = await params
     const assembly = await prisma.assembly.findFirst({
-      where: { slug: params.slug }
+      where: { slug }
     })
 
     if (!assembly) {
@@ -23,8 +24,8 @@ export async function PUT(request, { params }) {
     }
 
     const member = await prisma.member.findFirst({
-      where: { 
-        id: params.id,
+      where: {
+        id,
         assemblyId: assembly.id
       }
     })
@@ -34,11 +35,11 @@ export async function PUT(request, { params }) {
     }
 
     const body = await request.json()
-    
+
     // Update member's growth level
     const updatedMember = await prisma.member.update({
-      where: { id: params.id },
-      data: { 
+      where: { id },
+      data: {
         growthLevel: body.growthLevel,
         updatedAt: new Date()
       },
@@ -52,8 +53,8 @@ export async function PUT(request, { params }) {
     // Create a progress record
     await prisma.memberProgress.create({
       data: {
-        memberId: params.id,
-        stageId: body.stageId || null, // Optional - depends on if we track which stage they completed
+        memberId: id,
+        stageId: body.stageId || null,
         completedAt: new Date(),
         score: body.score || null
       }

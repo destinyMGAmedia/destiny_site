@@ -10,8 +10,9 @@ export async function PUT(request, { params }) {
   }
 
   try {
+    const { slug, id } = await params
     const assembly = await prisma.assembly.findFirst({
-      where: { slug: params.slug }
+      where: { slug }
     })
 
     if (!assembly) {
@@ -23,8 +24,8 @@ export async function PUT(request, { params }) {
     }
 
     const member = await prisma.member.findFirst({
-      where: { 
-        id: params.id,
+      where: {
+        id,
         assemblyId: assembly.id
       }
     })
@@ -59,7 +60,7 @@ export async function PUT(request, { params }) {
     }
 
     const updatedMember = await prisma.member.update({
-      where: { id: params.id },
+      where: { id },
       data: memberData,
       include: {
         arkCenter: {
@@ -82,8 +83,9 @@ export async function DELETE(request, { params }) {
   }
 
   try {
+    const { slug, id } = await params
     const assembly = await prisma.assembly.findFirst({
-      where: { slug: params.slug }
+      where: { slug }
     })
 
     if (!assembly) {
@@ -95,8 +97,8 @@ export async function DELETE(request, { params }) {
     }
 
     const member = await prisma.member.findFirst({
-      where: { 
-        id: params.id,
+      where: {
+        id,
         assemblyId: assembly.id
       }
     })
@@ -106,7 +108,7 @@ export async function DELETE(request, { params }) {
     }
 
     await prisma.member.delete({
-      where: { id: params.id }
+      where: { id }
     })
 
     return NextResponse.json({ success: true })
