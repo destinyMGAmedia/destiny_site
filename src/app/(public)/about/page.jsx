@@ -172,46 +172,46 @@ export default async function AboutPage() {
           </div>
         </div>
 
-        {/* Our Story */}
-        <div className="mb-20 grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-          <div>
-            <SectionHeader label="Our Journey" title="Our Story" />
-            <div className="space-y-4 text-gray-600 leading-relaxed mt-6">
-              <p>{sc.about_history_p1}</p>
-              <p>{sc.about_history_p2}</p>
-            </div>
+        {/* Our Story — full width */}
+        <div className="mb-12">
+          <SectionHeader label="Our Journey" title="Our Story" />
+          <div className="space-y-4 text-gray-600 leading-relaxed mt-6 max-w-3xl">
+            <p>{sc.about_history_p1}</p>
+            <p>{sc.about_history_p2}</p>
           </div>
-          <div className="grid grid-cols-1 gap-8">
-            <div className="card p-8 md:p-10 relative overflow-hidden border-none shadow-2xl scale-105 z-10" style={{ background: 'var(--purple-900)', color: 'white' }}>
-              <div className="absolute top-0 right-0 w-48 h-48 bg-gold-500/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-              <div className="absolute bottom-0 left-0 w-24 h-24 bg-gold-500/5 rounded-full translate-y-1/2 -translate-x-1/2" />
-              
-              <div className="relative z-10">
-                <p className="text-gold-400 font-bold uppercase tracking-[0.2em] text-xs mb-6">Daily Proclamation</p>
-                <h3 className="text-2xl font-bold mb-6" style={{ fontFamily: 'var(--font-serif)', color: 'var(--gold-500)' }}>Our Declaration</h3>
-                <div className="space-y-6">
-                  <p className="italic text-xl md:text-2xl leading-relaxed font-medium border-l-4 border-gold-500/30 pl-6 whitespace-pre-line">
-                    {sc.about_declaration}
+        </div>
+
+        {/* Declaration + Anthem — side by side */}
+        <div className="mb-20 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+          <div className="card p-8 md:p-10 relative overflow-hidden border-none shadow-2xl z-10" style={{ background: 'var(--purple-900)', color: 'white' }}>
+            <div className="absolute top-0 right-0 w-48 h-48 bg-gold-500/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-gold-500/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+
+            <div className="relative z-10">
+              <p className="text-gold-400 font-bold uppercase tracking-[0.2em] text-xs mb-6">Daily Proclamation</p>
+              <h3 className="text-2xl font-bold mb-6" style={{ fontFamily: 'var(--font-serif)', color: 'var(--gold-500)' }}>Our Declaration</h3>
+              <div className="space-y-6">
+                <p className="italic text-xl md:text-2xl leading-relaxed font-medium border-l-4 border-gold-500/30 pl-6 whitespace-pre-line">
+                  {sc.about_declaration}
+                </p>
+                <div className="space-y-4">
+                  <p className="text-lg md:text-xl font-black text-gold-500 uppercase tracking-tight">
+                    {sc.about_declaration_closing}
                   </p>
-                  <div className="space-y-4">
-                    <p className="text-lg md:text-xl font-black text-gold-500 uppercase tracking-tight">
-                      {sc.about_declaration_closing}
-                    </p>
-                    <p className="text-2xl md:text-3xl font-black text-white uppercase italic tracking-widest">
-                      Victory!
-                    </p>
-                  </div>
+                  <p className="text-2xl md:text-3xl font-black text-white uppercase italic tracking-widest">
+                    Victory!
+                  </p>
                 </div>
               </div>
             </div>
-            
-            <div className="card p-8 border-gold-200 bg-white">
-              <h3 className="text-xl font-bold mb-4" style={{ fontFamily: 'var(--font-serif)', color: 'var(--purple-900)' }}>Our Anthem</h3>
-              <div className="space-y-4 text-gray-600 text-sm italic leading-relaxed">
-                <p className="whitespace-pre-line">{sc.about_anthem_verse}</p>
-                <p className="font-bold text-purple-900 not-italic">Chorus:</p>
-                <p className="whitespace-pre-line">{sc.about_anthem_chorus}</p>
-              </div>
+          </div>
+
+          <div className="card p-8 border-gold-200 bg-white">
+            <h3 className="text-xl font-bold mb-4" style={{ fontFamily: 'var(--font-serif)', color: 'var(--purple-900)' }}>Our Anthem</h3>
+            <div className="space-y-4 text-gray-600 text-sm italic leading-relaxed">
+              <p className="whitespace-pre-line">{sc.about_anthem_verse}</p>
+              <p className="font-bold text-purple-900 not-italic">Chorus:</p>
+              <p className="whitespace-pre-line">{sc.about_anthem_chorus}</p>
             </div>
           </div>
         </div>
