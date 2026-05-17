@@ -192,8 +192,8 @@ export default function SiteContentPage() {
             </div>
           </Section>
 
-          {/* History */}
-          <Section title="Our History" description="Narrative text shown in the History section">
+          {/* History (now "Our Story") */}
+          <Section title="Our Story" description="Narrative text shown in the Our Story section">
             <div className="space-y-4">
               <div>
                 <label className="form-label">History (paragraph 1)</label>
@@ -210,6 +210,37 @@ export default function SiteContentPage() {
                 />
               </div>
               <SaveButton saving={saving === 'history'} onClick={() => save('history', ['about_history_p1', 'about_history_p2'])} />
+            </div>
+          </Section>
+
+          {/* Scriptures */}
+          <Section title="Our Scriptures" description="Three scripture references shown on the About page">
+            <div className="space-y-6">
+              {[
+                { label: 'Scripture 1', refKey: 'about_scripture_1_ref', textKey: 'about_scripture_1_text', refDefault: 'Psalm 139:14-16' },
+                { label: 'Scripture 2', refKey: 'about_scripture_2_ref', textKey: 'about_scripture_2_text', refDefault: 'Ecclesiastes 9:11' },
+                { label: 'Scripture 3', refKey: 'about_scripture_3_ref', textKey: 'about_scripture_3_text', refDefault: 'Romans 9:15-17' },
+              ].map(({ label, refKey, textKey, refDefault }) => (
+                <div key={refKey} className="space-y-3 pb-6 border-b last:border-b-0 last:pb-0" style={{ borderColor: 'var(--border)' }}>
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{label}</p>
+                  <div>
+                    <label className="form-label">Reference</label>
+                    <input className="form-input" value={v(refKey, refDefault)} onChange={set(refKey)} placeholder={refDefault} />
+                  </div>
+                  <div>
+                    <label className="form-label">Scripture Text</label>
+                    <textarea className="form-input" rows={4} value={v(textKey, '')} onChange={set(textKey)} placeholder="Enter the scripture text here…" />
+                  </div>
+                </div>
+              ))}
+              <SaveButton
+                saving={saving === 'scriptures'}
+                onClick={() => save('scriptures', [
+                  'about_scripture_1_ref', 'about_scripture_1_text',
+                  'about_scripture_2_ref', 'about_scripture_2_text',
+                  'about_scripture_3_ref', 'about_scripture_3_text',
+                ])}
+              />
             </div>
           </Section>
 

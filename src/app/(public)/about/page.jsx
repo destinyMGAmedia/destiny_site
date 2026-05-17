@@ -14,6 +14,12 @@ const DEFAULTS = {
   about_vision_body: 'To establish and advance the kingdom of God on earth by discerning His voice, declaring His will, and delivering His purpose.',
   about_history_p1: "Destiny Mission Global Assembly began with a divine vision to bring people into alignment with God's purpose for their lives. What started as a small fellowship of believers has grown into a thriving church family committed to raising leaders, transforming communities, and reaching nations for Christ.",
   about_history_p2: 'Over the years, the church has experienced tremendous growth in membership and impact — hosting life-changing conferences, outreaches, and discipleship programs. Through faith, dedication, and the leading of the Holy Spirit, Destiny Mission continues to stand as a beacon of light, hope, and transformation.',
+  about_scripture_1_ref: 'Psalm 139:14-16',
+  about_scripture_1_text: 'I will praise You, for I am fearfully and wonderfully made; marvelous are Your works, and that my soul knows very well. My frame was not hidden from you, when I was made in secret, and skillfully wrought in the lowest parts of the earth. Your eyes saw my substance, being yet unformed. And in your book they all were written, the days fashioned for me, when as yet there were none of them.',
+  about_scripture_2_ref: 'Ecclesiastes 9:11',
+  about_scripture_2_text: 'I returned, and saw under the sun, that the race is not to the swift, nor the battle to the strong, neither yet bread to the wise, nor yet riches to men of understanding, nor yet favour to men of skill; but time and chance happeneth to them all.',
+  about_scripture_3_ref: 'Romans 9:15-17',
+  about_scripture_3_text: 'For he saith to Moses, I will have mercy on whom I will have mercy, and I will have compassion on whom I will have compassion. So then it is not of him that willeth, nor of him that runneth, but of God that sheweth mercy. For the scripture saith unto Pharaoh, Even for this same purpose have I raised thee up, that I might shew my power in thee, and that my name might be declared throughout all the earth.',
   about_declaration: 'I am wonderfully made and dignified \n\nDestined to rule and reign \n\nI am a champion because \n\nI have the seed of greatness in me.',
   about_declaration_closing: 'Destiny Family... Champions forever!',
   about_anthem_verse: "We're the building of the Lord, standing on the rock \nWashed by the Blood of the Lamb, destined to reign \nTo redeem this land to God and to worship in spirit and truth",
@@ -166,10 +172,10 @@ export default async function AboutPage() {
           </div>
         </div>
 
-        {/* Our History */}
+        {/* Our Story */}
         <div className="mb-20 grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           <div>
-            <SectionHeader label="Our Journey" title="Our History" />
+            <SectionHeader label="Our Journey" title="Our Story" />
             <div className="space-y-4 text-gray-600 leading-relaxed mt-6">
               <p>{sc.about_history_p1}</p>
               <p>{sc.about_history_p2}</p>
@@ -207,6 +213,34 @@ export default async function AboutPage() {
                 <p className="whitespace-pre-line">{sc.about_anthem_chorus}</p>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Our Scriptures */}
+        <div className="mb-20">
+          <div className="text-center mb-12">
+            <SectionHeader label="The Word That Grounds Us" title="Our Scriptures" centered />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { ref: sc.about_scripture_1_ref, text: sc.about_scripture_1_text },
+              { ref: sc.about_scripture_2_ref, text: sc.about_scripture_2_text },
+              { ref: sc.about_scripture_3_ref, text: sc.about_scripture_3_text },
+            ].filter(s => s.ref || s.text).map((scripture, i) => (
+              <div
+                key={i}
+                className="rounded-3xl p-8 flex flex-col"
+                style={{ background: 'var(--surface)', boxShadow: 'var(--shadow-card)' }}
+              >
+                <div className="w-10 h-1 rounded mb-6" style={{ background: 'var(--gold-500)' }} />
+                <p className="text-gray-600 leading-relaxed italic flex-1 text-sm">
+                  &ldquo;{scripture.text}&rdquo;
+                </p>
+                <p className="mt-6 font-bold text-xs uppercase tracking-widest" style={{ color: 'var(--purple-800)' }}>
+                  — {scripture.ref}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
 
