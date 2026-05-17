@@ -6,9 +6,9 @@ export async function POST(req, { params }) {
   const body = await req.json()
   const { 
     type, // 'VISITOR' or 'MEMBER'
-    firstName, 
-    lastName, 
-    email, 
+    firstName,
+    lastName,
+    email,
     phone,
     middleName,
     gender,
@@ -18,7 +18,7 @@ export async function POST(req, { params }) {
     state,
     country,
     fellowship,
-    department,
+    departments,
     arkCenterId,
     notes,
     howDidYouHear,
@@ -150,7 +150,7 @@ export async function POST(req, { params }) {
           state,
           country,
           fellowship,
-          department: department === 'NONE' ? null : department,
+          departments: Array.isArray(departments) ? departments : [],
           arkCenterId: arkCenterId || null,
           notes,
           growthLevel: 'NEW_COMER' // Default as requested

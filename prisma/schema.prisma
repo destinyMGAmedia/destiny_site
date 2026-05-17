@@ -536,7 +536,7 @@ model Member {
   joinDate       DateTime     @default(now())
   baptismDate    DateTime?
   fellowship     Fellowship?
-  department     Department?
+  departments    Department[]
   status         MemberStatus @default(ACTIVE)
   growthLevel    GrowthLevel  @default(NEW_COMER)
   arkCenterId    String?

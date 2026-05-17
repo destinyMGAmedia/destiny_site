@@ -13,7 +13,7 @@ export async function POST(req) {
   const {
     assemblyId, firstName, lastName, middleName, gender, dateOfBirth,
     email, phone, address, city, state, country,
-    fellowship, department, arkCenterId, growthLevel,
+    fellowship, departments, arkCenterId, growthLevel,
     baptismDate, emergencyName, emergencyPhone, notes, firstTimerId
   } = body
 
@@ -42,7 +42,7 @@ export async function POST(req) {
         state: state || null,
         country: country || null,
         fellowship: fellowship || null,
-        department: (department === 'NONE' || !department) ? null : department,
+        departments: Array.isArray(departments) ? departments : [],
         arkCenterId: arkCenterId || null,
         growthLevel: growthLevel || 'NEW_COMER',
         baptismDate: baptismDate ? new Date(baptismDate) : null,

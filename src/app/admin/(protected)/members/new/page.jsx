@@ -23,7 +23,6 @@ const FELLOWSHIPS = [
 ]
 
 const DEPARTMENTS = [
-  { value: 'NONE', label: 'None / Show Interest' },
   { value: 'PASTORS', label: 'Pastors' },
   { value: 'CHOIR', label: 'Choir' },
   { value: 'SANCTUARY_KEEPERS', label: 'Sanctuary Keepers' },
@@ -64,7 +63,7 @@ export default function NewMemberPage() {
     state: '',
     country: 'Nigeria',
     fellowship: '',
-    department: 'NONE',
+    departments: [],
     // Conversions start at FOUNDATIONAL_CLASS (first growth stage)
     growthLevel: isConversion ? 'FOUNDATIONAL_CLASS' : 'NEW_COMER',
     arkCenterId: '',
@@ -278,11 +277,25 @@ export default function NewMemberPage() {
               </select>
             </div>
             <div>
-              <label className="form-label">Department</label>
-              <select className="form-select" value={form.department}
-                onChange={e => setForm(f => ({ ...f, department: e.target.value }))}>
-                {DEPARTMENTS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
-              </select>
+              <label className="form-label">Department(s)</label>
+              <div className="grid grid-cols-2 gap-2 mt-1">
+                {DEPARTMENTS.map(dept => (
+                  <label key={dept.value} className="flex items-center gap-2 cursor-pointer text-sm">
+                    <input
+                      type="checkbox"
+                      checked={form.departments.includes(dept.value)}
+                      onChange={() => setForm(f => ({
+                        ...f,
+                        departments: f.departments.includes(dept.value)
+                          ? f.departments.filter(d => d !== dept.value)
+                          : [...f.departments, dept.value]
+                      }))}
+                      className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                    />
+                    {dept.label}
+                  </label>
+                ))}
+              </div>
             </div>
             <div>
               <label className="form-label">Growth Level</label>

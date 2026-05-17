@@ -19,7 +19,7 @@ export default function JoinPage() {
   const [form, setForm] = useState({
     firstName: '', lastName: '', middleName: '', email: '', phone: '',
     gender: 'MALE', dateOfBirth: '', address: '', city: '', state: '', country: 'Nigeria',
-    fellowship: 'DESTINY_TREASURES', department: 'NONE', arkCenterId: '',
+    fellowship: 'DESTINY_TREASURES', departments: [], arkCenterId: '',
     notes: ''
   })
   const [formErrors, setFormErrors] = useState({})
@@ -492,23 +492,35 @@ export default function JoinPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="form-label">Department *</label>
-                  <select
-                    className="form-select"
-                    value={form.department}
-                    onChange={(e) => setForm(f => ({ ...f, department: e.target.value }))}
-                  >
-                    <option value="NONE">None (Show Interest)</option>
-                    <option value="PASTORS">Pastors</option>
-                    <option value="CHOIR">Choir</option>
-                    <option value="SANCTUARY_KEEPERS">Sanctuary Keepers</option>
-                    <option value="PROTOCOL">Protocol</option>
-                    <option value="MEDIA_TECHNICAL">Media & Technical</option>
-                    <option value="CREATIVE_ARTS">Creative Arts</option>
-                    <option value="FACILITY">Facility</option>
-                    <option value="EVANGELISM">Evangelism</option>
-                    <option value="PRAYER">Prayer</option>
-                  </select>
+                  <label className="form-label">Department(s)</label>
+                  <div className="grid grid-cols-2 gap-2 mt-1">
+                    {[
+                      { value: 'PASTORS', label: 'Pastors' },
+                      { value: 'CHOIR', label: 'Choir' },
+                      { value: 'SANCTUARY_KEEPERS', label: 'Sanctuary Keepers' },
+                      { value: 'PROTOCOL', label: 'Protocol' },
+                      { value: 'MEDIA_TECHNICAL', label: 'Media & Technical' },
+                      { value: 'CREATIVE_ARTS', label: 'Creative Arts' },
+                      { value: 'FACILITY', label: 'Facility' },
+                      { value: 'EVANGELISM', label: 'Evangelism' },
+                      { value: 'PRAYER', label: 'Prayer' },
+                    ].map(dept => (
+                      <label key={dept.value} className="flex items-center gap-2 cursor-pointer text-sm">
+                        <input
+                          type="checkbox"
+                          checked={form.departments.includes(dept.value)}
+                          onChange={() => setForm(f => ({
+                            ...f,
+                            departments: f.departments.includes(dept.value)
+                              ? f.departments.filter(d => d !== dept.value)
+                              : [...f.departments, dept.value]
+                          }))}
+                          className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                        />
+                        {dept.label}
+                      </label>
+                    ))}
+                  </div>
                 </div>
               </div>
 

@@ -11,7 +11,6 @@ const FELLOWSHIPS = [
 ]
 
 const DEPARTMENTS = [
-  { value: 'NONE', label: 'None / Show Interest' },
   { value: 'PASTORS', label: 'Pastors' },
   { value: 'CHOIR', label: 'Choir' },
   { value: 'SANCTUARY_KEEPERS', label: 'Sanctuary Keepers' },
@@ -55,7 +54,7 @@ export default function MemberManager({ members: initialData, growthStages, asse
       gender: member.gender || 'MALE',
       dateOfBirth: member.dateOfBirth ? new Date(member.dateOfBirth).toISOString().split('T')[0] : '',
       fellowship: member.fellowship || '',
-      department: member.department || 'NONE',
+      departments: Array.isArray(member.departments) ? member.departments : [],
       status: member.status || 'ACTIVE',
       notes: member.notes || '',
       emergencyName: member.emergencyName || '',
@@ -367,7 +366,7 @@ export default function MemberManager({ members: initialData, growthStages, asse
                 <div><p className="text-sm text-gray-500">Email</p><p className="font-medium">{selectedMember.email || 'Not provided'}</p></div>
                 <div><p className="text-sm text-gray-500">Phone</p><p className="font-medium">{selectedMember.phone || 'Not provided'}</p></div>
                 <div><p className="text-sm text-gray-500">Fellowship</p><p className="font-medium">{selectedMember.fellowship?.replace('_', ' ') || 'Not assigned'}</p></div>
-                <div><p className="text-sm text-gray-500">Department</p><p className="font-medium">{selectedMember.department?.replace('_', ' ') || 'None'}</p></div>
+                <div><p className="text-sm text-gray-500">Department(s)</p><p className="font-medium">{selectedMember.departments?.length ? selectedMember.departments.map(d => DEPARTMENTS.find(dept => dept.value === d)?.label || d).join(', ') : 'None'}</p></div>
                 <div><p className="text-sm text-gray-500">Status</p><p className="font-medium">{selectedMember.status || 'Active'}</p></div>
                 <div><p className="text-sm text-gray-500">Address</p><p className="font-medium">{[selectedMember.address, selectedMember.city, selectedMember.state].filter(Boolean).join(', ') || 'Not provided'}</p></div>
               </div>
@@ -473,10 +472,25 @@ export default function MemberManager({ members: initialData, growthStages, asse
                   </select>
                 </div>
                 <div>
-                  <label className="form-label">Department</label>
-                  <select className="form-select" value={editForm.department} onChange={ef('department')}>
-                    {DEPARTMENTS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
-                  </select>
+                  <label className="form-label">Department(s)</label>
+                  <div className="grid grid-cols-2 gap-2 mt-1">
+                    {DEPARTMENTS.map(dept => (
+                      <label key={dept.value} className="flex items-center gap-2 cursor-pointer text-sm">
+                        <input
+                          type="checkbox"
+                          checked={(editForm.departments || []).includes(dept.value)}
+                          onChange={() => setEditForm(prev => ({
+                            ...prev,
+                            departments: (prev.departments || []).includes(dept.value)
+                              ? prev.departments.filter(d => d !== dept.value)
+                              : [...(prev.departments || []), dept.value]
+                          }))}
+                          className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                        />
+                        {dept.label}
+                      </label>
+                    ))}
+                  </div>
                 </div>
                 <div>
                   <label className="form-label">Status</label>

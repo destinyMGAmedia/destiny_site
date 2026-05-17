@@ -70,7 +70,7 @@ export default function MembersPage() {
     joinDate: '',
     baptismDate: '',
     fellowship: '',
-    department: '',
+    departments: [],
     status: 'ACTIVE',
     growthLevel: 'NEW_COMER',
     arkCenterId: '',
@@ -161,7 +161,7 @@ export default function MembersPage() {
       joinDate: member.joinDate ? member.joinDate.split('T')[0] : '',
       baptismDate: member.baptismDate ? member.baptismDate.split('T')[0] : '',
       fellowship: member.fellowship || '',
-      department: member.department || '',
+      departments: Array.isArray(member.departments) ? member.departments : [],
       status: member.status,
       growthLevel: member.growthLevel,
       arkCenterId: member.arkCenterId || '',
@@ -237,7 +237,7 @@ export default function MembersPage() {
       joinDate: '',
       baptismDate: '',
       fellowship: '',
-      department: '',
+      departments: [],
       status: 'ACTIVE',
       growthLevel: 'NEW_COMER',
       arkCenterId: '',
@@ -445,12 +445,12 @@ export default function MembersPage() {
                               Fellowship: {FELLOWSHIPS.find(f => f.value === member.fellowship)?.label}
                             </div>
                           )}
-                          {member.department && (
+                          {member.departments?.length > 0 && (
                             <div className="text-sm text-gray-600">
-                              Dept: {DEPARTMENTS.find(d => d.value === member.department)?.label}
+                              {member.departments.map(d => DEPARTMENTS.find(dept => dept.value === d)?.label).filter(Boolean).join(', ')}
                             </div>
                           )}
-                          {!member.fellowship && !member.department && (
+                          {!member.fellowship && !member.departments?.length && (
                             <span className="text-gray-400">Not assigned</span>
                           )}
                         </div>
@@ -722,20 +722,26 @@ export default function MembersPage() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Department
+                        Department(s)
                       </label>
-                      <select
-                        value={formData.department}
-                        onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                      >
-                        <option value="">Select department</option>
-                        {DEPARTMENTS.map(department => (
-                          <option key={department.value} value={department.value}>
-                            {department.label}
-                          </option>
+                      <div className="grid grid-cols-2 gap-2">
+                        {DEPARTMENTS.map(dept => (
+                          <label key={dept.value} className="flex items-center gap-2 cursor-pointer text-sm text-gray-700">
+                            <input
+                              type="checkbox"
+                              checked={formData.departments.includes(dept.value)}
+                              onChange={() => setFormData(prev => ({
+                                ...prev,
+                                departments: prev.departments.includes(dept.value)
+                                  ? prev.departments.filter(d => d !== dept.value)
+                                  : [...prev.departments, dept.value]
+                              }))}
+                              className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                            />
+                            {dept.label}
+                          </label>
                         ))}
-                      </select>
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">

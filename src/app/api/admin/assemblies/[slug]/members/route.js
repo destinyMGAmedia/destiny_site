@@ -79,7 +79,7 @@ export async function POST(request, { params }) {
       joinDate: body.joinDate ? new Date(body.joinDate) : new Date(),
       baptismDate: body.baptismDate ? new Date(body.baptismDate) : null,
       fellowship: body.fellowship || null,
-      department: body.department || null,
+      departments: Array.isArray(body.departments) ? body.departments : [],
       status: body.status || 'ACTIVE',
       growthLevel: body.growthLevel || 'NEW_COMER',
       arkCenterId: body.arkCenterId || null,
