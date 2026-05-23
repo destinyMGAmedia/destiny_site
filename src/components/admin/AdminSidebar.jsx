@@ -87,6 +87,10 @@ export default function AdminSidebar({ onItemClick }) {
               <NavItem href="/admin/members" icon={Users} label="Members" active={isActive('/admin/members')} onClick={onItemClick} />
             </NavSection>
 
+            <NavSection title="Reporting">
+              <NavItem href="/admin/reports" icon={ClipboardList} label="Weekly Reports" active={isActive('/admin/reports')} onClick={onItemClick} />
+            </NavSection>
+
             <NavSection title="Global Content">
               <NavItem href="/admin/site-content" icon={FileText} label="Site Content" active={isActive('/admin/site-content')} onClick={onItemClick} />
               <NavItem href="/admin/devotionals" icon={BookOpen} label="Royal Feed" active={isActive('/admin/devotionals')} onClick={onItemClick} />

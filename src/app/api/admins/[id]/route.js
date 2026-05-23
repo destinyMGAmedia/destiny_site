@@ -41,10 +41,31 @@ export async function PATCH(req, { params }) {
     updateData.role = body.role
   }
 
+  // Assembly assignment — required when role is ASSEMBLY_ADMIN or APP_ADMIN
+  const effectiveRole = body.role || target.role
+  if (['ASSEMBLY_ADMIN', 'APP_ADMIN'].includes(effectiveRole)) {
+    if (body.assemblySlug !== undefined) {
+      if (!body.assemblySlug) {
+        return NextResponse.json({ error: 'assemblySlug is required for this role.' }, { status: 400 })
+      }
+      const assembly = await prisma.assembly.findUnique({ where: { slug: body.assemblySlug } })
+      if (!assembly) {
+        return NextResponse.json({ error: `Assembly "${body.assemblySlug}" not found.` }, { status: 404 })
+      }
+      updateData.assemblyId = assembly.id
+    }
+  } else if (body.role && !['ASSEMBLY_ADMIN', 'APP_ADMIN'].includes(body.role)) {
+    // Switching away from an assembly-scoped role — clear the assembly
+    updateData.assemblyId = null
+  }
+
   const updated = await prisma.user.update({
     where: { id: (await params).id },
     data: updateData,
-    select: { id: true, name: true, email: true, role: true, isActive: true },
+    select: {
+      id: true, name: true, email: true, role: true, isActive: true,
+      assembly: { select: { name: true, slug: true } },
+    },
   })
 
   return NextResponse.json(updated)

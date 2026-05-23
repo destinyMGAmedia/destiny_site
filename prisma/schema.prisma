@@ -35,6 +35,7 @@ model Assembly {
   activityFeed     ActivityFeedItem[]
   arkCenters       ArkCenter[]
   reports          AssemblyReport[]
+  weeklyReports    WeeklyReport[]
   sections         AssemblySection[]
   serviceData      ServiceData[]
   visitors         Visitor[]
@@ -634,6 +635,47 @@ enum MemberStatus {
   INACTIVE
   TRANSFERRED
   DECEASED
+}
+
+model WeeklyReport {
+  id                   String             @id @default(cuid())
+  assemblyId           String
+  weekStart            DateTime
+  weekEnd              DateTime
+  status               WeeklyReportStatus @default(DRAFT)
+
+  branchPastor         String?
+  administrator        String?
+  thursdayAttendance   Json               @default("{}")
+  sundayAttendance     Json               @default("{}")
+  followUp             Json               @default("{}")
+  majorActivities      String?
+  leadershipMeetings   String?
+  challenges           String?
+  hqSupport            String?
+
+  financeOfficer       String?
+  thursdayIncome       Json               @default("{}")
+  sundayIncome         Json               @default("{}")
+  expenses             Json               @default("[]")
+  amountBanked         Float?
+  dateBanked           DateTime?
+  proofOfPayment       Boolean            @default(false)
+  proofUrl             String?
+
+  submittedAt          DateTime?
+  submittedById        String?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  assembly             Assembly           @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+
+  @@unique([assemblyId, weekStart])
+}
+
+enum WeeklyReportStatus {
+  DRAFT
+  SUBMITTED
 }
 
 enum ReportPeriod {

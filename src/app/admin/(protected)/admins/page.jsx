@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { RefreshCw, Eye, EyeOff, Copy, Check, Search, Plus, X } from 'lucide-react'
+import { RefreshCw, Eye, EyeOff, Copy, Check, Search, Plus, X, Pencil } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 
 const ROLE_LABELS = {
@@ -221,6 +221,120 @@ function CreateAdminModal({ onClose, onCreated, isSuperAdmin, assemblies }) {
   )
 }
 
+function EditAdminModal({ admin, onClose, onUpdated, isSuperAdmin, assemblies }) {
+  const [form, setForm] = useState({
+    name: admin.name,
+    role: admin.role,
+    assemblySlug: admin.assembly?.slug || '',
+    isActive: admin.isActive,
+  })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  const editableRoles = isSuperAdmin ? CREATABLE_ROLES_SUPER : CREATABLE_ROLES_GLOBAL
+  const needsAssembly = ['ASSEMBLY_ADMIN', 'APP_ADMIN'].includes(form.role)
+
+  const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }))
+  const setCheck = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.checked }))
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError(null)
+    setLoading(true)
+    try {
+      const body = { name: form.name, role: form.role, isActive: form.isActive }
+      if (needsAssembly) body.assemblySlug = form.assemblySlug
+      else body.assemblySlug = ''
+
+      const res = await fetch(`/api/admins/${admin.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to update admin')
+      onUpdated(data)
+      onClose()
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="font-bold text-lg" style={{ fontFamily: 'var(--font-serif)', color: 'var(--purple-900)' }}>
+            Edit Admin
+          </h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X size={18} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="form-label">Full Name</label>
+            <input className="form-input" value={form.name} onChange={set('name')} required />
+          </div>
+
+          <div>
+            <label className="form-label">Email</label>
+            <input className="form-input" value={admin.email} disabled style={{ opacity: 0.5 }} />
+            <p className="text-xs text-gray-400 mt-1">Email cannot be changed.</p>
+          </div>
+
+          <div>
+            <label className="form-label">Role</label>
+            <select className="form-input" value={form.role} onChange={set('role')} required>
+              {editableRoles.map(r => (
+                <option key={r} value={r}>{ROLE_LABELS[r]?.label || r}</option>
+              ))}
+            </select>
+          </div>
+
+          {needsAssembly && (
+            <div>
+              <label className="form-label">Assembly</label>
+              <select className="form-input" value={form.assemblySlug} onChange={set('assemblySlug')} required>
+                <option value="">— Select assembly —</option>
+                {assemblies.map(a => (
+                  <option key={a.slug} value={a.slug}>{a.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <div className="flex items-center gap-3 pt-1">
+            <input
+              type="checkbox"
+              id="isActive"
+              checked={form.isActive}
+              onChange={setCheck('isActive')}
+              className="w-4 h-4 rounded"
+            />
+            <label htmlFor="isActive" className="text-sm font-medium text-gray-700">
+              Account active
+            </label>
+          </div>
+
+          {error && <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
+
+          <div className="flex gap-2 pt-1">
+            <button type="submit" disabled={loading} className="btn-primary flex-1 justify-center disabled:opacity-60">
+              {loading ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Check size={15} />}
+              {loading ? 'Saving...' : 'Save Changes'}
+            </button>
+            <button type="button" onClick={onClose} className="btn-outline">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 export default function AdminsPage() {
   const { data: session } = useSession()
   const [admins, setAdmins] = useState([])
@@ -228,6 +342,7 @@ export default function AdminsPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState(null)
+  const [editTarget, setEditTarget] = useState(null)
   const [showCreate, setShowCreate] = useState(false)
 
   const isSuperAdmin = session?.user?.role === 'SUPER_ADMIN'
@@ -317,13 +432,22 @@ export default function AdminsPage() {
                       </td>
                       <td className="px-4 py-3">
                         {!isSA && (
-                          <button
-                            onClick={() => setSelected(admin)}
-                            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition"
-                            style={{ color: 'var(--purple-700)', background: 'var(--purple-50)' }}
-                          >
-                            <RefreshCw size={12} /> Regenerate
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => setEditTarget(admin)}
+                              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition"
+                              style={{ color: 'var(--purple-700)', background: 'var(--purple-50)' }}
+                            >
+                              <Pencil size={12} /> Edit
+                            </button>
+                            <button
+                              onClick={() => setSelected(admin)}
+                              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition"
+                              style={{ color: '#b45309', background: '#fef3c7' }}
+                            >
+                              <RefreshCw size={12} /> Regenerate
+                            </button>
+                          </div>
                         )}
                       </td>
                     </tr>
@@ -353,6 +477,19 @@ export default function AdminsPage() {
           assemblies={assemblies}
           onClose={() => setShowCreate(false)}
           onCreated={(newAdmin) => setAdmins(prev => [...prev, newAdmin])}
+        />
+      )}
+
+      {editTarget && (
+        <EditAdminModal
+          admin={editTarget}
+          isSuperAdmin={isSuperAdmin}
+          assemblies={assemblies}
+          onClose={() => setEditTarget(null)}
+          onUpdated={(updated) => {
+            setAdmins(prev => prev.map(a => a.id === updated.id ? { ...a, ...updated } : a))
+            setEditTarget(null)
+          }}
         />
       )}
     </div>

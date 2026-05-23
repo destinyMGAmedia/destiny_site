@@ -135,7 +135,7 @@ export default async function AssemblyAdminPage({ params }) {
     { href: 'ark-centers', icon: Home,            label: 'Ark Centers',      desc: `${stats.arkCenters} centers, ${stats.arkAttendanceThisMonth} attending` },
     { href: 'finance',     icon: DollarSign,      label: 'Finance',          desc: 'Offerings & expenditure' },
     { href: 'schedule',    icon: Calendar,        label: 'Schedule',         desc: 'Service schedule' },
-    { href: 'reports',     icon: ClipboardList,   label: 'Reports',          desc: 'Monthly & annual reports' },
+    { href: 'reports',     icon: ClipboardList,   label: 'Reports',          desc: 'Weekly reports & submissions' },
     { href: 'settings',    icon: Settings,        label: 'Settings',         desc: 'Assembly settings' },
   ]
 
