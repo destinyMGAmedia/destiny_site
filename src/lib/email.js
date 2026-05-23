@@ -1,16 +1,6 @@
-import nodemailer from 'nodemailer'
+import { Resend } from 'resend'
 
-function getTransporter() {
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT || 587),
-    secure: process.env.SMTP_SECURE === 'true',
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  })
-}
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 function credentialEmailHtml({ name, username, password, role, assemblyName, isRegenerated }) {
   const roleLabel = {
@@ -113,19 +103,21 @@ function credentialEmailHtml({ name, username, password, role, assemblyName, isR
 
 /**
  * Send login credentials to an admin via email.
- * Silently skips if SMTP is not configured or no email provided.
+ * Silently skips if RESEND_API_KEY is not configured or no email provided.
  */
 export async function sendCredentialEmail({ to, name, username, password, role, assemblyName, isRegenerated = false }) {
-  if (!to || !process.env.SMTP_HOST || !process.env.SMTP_USER) return
+  if (!to || !process.env.RESEND_API_KEY) return
+
+  const fromName = process.env.RESEND_FROM_NAME || 'DMGA Admin'
+  const fromEmail = process.env.RESEND_FROM_EMAIL || 'noreply@destinymissionglobal.org'
+
+  const subject = isRegenerated
+    ? 'Your DMGA Admin Credentials Have Been Reset'
+    : 'Your DMGA Admin Account Is Ready'
 
   try {
-    const transporter = getTransporter()
-    const subject = isRegenerated
-      ? 'Your DMGA Admin Credentials Have Been Reset'
-      : 'Your DMGA Admin Account Is Ready'
-
-    await transporter.sendMail({
-      from: process.env.SMTP_FROM || `"DMGA Admin" <${process.env.SMTP_USER}>`,
+    await resend.emails.send({
+      from: `${fromName} <${fromEmail}>`,
       to,
       subject,
       html: credentialEmailHtml({ name, username, password, role, assemblyName, isRegenerated }),
