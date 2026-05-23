@@ -3,6 +3,7 @@ import { authOptions, isGlobalAdmin } from '@/lib/auth'
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
+import { sendCredentialEmail } from '@/lib/email'
 
 // GET /api/admins — list all admin users (GLOBAL_ADMIN+)
 export async function GET() {
@@ -13,8 +14,8 @@ export async function GET() {
 
   const admins = await prisma.user.findMany({
     select: {
-      id: true, name: true, email: true, role: true, isActive: true,
-      createdAt: true, lastLogin: true,
+      id: true, name: true, username: true, email: true, role: true, isActive: true,
+      createdAt: true, lastLogin: true, rawPassword: true,
       assembly: { select: { name: true, slug: true } },
     },
     orderBy: [{ role: 'asc' }, { name: 'asc' }],
@@ -31,13 +32,18 @@ export async function POST(req) {
   }
 
   const body = await req.json()
-  const { name, email, password, role, assemblySlug } = body
+  const { name, username, email, password, role, assemblySlug } = body
 
-  if (!name || !email || !password || !role) {
-    return NextResponse.json({ error: 'name, email, password, role are required' }, { status: 400 })
+  if (!name || !username || !password || !role) {
+    return NextResponse.json({ error: 'name, username, password, role are required' }, { status: 400 })
   }
 
-  // Only SUPER_ADMIN can create other SUPER_ADMIN or GLOBAL_ADMIN accounts
+  // Username must be alphanumeric
+  if (!/^[a-zA-Z0-9]+$/.test(username)) {
+    return NextResponse.json({ error: 'Username must contain only letters and numbers.' }, { status: 400 })
+  }
+
+  // Only SUPER_ADMIN can create GLOBAL_ADMIN accounts
   if (
     ['SUPER_ADMIN', 'GLOBAL_ADMIN'].includes(role) &&
     session.user.role !== 'SUPER_ADMIN'
@@ -48,13 +54,23 @@ export async function POST(req) {
     )
   }
 
-  const exists = await prisma.user.findUnique({ where: { email: email.toLowerCase() } })
-  if (exists) {
-    return NextResponse.json({ error: 'An account with this email already exists.' }, { status: 409 })
+  // Check username uniqueness
+  const usernameExists = await prisma.user.findUnique({ where: { username } })
+  if (usernameExists) {
+    return NextResponse.json({ error: 'This username is already taken.' }, { status: 409 })
   }
 
-  // Resolve assembly if role is ASSEMBLY_ADMIN or APP_ADMIN
+  // Check email uniqueness (only if provided)
+  if (email) {
+    const emailExists = await prisma.user.findUnique({ where: { email: email.toLowerCase() } })
+    if (emailExists) {
+      return NextResponse.json({ error: 'An account with this email already exists.' }, { status: 409 })
+    }
+  }
+
+  // Resolve assembly
   let assemblyId = null
+  let assemblyName = null
   if (['ASSEMBLY_ADMIN', 'APP_ADMIN'].includes(role)) {
     if (!assemblySlug) {
       return NextResponse.json({ error: 'assemblySlug is required for this role.' }, { status: 400 })
@@ -64,6 +80,7 @@ export async function POST(req) {
       return NextResponse.json({ error: `Assembly "${assemblySlug}" not found.` }, { status: 404 })
     }
     assemblyId = assembly.id
+    assemblyName = assembly.name
   }
 
   const hashed = await bcrypt.hash(password, 12)
@@ -71,17 +88,30 @@ export async function POST(req) {
   const user = await prisma.user.create({
     data: {
       name,
-      email: email.toLowerCase(),
+      username,
+      email: email ? email.toLowerCase() : null,
       password: hashed,
+      rawPassword: password,
       role,
       assemblyId,
       isActive: true,
       mustChangePassword: true,
     },
     select: {
-      id: true, name: true, email: true, role: true, isActive: true, createdAt: true,
+      id: true, name: true, username: true, email: true, role: true, isActive: true, createdAt: true,
       assembly: { select: { name: true, slug: true } },
     },
+  })
+
+  // Send credential email if email provided
+  await sendCredentialEmail({
+    to: email || null,
+    name,
+    username,
+    password,
+    role,
+    assemblyName,
+    isRegenerated: false,
   })
 
   return NextResponse.json(user, { status: 201 })

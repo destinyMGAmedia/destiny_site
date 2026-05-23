@@ -13,10 +13,12 @@ export async function GET() {
     select: {
       id: true,
       name: true,
+      username: true,
       email: true,
       role: true,
       isActive: true,
       lastLogin: true,
+      rawPassword: true,
       assembly: { select: { name: true, slug: true } },
     },
     orderBy: [{ role: 'asc' }, { name: 'asc' }],

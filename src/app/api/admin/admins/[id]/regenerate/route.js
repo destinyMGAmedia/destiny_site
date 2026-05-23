@@ -3,6 +3,7 @@ import { authOptions, isGlobalAdmin } from '@/lib/auth'
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
+import { sendCredentialEmail } from '@/lib/email'
 
 function generatePassword() {
   const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'
@@ -24,7 +25,7 @@ export async function POST(req, { params }) {
 
   const user = await prisma.user.findUnique({
     where: { id },
-    select: { id: true, name: true, email: true, role: true },
+    select: { id: true, name: true, username: true, email: true, role: true, assembly: { select: { name: true } } },
   })
 
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
@@ -35,7 +36,18 @@ export async function POST(req, { params }) {
   const newPassword = generatePassword()
   const hash = await bcrypt.hash(newPassword, 12)
 
-  await prisma.user.update({ where: { id }, data: { password: hash, mustChangePassword: true } })
+  await prisma.user.update({ where: { id }, data: { password: hash, rawPassword: newPassword, mustChangePassword: true } })
+
+  // Send email if user has one
+  await sendCredentialEmail({
+    to: user.email || null,
+    name: user.name,
+    username: user.username || user.email || '',
+    password: newPassword,
+    role: user.role,
+    assemblyName: user.assembly?.name || null,
+    isRegenerated: true,
+  })
 
   return NextResponse.json({
     name: user.name,

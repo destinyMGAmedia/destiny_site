@@ -16,44 +16,45 @@ export const authOptions = {
     CredentialsProvider({
       name: 'credentials',
       credentials: {
-        email: { label: 'Email', type: 'email' },
+        username: { label: 'Username', type: 'text' },
         password: { label: 'Password', type: 'password' },
       },
 
       async authorize(credentials) {
         try {
-          if (!credentials?.email || !credentials?.password) {
-            throw new Error('Email and password are required')
+          if (!credentials?.username || !credentials?.password) {
+            throw new Error('Username and password are required')
           }
 
-          const email = credentials.email.toLowerCase().trim()
+          const identifier = credentials.username.trim()
 
-          const user = await prisma.user.findUnique({
-            where: { email },
+          // Try username first, then email as fallback (for existing accounts)
+          const user = await prisma.user.findFirst({
+            where: {
+              OR: [
+                { username: identifier },
+                { email: identifier.toLowerCase() },
+              ],
+            },
             include: {
-              assembly: { 
-                select: { 
-                  id: true, 
-                  slug: true, 
-                  name: true 
-                } 
+              assembly: {
+                select: { id: true, slug: true, name: true },
               },
             },
           })
 
-          if (!user) throw new Error('No account found with this email')
+          if (!user) throw new Error('No account found with this username')
           if (!user.isActive) throw new Error('This account has been deactivated. Contact your administrator.')
 
           const isValid = await bcrypt.compare(credentials.password, user.password)
           if (!isValid) throw new Error('Incorrect password')
 
-          // Record last login
           await prisma.user.update({
             where: { id: user.id },
             data: { lastLogin: new Date() },
           })
 
-          console.log(`[AUTH] Successful login: ${email} (${user.role})`)
+          console.log(`[AUTH] Successful login: ${identifier} (${user.role})`)
 
           return {
             id: user.id,
@@ -67,7 +68,7 @@ export const authOptions = {
           }
         } catch (error) {
           console.error('[AUTH_ERROR] Login failed:', error.message)
-          throw error // Let NextAuth handle the error message
+          throw error
         }
       },
     }),

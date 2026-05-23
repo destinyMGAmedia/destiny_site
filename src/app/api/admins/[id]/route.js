@@ -22,12 +22,37 @@ export async function PATCH(req, { params }) {
   const body = await req.json()
   const updateData = {}
 
-  if (body.name)     updateData.name     = body.name
+  if (body.name) updateData.name = body.name
   if (body.isActive !== undefined) updateData.isActive = body.isActive
+
+  // Username update
+  if (body.username !== undefined && body.username !== target.username) {
+    if (body.username && !/^[a-zA-Z0-9]+$/.test(body.username)) {
+      return NextResponse.json({ error: 'Username must contain only letters and numbers.' }, { status: 400 })
+    }
+    if (body.username) {
+      const usernameTaken = await prisma.user.findUnique({ where: { username: body.username } })
+      if (usernameTaken) return NextResponse.json({ error: 'This username is already taken.' }, { status: 409 })
+    }
+    updateData.username = body.username || null
+  }
+
+  // Email update — optional, check uniqueness
+  if ('email' in body) {
+    const newEmail = body.email ? body.email.toLowerCase() : null
+    if (newEmail !== target.email) {
+      if (newEmail) {
+        const emailTaken = await prisma.user.findUnique({ where: { email: newEmail } })
+        if (emailTaken) return NextResponse.json({ error: 'Email is already in use by another account.' }, { status: 409 })
+      }
+      updateData.email = newEmail
+    }
+  }
 
   // Password reset
   if (body.password) {
     updateData.password = await bcrypt.hash(body.password, 12)
+    updateData.rawPassword = body.password
   }
 
   // Role change — only SUPER_ADMIN can elevate to SUPER_ADMIN or GLOBAL_ADMIN
@@ -63,7 +88,7 @@ export async function PATCH(req, { params }) {
     where: { id: (await params).id },
     data: updateData,
     select: {
-      id: true, name: true, email: true, role: true, isActive: true,
+      id: true, name: true, username: true, email: true, role: true, isActive: true, rawPassword: true,
       assembly: { select: { name: true, slug: true } },
     },
   })

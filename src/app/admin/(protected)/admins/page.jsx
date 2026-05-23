@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { RefreshCw, Eye, EyeOff, Copy, Check, Search, Plus, X, Pencil } from 'lucide-react'
+// Eye/EyeOff kept for CredentialModal show/hide toggle
 import { useSession } from 'next-auth/react'
 
 const ROLE_LABELS = {
@@ -15,7 +16,7 @@ const ROLE_LABELS = {
 const CREATABLE_ROLES_GLOBAL = ['SITE_CONTENT_ADMIN', 'ASSEMBLY_ADMIN', 'APP_ADMIN']
 const CREATABLE_ROLES_SUPER = ['GLOBAL_ADMIN', 'SITE_CONTENT_ADMIN', 'ASSEMBLY_ADMIN', 'APP_ADMIN']
 
-function CredentialModal({ admin, onClose }) {
+function CredentialModal({ admin, onClose, onRegenerated }) {
   const [loading, setLoading] = useState(false)
   const [cred, setCred] = useState(null)
   const [error, setError] = useState(null)
@@ -30,6 +31,7 @@ function CredentialModal({ admin, onClose }) {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
       setCred(data)
+      onRegenerated?.(admin.id, data.password)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -102,7 +104,7 @@ function CredentialModal({ admin, onClose }) {
 }
 
 function CreateAdminModal({ onClose, onCreated, isSuperAdmin, assemblies }) {
-  const [form, setForm] = useState({ name: '', email: '', role: 'SITE_CONTENT_ADMIN', assemblySlug: '' })
+  const [form, setForm] = useState({ name: '', username: '', email: '', role: 'SITE_CONTENT_ADMIN', assemblySlug: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [result, setResult] = useState(null)
@@ -122,7 +124,7 @@ function CreateAdminModal({ onClose, onCreated, isSuperAdmin, assemblies }) {
       const res = await fetch('/api/admins', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, password }),
+        body: JSON.stringify({ ...form, email: form.email || undefined, password }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to create admin')
@@ -137,7 +139,7 @@ function CreateAdminModal({ onClose, onCreated, isSuperAdmin, assemblies }) {
 
   const copy = () => {
     if (!result) return
-    navigator.clipboard.writeText(`Name: ${result.name}\nEmail: ${result.email}\nPassword: ${result.password}`)
+    navigator.clipboard.writeText(`Name: ${result.name}\nUsername: ${result.username}\nPassword: ${result.password}`)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -158,11 +160,14 @@ function CreateAdminModal({ onClose, onCreated, isSuperAdmin, assemblies }) {
           <div className="space-y-4">
             <div className="p-4 rounded-xl" style={{ background: '#dcfce7' }}>
               <p className="text-sm font-semibold text-green-700 mb-1">Account created!</p>
-              <p className="text-xs text-green-600">Share these credentials securely. The admin will be prompted to change the password on first login.</p>
+              <p className="text-xs text-green-600">
+                Share these credentials securely.{result.email ? ' An email has been sent to the admin.' : ''}
+              </p>
             </div>
             <div className="rounded-xl border p-4 space-y-2 text-sm" style={{ borderColor: 'var(--border)', background: 'var(--ivory)' }}>
               <div className="flex justify-between"><span className="text-gray-500">Name</span><span className="font-semibold">{result.name}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Email</span><span className="font-mono text-xs">{result.email}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">Username</span><span className="font-mono font-bold">{result.username}</span></div>
+              {result.email && <div className="flex justify-between"><span className="text-gray-500">Email</span><span className="font-mono text-xs">{result.email}</span></div>}
               <div className="flex justify-between"><span className="text-gray-500">Role</span><span className="font-semibold">{ROLE_LABELS[result.role]?.label}</span></div>
               <div className="flex justify-between items-center"><span className="text-gray-500">Password</span><span className="font-mono font-bold">{result.password}</span></div>
             </div>
@@ -178,8 +183,20 @@ function CreateAdminModal({ onClose, onCreated, isSuperAdmin, assemblies }) {
               <input className="form-input" value={form.name} onChange={set('name')} required placeholder="John Doe" />
             </div>
             <div>
-              <label className="form-label">Email</label>
-              <input className="form-input" type="email" value={form.email} onChange={set('email')} required placeholder="admin@example.com" />
+              <label className="form-label">Username <span className="text-red-500">*</span></label>
+              <input
+                className="form-input font-mono"
+                value={form.username}
+                onChange={e => setForm(f => ({ ...f, username: e.target.value.replace(/[^a-zA-Z0-9]/g, '') }))}
+                required
+                placeholder="e.g. lagosadmin01"
+                autoCapitalize="none"
+              />
+              <p className="text-xs text-gray-400 mt-1">Letters and numbers only. This is what the admin uses to log in.</p>
+            </div>
+            <div>
+              <label className="form-label">Email <span className="text-gray-400 font-normal">(optional — for credential notifications)</span></label>
+              <input className="form-input" type="email" value={form.email} onChange={set('email')} placeholder="admin@example.com" />
             </div>
             <div>
               <label className="form-label">Role</label>
@@ -224,6 +241,8 @@ function CreateAdminModal({ onClose, onCreated, isSuperAdmin, assemblies }) {
 function EditAdminModal({ admin, onClose, onUpdated, isSuperAdmin, assemblies }) {
   const [form, setForm] = useState({
     name: admin.name,
+    username: admin.username || '',
+    email: admin.email || '',
     role: admin.role,
     assemblySlug: admin.assembly?.slug || '',
     isActive: admin.isActive,
@@ -242,7 +261,13 @@ function EditAdminModal({ admin, onClose, onUpdated, isSuperAdmin, assemblies })
     setError(null)
     setLoading(true)
     try {
-      const body = { name: form.name, role: form.role, isActive: form.isActive }
+      const body = {
+        name: form.name,
+        username: form.username || undefined,
+        email: form.email || null,
+        role: form.role,
+        isActive: form.isActive,
+      }
       if (needsAssembly) body.assemblySlug = form.assemblySlug
       else body.assemblySlug = ''
 
@@ -281,9 +306,20 @@ function EditAdminModal({ admin, onClose, onUpdated, isSuperAdmin, assemblies })
           </div>
 
           <div>
-            <label className="form-label">Email</label>
-            <input className="form-input" value={admin.email} disabled style={{ opacity: 0.5 }} />
-            <p className="text-xs text-gray-400 mt-1">Email cannot be changed.</p>
+            <label className="form-label">Username</label>
+            <input
+              className="form-input font-mono"
+              value={form.username}
+              onChange={e => setForm(f => ({ ...f, username: e.target.value.replace(/[^a-zA-Z0-9]/g, '') }))}
+              placeholder="lettersandnumbers only"
+              autoCapitalize="none"
+            />
+            <p className="text-xs text-gray-400 mt-1">Letters and numbers only.</p>
+          </div>
+
+          <div>
+            <label className="form-label">Email <span className="text-gray-400 font-normal">(optional — for notifications)</span></label>
+            <input className="form-input" type="email" value={form.email} onChange={set('email')} placeholder="admin@example.com" />
           </div>
 
           <div>
@@ -358,11 +394,15 @@ export default function AdminsPage() {
     }).catch(() => setLoading(false))
   }, [])
 
-  const filtered = admins.filter(a =>
-    a.name.toLowerCase().includes(search.toLowerCase()) ||
-    a.email.toLowerCase().includes(search.toLowerCase()) ||
-    (a.assembly?.name || '').toLowerCase().includes(search.toLowerCase())
-  )
+  const filtered = admins.filter(a => {
+    const q = search.toLowerCase()
+    return (
+      a.name.toLowerCase().includes(q) ||
+      (a.username || '').toLowerCase().includes(q) ||
+      (a.email || '').toLowerCase().includes(q) ||
+      (a.assembly?.name || '').toLowerCase().includes(q)
+    )
+  })
 
   return (
     <div className="space-y-6 fade-in">
@@ -399,7 +439,8 @@ export default function AdminsPage() {
               <thead>
                 <tr style={{ background: 'var(--ivory)' }}>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Name</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Email</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden sm:table-cell">Username</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden lg:table-cell">Email</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden sm:table-cell">Assembly</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Role</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden md:table-cell">Last Login</th>
@@ -413,7 +454,12 @@ export default function AdminsPage() {
                   return (
                     <tr key={admin.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-3 font-semibold text-gray-900">{admin.name}</td>
-                      <td className="px-4 py-3 text-gray-500 font-mono text-xs">{admin.email}</td>
+                      <td className="px-4 py-3 font-mono text-xs text-gray-700 hidden sm:table-cell">
+                        {admin.username || <span className="text-gray-300">—</span>}
+                      </td>
+                      <td className="px-4 py-3 text-gray-500 text-xs hidden lg:table-cell">
+                        {admin.email || <span className="text-gray-300">—</span>}
+                      </td>
                       <td className="px-4 py-3 text-gray-600 hidden sm:table-cell">
                         {admin.assembly?.name || <span className="text-gray-300">—</span>}
                       </td>
@@ -455,7 +501,7 @@ export default function AdminsPage() {
                 })}
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-4 py-10 text-center text-gray-400">No admins found</td>
+                    <td colSpan={7} className="px-4 py-10 text-center text-gray-400">No admins found</td>
                   </tr>
                 )}
               </tbody>
@@ -468,6 +514,9 @@ export default function AdminsPage() {
         <CredentialModal
           admin={selected}
           onClose={() => setSelected(null)}
+          onRegenerated={(id, newPassword) =>
+            setAdmins(prev => prev.map(a => a.id === id ? { ...a, rawPassword: newPassword } : a))
+          }
         />
       )}
 
@@ -487,7 +536,7 @@ export default function AdminsPage() {
           assemblies={assemblies}
           onClose={() => setEditTarget(null)}
           onUpdated={(updated) => {
-            setAdmins(prev => prev.map(a => a.id === updated.id ? { ...a, ...updated } : a))
+            setAdmins(prev => prev.map(a => a.id === updated.id ? { ...a, ...updated, rawPassword: updated.rawPassword ?? a.rawPassword } : a))
             setEditTarget(null)
           }}
         />

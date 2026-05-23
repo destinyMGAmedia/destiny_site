@@ -55,8 +55,10 @@ model Assembly {
 
 model User {
   id                String    @id @default(cuid())
-  email             String    @unique
+  username          String?   @unique
+  email             String?   @unique
   password          String
+  rawPassword       String?
   name              String
   role              Role      @default(ASSEMBLY_ADMIN)
   isActive          Boolean   @default(true)

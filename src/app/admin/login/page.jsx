@@ -4,7 +4,7 @@ import { signIn } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react'
+import { AtSign, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react'
 import { getAdminLandingRoute } from '@/lib/auth'
 
 export default function AdminLogin() {
@@ -13,7 +13,7 @@ export default function AdminLogin() {
   
   const urlError = searchParams.get('error')
   
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -36,8 +36,8 @@ export default function AdminLogin() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     
-    if (!email || !password) {
-      setError('Please enter both email and password')
+    if (!username || !password) {
+      setError('Please enter both username and password')
       return
     }
 
@@ -46,7 +46,7 @@ export default function AdminLogin() {
 
     try {
       const result = await signIn('credentials', {
-        email: email.toLowerCase().trim(),
+        username: username.trim(),
         password,
         redirect: false,
       })
@@ -137,19 +137,20 @@ export default function AdminLogin() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Email */}
+              {/* Username */}
               <div>
-                <label className="form-label">Email Address</label>
+                <label className="form-label">Username</label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                  <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                   <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
                     className="form-input pl-9"
-                    placeholder="admin@destinymissions.org"
+                    placeholder="your username"
                     required
-                    autoComplete="email"
+                    autoComplete="username"
+                    autoCapitalize="none"
                     disabled={loading}
                   />
                 </div>
