@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth'
-import { 
-  authOptions, isGlobalAdmin, isAssemblyAdmin, 
-  isAppAdmin, isCustomer, isMember, isAgent 
+import {
+  authOptions, isGlobalAdmin, isAssemblyAdmin, isAppAdmin,
+  isSiteContentAdmin, isCustomer, isMember, isAgent
 } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import prisma from '@/lib/prisma'
@@ -92,7 +92,10 @@ export default async function DashboardPage() {
 
   const role = session.user.role
 
-  // ASSEMBLY_ADMIN and APP_ADMIN should go to their specific assembly dashboards
+  // Non-global admins go to their specific landing pages
+  if (isSiteContentAdmin(session)) {
+    redirect('/admin/site-content')
+  }
   if (isAssemblyAdmin(session) && !isGlobalAdmin(session)) {
     redirect(`/admin/assemblies/${session.user.assemblySlug}`)
   }

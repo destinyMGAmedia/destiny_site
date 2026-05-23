@@ -18,10 +18,19 @@ export async function proxy(req) {
   }
 
   // ── GLOBAL_ADMIN and above only ──────────────────
-  const globalOnlyPaths = ['/admin/admins', '/admin/assemblies/new', '/admin/channels', '/admin/hero-slides']
+  const globalOnlyPaths = ['/admin/admins', '/admin/assemblies/new']
   if (
     globalOnlyPaths.some((p) => pathname.startsWith(p)) &&
     !['SUPER_ADMIN', 'GLOBAL_ADMIN'].includes(role)
+  ) {
+    return NextResponse.redirect(new URL('/admin/dashboard?error=unauthorized', req.url))
+  }
+
+  // ── GLOBAL_ADMIN + SITE_CONTENT_ADMIN ────────────
+  const contentAdminPaths = ['/admin/channels', '/admin/hero-slides']
+  if (
+    contentAdminPaths.some((p) => pathname.startsWith(p)) &&
+    !['SUPER_ADMIN', 'GLOBAL_ADMIN', 'SITE_CONTENT_ADMIN'].includes(role)
   ) {
     return NextResponse.redirect(new URL('/admin/dashboard?error=unauthorized', req.url))
   }

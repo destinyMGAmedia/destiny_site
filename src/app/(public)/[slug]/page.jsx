@@ -21,6 +21,7 @@ export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ params }) {
   const { slug } = await params
+  if (slug.includes('.')) return { title: 'Not Found' }
   const assembly = await prisma.assembly.findUnique({
     where: { slug, isActive: true },
     select: { name: true, tagline: true, city: true },
@@ -34,6 +35,7 @@ export async function generateMetadata({ params }) {
 
 export default async function AssemblyPage({ params }) {
   const { slug } = await params
+  if (slug.includes('.')) notFound()
 
   const assembly = await prisma.assembly.findUnique({
     where: { slug, isActive: true },
