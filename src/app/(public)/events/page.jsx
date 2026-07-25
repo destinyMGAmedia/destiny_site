@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { Calendar, MapPin, Clock, ArrowLeft, Users, Globe, Baby } from 'lucide-react'
 import { format, parseISO, isAfter, isBefore } from 'date-fns'
 import prisma from '@/lib/prisma'
+import NationBanner from '@/components/assembly/NationBanner'
 
 export const dynamic = 'force-dynamic'
 
@@ -184,6 +185,8 @@ export default async function EventsPage() {
           </div>
         </div>
       </section>
+
+      <NationBanner />
 
       {/* Events Content */}
       <section className="py-16">

@@ -4,6 +4,7 @@ import Image from 'next/image'
 import SectionHeader from '@/components/ui/SectionHeader'
 import { MapPin, ArrowRight, Home, Users, Calendar, Clock } from 'lucide-react'
 import BackButton from '@/components/ui/BackButton'
+import NationBanner from '@/components/assembly/NationBanner'
 
 export const metadata = {
   title: 'Our Assemblies',
@@ -41,6 +42,8 @@ export default async function AssembliesPage() {
           <p className="text-white/60">A global family committed to Igniting Faith, Transforming Lives, and Reaching Nations.</p>
         </div>
       </div>
+
+      <NationBanner />
 
       <div className="section-container mt-16">
 

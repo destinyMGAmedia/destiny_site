@@ -15,6 +15,7 @@ import ContactSection from '@/components/assembly/ContactSection'
 import CustomSection from '@/components/assembly/CustomSection'
 import JoinUsQR from '@/components/assembly/JoinUsQR'
 import TeamSection from '@/components/assembly/TeamSection'
+import NationBanner from '@/components/assembly/NationBanner'
 
 // Force dynamic rendering for database-dependent content
 export const dynamic = 'force-dynamic'
@@ -169,6 +170,9 @@ export default async function AssemblyPage({ params }) {
     <>
       {/* Hero */}
       <AssemblyHero assembly={assembly} heroSection={heroSection} />
+
+      {/* Destiny Nation — global promotional banner, always on */}
+      <NationBanner />
 
       {/* Sticky Anchor Nav */}
       <AssemblyAnchorNav sections={anchorSections} />

@@ -127,3 +127,79 @@ export async function sendCredentialEmail({ to, name, username, password, role, 
     console.error('[EMAIL] Failed to send credential email:', err.message)
   }
 }
+
+// ─────────────────────────────────────────────
+// DESTINY NATION — GIVING EMAILS
+// ─────────────────────────────────────────────
+
+function nationFromAddress() {
+  const fromName = process.env.RESEND_FROM_NAME || 'Destiny Nation'
+  const fromEmail = process.env.RESEND_FROM_EMAIL || 'noreply@destinymissionglobal.org'
+  return `${fromName} <${fromEmail}>`
+}
+
+/** Receipt email sent to a donor after a SUCCESS payment. */
+export async function sendContributionReceiptEmail({ to, donorName, tierName, packageLabel, amount, currency }) {
+  if (!to || !process.env.RESEND_API_KEY) return
+  try {
+    await resend.emails.send({
+      from: nationFromAddress(),
+      to,
+      subject: 'Thank You for Partnering with Destiny Nation',
+      html: `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;">
+        <h2 style="color:#3b0764;">Thank you, ${donorName}!</h2>
+        <p>Your gift has been received with gratitude.</p>
+        <table cellpadding="6"><tr><td>Package</td><td><strong>${packageLabel}</strong></td></tr>
+        <tr><td>Tier</td><td><strong>${tierName}</strong></td></tr>
+        <tr><td>Amount</td><td><strong>${currency} ${amount.toLocaleString()}</strong></td></tr></table>
+        <p>You are now recognized among the Founding Gatekeepers of Destiny Nation — The Gatekeepers Commission.</p>
+      </div>`,
+    })
+  } catch (err) {
+    console.error('[EMAIL] Failed to send contribution receipt:', err.message)
+  }
+}
+
+/** Internal notification for pledge-tier (>=cutoff / Founders' Circle) submissions. */
+export async function sendPledgeNotificationEmail({ donorName, donorEmail, donorPhone, donorOrg, packageLabel, tierName, amount, currency }) {
+  const to = process.env.DESTINY_NATION_NOTIFY_EMAIL
+  if (!to || !process.env.RESEND_API_KEY) return
+  try {
+    await resend.emails.send({
+      from: nationFromAddress(),
+      to,
+      subject: `New Pledge Lead: ${packageLabel} / ${tierName}`,
+      html: `<div style="font-family:Arial,sans-serif;">
+        <h3>New Destiny Nation pledge submission</h3>
+        <p><strong>${donorName}</strong> (${donorEmail}${donorPhone ? `, ${donorPhone}` : ''})${donorOrg ? ` — ${donorOrg}` : ''}</p>
+        <p>Package: <strong>${packageLabel}</strong> — Tier: <strong>${tierName}</strong></p>
+        <p>Amount: <strong>${currency} ${amount.toLocaleString()}</strong></p>
+        <p>Follow up via the admin dashboard at /admin/nation.</p>
+      </div>`,
+    })
+  } catch (err) {
+    console.error('[EMAIL] Failed to send pledge notification:', err.message)
+  }
+}
+
+/** Internal notification for a manual bank-transfer stopgap submission. */
+export async function sendManualGivingNotificationEmail({ donorName, donorEmail, donorPhone, packageLabel, tierName, amount, currency }) {
+  const to = process.env.DESTINY_NATION_NOTIFY_EMAIL
+  if (!to || !process.env.RESEND_API_KEY) return
+  try {
+    await resend.emails.send({
+      from: nationFromAddress(),
+      to,
+      subject: `Manual Gift Reported: ${packageLabel} / ${tierName}`,
+      html: `<div style="font-family:Arial,sans-serif;">
+        <h3>A donor reported a direct bank transfer</h3>
+        <p><strong>${donorName}</strong> (${donorEmail}${donorPhone ? `, ${donorPhone}` : ''})</p>
+        <p>Package: <strong>${packageLabel}</strong> — Tier: <strong>${tierName}</strong></p>
+        <p>Stated amount: <strong>${currency} ${amount.toLocaleString()}</strong></p>
+        <p>Reconcile against the church's bank statement, then mark this row confirmed in /admin/nation.</p>
+      </div>`,
+    })
+  } catch (err) {
+    console.error('[EMAIL] Failed to send manual giving notification:', err.message)
+  }
+}

@@ -3,6 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRight, User } from 'lucide-react'
 import BackButton from '@/components/ui/BackButton'
+import NationBanner from '@/components/assembly/NationBanner'
 import prisma from '@/lib/prisma'
 
 const DEFAULTS = {
@@ -120,6 +121,8 @@ export default async function AboutPage() {
           </p>
         </div>
       </div>
+
+      <NationBanner />
 
       <div className="section-container">
 

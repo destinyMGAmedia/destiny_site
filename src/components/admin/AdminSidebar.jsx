@@ -7,7 +7,7 @@ import {
   Home, Users, Settings, LogOut, ChevronRight,
   LayoutDashboard, Calendar, DollarSign, BarChart2,
   Globe, Video, BookOpen, Grid3x3, ImageIcon,
-  UserCheck, ClipboardList, TrendingUp, Crown, FileText,
+  UserCheck, ClipboardList, TrendingUp, Crown, FileText, Landmark,
 } from 'lucide-react'
 import { MdOutlineChurch } from 'react-icons/md'
 
@@ -89,6 +89,10 @@ export default function AdminSidebar({ onItemClick }) {
 
             <NavSection title="Reporting">
               <NavItem href="/admin/reports" icon={ClipboardList} label="Weekly Reports" active={isActive('/admin/reports')} onClick={onItemClick} />
+            </NavSection>
+
+            <NavSection title="Destiny Nation">
+              <NavItem href="/admin/nation" icon={Landmark} label="Contributions" active={isActive('/admin/nation')} onClick={onItemClick} />
             </NavSection>
 
             <NavSection title="Global Content">

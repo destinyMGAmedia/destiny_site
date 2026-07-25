@@ -1,6 +1,7 @@
 import prisma from '@/lib/prisma'
 import { BookOpen, Calendar } from 'lucide-react'
 import BackButton from '@/components/ui/BackButton'
+import NationBanner from '@/components/assembly/NationBanner'
 
 export const metadata = {
   title: 'Royal Feed — Daily Devotionals',
@@ -46,6 +47,8 @@ export default async function RoyalFeedPage() {
           </div>
         </div>
       </div>
+
+      <NationBanner />
 
       <div className="section-container max-w-4xl">
         {devotionals.length > 0 ? (

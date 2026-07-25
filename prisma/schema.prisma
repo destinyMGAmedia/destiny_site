@@ -9,12 +9,12 @@ datasource db {
 }
 
 model Assembly {
-  id               String             @id @default(cuid())
-  slug             String             @unique
+  id               String                    @id @default(cuid())
+  slug             String                    @unique
   name             String
   city             String
   country          String
-  timezone         Timezone           @default(NIGERIA)
+  timezone         Timezone                  @default(NIGERIA)
   heroImage        String?
   heroImages       String[]
   tagline          String?
@@ -23,15 +23,15 @@ model Assembly {
   address          String?
   mapLink          String?
   parkingNotes     String?
-  serviceTimes     Json               @default("[]")
+  serviceTimes     Json                      @default("[]")
   phone            String?
   email            String?
   whatsapp         String?
   youtubeChannelId String?
-  isActive         Boolean            @default(true)
-  isHQ             Boolean            @default(false)
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
+  isActive         Boolean                   @default(true)
+  isHQ             Boolean                   @default(false)
+  createdAt        DateTime                  @default(now())
+  updatedAt        DateTime                  @updatedAt
   activityFeed     ActivityFeedItem[]
   arkCenters       ArkCenter[]
   reports          AssemblyReport[]
@@ -54,21 +54,21 @@ model Assembly {
 }
 
 model User {
-  id                String    @id @default(cuid())
-  username          String?   @unique
-  email             String?   @unique
-  password          String
-  rawPassword       String?
-  name              String
-  role              Role      @default(ASSEMBLY_ADMIN)
-  isActive          Boolean   @default(true)
-  assemblyId        String?
-  createdAt         DateTime  @default(now())
-  lastLogin         DateTime?
-  mustChangePassword Boolean  @default(false)
-  accounts   Account[]
-  sessions   Session[]
-  assembly   Assembly? @relation(fields: [assemblyId], references: [id])
+  id                 String    @id @default(cuid())
+  username           String?   @unique
+  email              String?   @unique
+  password           String
+  rawPassword        String?
+  name               String
+  role               Role      @default(ASSEMBLY_ADMIN)
+  isActive           Boolean   @default(true)
+  assemblyId         String?
+  createdAt          DateTime  @default(now())
+  lastLogin          DateTime?
+  mustChangePassword Boolean   @default(false)
+  accounts           Account[]
+  sessions           Session[]
+  assembly           Assembly? @relation(fields: [assemblyId], references: [id])
 }
 
 model Account {
@@ -273,66 +273,65 @@ model GivingDetails {
 }
 
 model ServiceData {
-  id           String    @id @default(cuid())
-  assemblyId   String
-  arkCenterId  String?
-  serviceDate  DateTime
-  serviceType  String    // SUNDAY, MIDWEEK, ARK_CENTER, SPECIAL
-  attendance   Int
-  offering     Float?
-  tithe        Float?
-  notes        String?
-  testimony    String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  assembly     Assembly  @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
-  arkCenter    ArkCenter? @relation(fields: [arkCenterId], references: [id], onDelete: Cascade)
+  id          String     @id @default(cuid())
+  assemblyId  String
+  arkCenterId String?
+  serviceDate DateTime
+  serviceType String // SUNDAY, MIDWEEK, ARK_CENTER, SPECIAL
+  attendance  Int
+  offering    Float?
+  tithe       Float?
+  notes       String?
+  testimony   String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  assembly    Assembly   @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+  arkCenter   ArkCenter? @relation(fields: [arkCenterId], references: [id], onDelete: Cascade)
 }
 
 model Visitor {
-  id           String    @id @default(cuid())
-  assemblyId   String
-  firstName      String
-  lastName       String
-  email        String?
-  phone        String?
-  visitDate    DateTime  @default(now())
-  followedUp   Boolean   @default(false)
-  notes        String?
-  createdAt    DateTime  @default(now())
-  assembly     Assembly  @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  assemblyId String
+  firstName  String
+  lastName   String
+  email      String?
+  phone      String?
+  visitDate  DateTime @default(now())
+  followedUp Boolean  @default(false)
+  notes      String?
+  createdAt  DateTime @default(now())
+  assembly   Assembly @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
 }
 
 model FirstTimer {
-  id             String    @id @default(cuid())
-  assemblyId     String?   // null for global registrations
-  firstName      String
-  lastName       String
-  middleName     String?
-  email          String?
-  phone          String?
-  address        String?
-  city           String?
-  state          String?
-  country        String?
-  dateOfBirth    DateTime?
-  gender         Gender?
-  occupation     String?
-  maritalStatus  String?
-  howDidYouHear  String?   // How did you hear about us?
-  prayerRequest  String?
-  isConverted    Boolean   @default(false) // Did they give their life to Christ?
-  wantsFollowUp  Boolean   @default(true)
-  followedUp     Boolean   @default(false)
-  convertedToMember Boolean @default(false) // Did they become a member?
-  memberId       String?   // If converted to member
-  notes          String?
-  registeredAt   DateTime  @default(now())
-  createdAt      DateTime  @default(now())
-  assembly       Assembly? @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
-  member         Member?   @relation(fields: [memberId], references: [id])
+  id                String    @id @default(cuid())
+  assemblyId        String? // null for global registrations
+  firstName         String
+  lastName          String
+  middleName        String?
+  email             String?
+  phone             String?
+  address           String?
+  city              String?
+  state             String?
+  country           String?
+  dateOfBirth       DateTime?
+  gender            Gender?
+  occupation        String?
+  maritalStatus     String?
+  howDidYouHear     String? // How did you hear about us?
+  prayerRequest     String?
+  isConverted       Boolean   @default(false) // Did they give their life to Christ?
+  wantsFollowUp     Boolean   @default(true)
+  followedUp        Boolean   @default(false)
+  convertedToMember Boolean   @default(false) // Did they become a member?
+  memberId          String? // If converted to member
+  notes             String?
+  registeredAt      DateTime  @default(now())
+  createdAt         DateTime  @default(now())
+  assembly          Assembly? @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+  member            Member?   @relation(fields: [memberId], references: [id])
 }
-
 
 model Game {
   id            String   @id @default(cuid())
@@ -395,29 +394,29 @@ model GameRoom {
 }
 
 model GamePlayer {
-  id        String     @id @default(cuid())
-  roomId    String
-  username  String
-  position  Int
-  score     Int        @default(0)
-  stars     Int        @default(0)
-  status    PlayerStatus @default(ACTIVE)
-  joinedAt  DateTime   @default(now())
-  room      GameRoom   @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  
+  id       String       @id @default(cuid())
+  roomId   String
+  username String
+  position Int
+  score    Int          @default(0)
+  stars    Int          @default(0)
+  status   PlayerStatus @default(ACTIVE)
+  joinedAt DateTime     @default(now())
+  room     GameRoom     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
   @@unique([roomId, username])
 }
 
 model GameInvite {
-  id          String      @id @default(cuid())
-  roomId      String
-  fromPlayer  String
-  toPlayer    String
-  status      InviteStatus @default(PENDING)
-  createdAt   DateTime    @default(now())
-  expiresAt   DateTime
-  room        GameRoom    @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  
+  id         String       @id @default(cuid())
+  roomId     String
+  fromPlayer String
+  toPlayer   String
+  status     InviteStatus @default(PENDING)
+  createdAt  DateTime     @default(now())
+  expiresAt  DateTime
+  room       GameRoom     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
   @@unique([roomId, toPlayer])
 }
 
@@ -438,7 +437,7 @@ model AssemblySection {
 }
 
 model ArkCenter {
-  id          String   @id @default(cuid())
+  id          String        @id @default(cuid())
   assemblyId  String
   name        String
   location    String?
@@ -446,44 +445,44 @@ model ArkCenter {
   meetingDay  String?
   meetingTime String?
   leaderId    String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  assembly    Assembly @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
-  leader      Member?  @relation("ArkCenterLeader", fields: [leaderId], references: [id])
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  assembly    Assembly      @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+  leader      Member?       @relation("ArkCenterLeader", fields: [leaderId], references: [id])
   members     Member[]
   serviceData ServiceData[]
 }
 
 model GrowthStage {
-  id           String          @id @default(cuid())
-  level        GrowthLevel     @unique
-  title        String
-  description  String?
-  contents     GrowthContent[]
-  questions    GrowthQuestion[]
-  progress     MemberProgress[]
+  id          String           @id @default(cuid())
+  level       GrowthLevel      @unique
+  title       String
+  description String?
+  contents    GrowthContent[]
+  questions   GrowthQuestion[]
+  progress    MemberProgress[]
 }
 
 model GrowthContent {
-  id           String      @id @default(cuid())
-  stageId      String
-  title        String
-  type         String      // VIDEO, TEXT, PDF, IMAGE
-  url          String
-  body         String?
-  order        Int         @default(0)
-  stage        GrowthStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  id      String      @id @default(cuid())
+  stageId String
+  title   String
+  type    String // VIDEO, TEXT, PDF, IMAGE
+  url     String
+  body    String?
+  order   Int         @default(0)
+  stage   GrowthStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
 }
 
 model GrowthQuestion {
-  id           String      @id @default(cuid())
-  stageId      String
-  question     String
-  type         String      // MULTIPLE_CHOICE, TEXT_SUMMARY, DRAG_DROP
-  options      Json?
+  id            String      @id @default(cuid())
+  stageId       String
+  question      String
+  type          String // MULTIPLE_CHOICE, TEXT_SUMMARY, DRAG_DROP
+  options       Json?
   correctAnswer String?
-  stage        GrowthStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  stage         GrowthStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
 }
 
 model MemberProgress {
@@ -497,7 +496,7 @@ model MemberProgress {
   enrolledAt        DateTime?
   completedAt       DateTime?
   completedContents Json        @default("[]") // array of GrowthContent IDs marked complete
-  assessmentAnswers Json?       // stored TEXT_SUMMARY answers for admin review
+  assessmentAnswers Json? // stored TEXT_SUMMARY answers for admin review
   member            Member      @relation(fields: [memberId], references: [id], onDelete: Cascade)
   stage             GrowthStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
 
@@ -505,24 +504,24 @@ model MemberProgress {
 }
 
 model PromotionRecommendation {
-  id              String           @id @default(cuid())
+  id              String          @id @default(cuid())
   memberId        String
   assemblyId      String
   fromLevel       GrowthLevel
   toLevel         GrowthLevel
-  status          PromotionStatus  @default(PENDING)
-  notes           String?          // Reason from assembly admin
-  adminNotes      String?          // Feedback from global admin
-  recommendedById String?          // User ID of assembly admin who recommended
-  resolvedById    String?          // User ID of global admin who resolved
-  createdAt       DateTime         @default(now())
+  status          PromotionStatus @default(PENDING)
+  notes           String? // Reason from assembly admin
+  adminNotes      String? // Feedback from global admin
+  recommendedById String? // User ID of assembly admin who recommended
+  resolvedById    String? // User ID of global admin who resolved
+  createdAt       DateTime        @default(now())
   resolvedAt      DateTime?
-  member          Member           @relation(fields: [memberId], references: [id], onDelete: Cascade)
-  assembly        Assembly         @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+  member          Member          @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  assembly        Assembly        @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
 }
 
 model Member {
-  id             String       @id @default(cuid())
+  id             String                    @id @default(cuid())
   assemblyId     String
   firstName      String
   lastName       String
@@ -536,21 +535,21 @@ model Member {
   city           String?
   state          String?
   country        String?
-  joinDate       DateTime     @default(now())
+  joinDate       DateTime                  @default(now())
   baptismDate    DateTime?
   fellowship     Fellowship?
   departments    Department[]
-  status         MemberStatus @default(ACTIVE)
-  growthLevel    GrowthLevel  @default(NEW_COMER)
+  status         MemberStatus              @default(ACTIVE)
+  growthLevel    GrowthLevel               @default(NEW_COMER)
   arkCenterId    String?
   emergencyName  String?
   emergencyPhone String?
   notes          String?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  ledArkCenter   ArkCenter[]  @relation("ArkCenterLeader")
-  arkCenter      ArkCenter?   @relation(fields: [arkCenterId], references: [id])
-  assembly       Assembly     @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+  ledArkCenter   ArkCenter[]               @relation("ArkCenterLeader")
+  arkCenter      ArkCenter?                @relation(fields: [arkCenterId], references: [id])
+  assembly       Assembly                  @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
   progress       MemberProgress[]
   firstTimers    FirstTimer[]
   promotionRecs  PromotionRecommendation[]
@@ -640,37 +639,37 @@ enum MemberStatus {
 }
 
 model WeeklyReport {
-  id                   String             @id @default(cuid())
-  assemblyId           String
-  weekStart            DateTime
-  weekEnd              DateTime
-  status               WeeklyReportStatus @default(DRAFT)
+  id         String             @id @default(cuid())
+  assemblyId String
+  weekStart  DateTime
+  weekEnd    DateTime
+  status     WeeklyReportStatus @default(DRAFT)
 
-  branchPastor         String?
-  administrator        String?
-  thursdayAttendance   Json               @default("{}")
-  sundayAttendance     Json               @default("{}")
-  followUp             Json               @default("{}")
-  majorActivities      String?
-  leadershipMeetings   String?
-  challenges           String?
-  hqSupport            String?
+  branchPastor       String?
+  administrator      String?
+  thursdayAttendance Json    @default("{}")
+  sundayAttendance   Json    @default("{}")
+  followUp           Json    @default("{}")
+  majorActivities    String?
+  leadershipMeetings String?
+  challenges         String?
+  hqSupport          String?
 
-  financeOfficer       String?
-  thursdayIncome       Json               @default("{}")
-  sundayIncome         Json               @default("{}")
-  expenses             Json               @default("[]")
-  amountBanked         Float?
-  dateBanked           DateTime?
-  proofOfPayment       Boolean            @default(false)
-  proofUrl             String?
+  financeOfficer String?
+  thursdayIncome Json      @default("{}")
+  sundayIncome   Json      @default("{}")
+  expenses       Json      @default("[]")
+  amountBanked   Float?
+  dateBanked     DateTime?
+  proofOfPayment Boolean   @default(false)
+  proofUrl       String?
 
-  submittedAt          DateTime?
-  submittedById        String?
-  createdAt            DateTime           @default(now())
-  updatedAt            DateTime           @updatedAt
+  submittedAt   DateTime?
+  submittedById String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  assembly             Assembly           @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+  assembly Assembly @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
 
   @@unique([assemblyId, weekStart])
 }
@@ -720,15 +719,16 @@ enum Department {
 }
 
 enum GrowthLevel {
-  NEW_COMER               // Level 0: New to the church
-  FOUNDATIONAL_CLASS      // Level 1: Foundational Class
-  DESTINY_CULTURE         // Level 2: Destiny Culture (Membership Course)
-  MINISTRY_CLASS          // Level 3: Ministry Class
-  LEADERSHIP_CLASS        // Level 4: Leadership Class
-  PASTORAL_CLASS          // Level 5: Pastoral Class (Advanced Leadership Course)
-  ADVANCED_LEADERSHIP_2   // Level 6: Advanced Leadership Course 2
-  ADVANCED_LEADERSHIP_3   // Level 7: Advanced Leadership Course 3
+  NEW_COMER // Level 0: New to the church
+  FOUNDATIONAL_CLASS // Level 1: Foundational Class
+  DESTINY_CULTURE // Level 2: Destiny Culture (Membership Course)
+  MINISTRY_CLASS // Level 3: Ministry Class
+  LEADERSHIP_CLASS // Level 4: Leadership Class
+  PASTORAL_CLASS // Level 5: Pastoral Class (Advanced Leadership Course)
+  ADVANCED_LEADERSHIP_2 // Level 6: Advanced Leadership Course 2
+  ADVANCED_LEADERSHIP_3 // Level 7: Advanced Leadership Course 3
 }
+
 enum TeamCategory {
   FELLOWSHIP
   DEPARTMENT
@@ -804,4 +804,44 @@ enum PromotionStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+// ─────────────────────────────────────────────
+// DESTINY NATION — THE GATEKEEPERS COMMISSION
+// See spec/destiny-nation-landing.md
+// ─────────────────────────────────────────────
+
+model DestinyNationContribution {
+  id            String             @id @default(cuid())
+  reference     String             @unique // Flutterwave tx_ref, or a manual reference for bank-transfer-era rows
+  package       GivingPackage
+  tier          String // e.g. "GATEKEEPER_FRIEND" (ladder) or "BRONZE" (Founders' Circle)
+  amount        Int // whole units in the chosen currency
+  currency      String             @default("NGN")
+  status        ContributionStatus @default(PENDING)
+  donorName     String
+  donorEmail    String
+  donorPhone    String?
+  donorCountry  String?
+  donorOrg      String?
+  isPledge      Boolean            @default(false) // >=10M ladder tiers AND all Founders' Circle tiers — lead-capture, no checkout
+  isManualEntry Boolean            @default(false) // bank-transfer stopgap row, entered by hand pending Flutterwave go-live
+  followUpNotes String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  @@index([status])
+  @@index([package, tier])
+}
+
+enum GivingPackage {
+  LADDER // Package A — Gatekeeper Giving Ladder, project-tied
+  FOUNDERS_CIRCLE // Package B — endowment-level, separate program
+}
+
+enum ContributionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  PLEDGED // lead-capture/large-gift path, before any money moves
 }

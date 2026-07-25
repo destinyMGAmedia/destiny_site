@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma'
 import HeroSection from '@/components/home/HeroSection'
+import DestinyNationPreview from '@/components/home/DestinyNationPreview'
 import LiveSection from '@/components/home/LiveSection'
 import UpcomingProgrammes from '@/components/home/UpcomingProgrammes'
 import AssembliesStrip from '@/components/home/AssembliesStrip'
@@ -119,25 +120,28 @@ export default async function HomePage() {
       {/* 1. Hero — rotating background images, 2-min crossfade */}
       <HeroSection slides={heroSlides} />
 
-      {/* 2. Live Stream */}
+      {/* 2. Destiny Nation — church-wide 30th anniversary initiative */}
+      <DestinyNationPreview />
+
+      {/* 3. Live Stream */}
       <LiveSection channelId={mainChannel?.channelId} />
 
-      {/* 3. Upcoming Programmes (global events) */}
+      {/* 4. Upcoming Programmes (global events) */}
       <UpcomingProgrammes events={globalEvents} />
 
-      {/* 4. Assemblies Horizontal Scroll */}
+      {/* 5. Assemblies Horizontal Scroll */}
       <AssembliesStrip assemblies={assemblies} />
 
-      {/* 5. Founder Section */}
+      {/* 6. Founder Section */}
       <FounderSection founder1={founder1} founder2={founder2} />
 
-      {/* 6. Royal Feed Preview */}
+      {/* 7. Royal Feed Preview */}
       <RoyalFeedPreview devotional={todayDevotional} />
 
-      {/* 7. Creative Arts Preview */}
+      {/* 8. Creative Arts Preview */}
       <CreativeArtsPreview />
 
-      {/* 8. Games Preview */}
+      {/* 9. Games Preview */}
       <GamesPreview featuredGame={featuredGame} enabledKeys={enabledKeys} words={crosswordWords} />
     </>
   )

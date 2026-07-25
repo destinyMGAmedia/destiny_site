@@ -5,6 +5,8 @@ import { usePathname } from 'next/navigation'
 import Image from 'next/image'
 import { Menu, X } from 'lucide-react'
 
+// Destiny Nation is deliberately not a nav item — it's reached only via the CTAs/banners
+// placed on individual pages (home section, per-page NationBanner), not persistent nav.
 const NAV_LINKS = [
   { href: '/',            label: 'Home' },
   { href: '/assemblies',  label: 'Assemblies' },

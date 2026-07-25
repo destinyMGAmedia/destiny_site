@@ -1,6 +1,7 @@
 import prisma from '@/lib/prisma'
 import MediaPageClient from '@/components/media/MediaPageClient'
 import BackButton from '@/components/ui/BackButton'
+import NationBanner from '@/components/assembly/NationBanner'
 import { Video } from 'lucide-react'
 
 export const metadata = {
@@ -94,7 +95,9 @@ export default async function MediaPage() {
         </div>
       </div>
 
-      <MediaPageClient 
+      <NationBanner />
+
+      <MediaPageClient
         hasChannel={hasChannel}
         youtubeVideos={youtubeVideos}
         featuredVideo={featuredVideo}
