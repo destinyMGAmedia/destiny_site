@@ -3,9 +3,24 @@ import { getNationBase } from '@/lib/nation/host'
 
 // Rewrites the nation subdomain (or a local dev override) to /nation/* internally,
 // so it feels like its own site while staying on this same app/deploy. See spec/destiny-nation-landing.md §1.
+//
+// Exclusions are handled here in plain JS rather than in the matcher's regex — a
+// negative-lookahead matcher (e.g. '/((?!api|_next|.*\\..*).*)') is known to behave
+// inconsistently between `next dev` and the deployed Edge Runtime on some Next.js
+// versions, which silently no-ops the whole middleware in production while working
+// fine locally. Matching every request and filtering inside the function body is
+// unambiguous and behaves identically in both environments.
 export function middleware(request) {
   const { pathname } = request.nextUrl
-  if (pathname.startsWith('/nation')) return NextResponse.next()
+
+  if (
+    pathname.startsWith('/nation') ||
+    pathname.startsWith('/api') ||
+    pathname.startsWith('/_next') ||
+    /\.[a-zA-Z0-9]+$/.test(pathname) // static assets, e.g. /favicon.png, /robots.txt
+  ) {
+    return NextResponse.next()
+  }
 
   const host = request.headers.get('host') || ''
   const onNationHost = getNationBase(host) === ''
@@ -21,5 +36,5 @@ export function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next|.*\\..*).*)'],
+  matcher: ['/:path*'],
 }
