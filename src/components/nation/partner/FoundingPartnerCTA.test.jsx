@@ -259,4 +259,175 @@ describe('FoundingPartnerCTA', () => {
 
     expect(await screen.findByText('Could not record your gift')).toBeInTheDocument()
   })
+
+  it('shows a generic error message when the manual confirmation request throws', async () => {
+    setupFetch({
+      '/api/nation/give/manual': () => Promise.reject(new Error('network down')),
+    })
+    render(<FoundingPartnerCTA bankDetails={bankDetails} />)
+    selectLadderPackage()
+    fireEvent.click(screen.getByRole('button', { name: /Gatekeeper Friend/i }))
+    fireEvent.click(screen.getByText('Prefer a direct bank transfer?'))
+
+    const panel = screen.getByText('Give by Bank Transfer').closest('div')
+    fillDonor(within(panel))
+    fireEvent.click(within(panel).getByRole('button', { name: /Confirm/ }))
+
+    expect(await screen.findByText('Something went wrong. Please try again.')).toBeInTheDocument()
+  })
+
+  it('does not display the count line when the partner-count fetch fails', async () => {
+    global.fetch = vi.fn(() => Promise.reject(new Error('down')))
+    render(<FoundingPartnerCTA bankDetails={bankDetails} />)
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled())
+    expect(screen.queryByText(/Founding Gatekeepers so far/)).not.toBeInTheDocument()
+  })
+
+  it('does not display the count line while the partner-count fetch is pending', () => {
+    global.fetch = vi.fn(() => new Promise(() => {}))
+    render(<FoundingPartnerCTA bankDetails={bankDetails} />)
+    expect(screen.queryByText(/Founding Gatekeepers so far/)).not.toBeInTheDocument()
+  })
+
+  it('resets the selected tier and any error when switching packages', () => {
+    setupFetch()
+    render(<FoundingPartnerCTA bankDetails={bankDetails} />)
+    selectLadderPackage()
+    fireEvent.click(screen.getByRole('button', { name: /Gatekeeper Friend/i }))
+    expect(screen.getByText('Gatekeeper Friend — NGN 30,000')).toBeInTheDocument()
+
+    selectFoundersPackage()
+    expect(screen.queryByText('Gatekeeper Friend — NGN 30,000')).not.toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('Full name')).not.toBeInTheDocument()
+  })
+
+  it('marks the Founders\' Circle tiers and Legacy Founder as open-ended ("+")', () => {
+    setupFetch()
+    render(<FoundingPartnerCTA bankDetails={bankDetails} />)
+    selectFoundersPackage()
+    expect(screen.getByRole('button', { name: /Bronze/ }).textContent).toMatch(/\+$/)
+
+    selectLadderPackage()
+    expect(screen.getByRole('button', { name: /Legacy Founder/ }).textContent).toMatch(/\+$/)
+    expect(screen.getByRole('button', { name: /Gatekeeper Friend/ }).textContent).not.toMatch(/\+$/)
+  })
+
+  it('always shows "Register Interest" for every Founders\' Circle tier', () => {
+    setupFetch()
+    render(<FoundingPartnerCTA bankDetails={bankDetails} />)
+    selectFoundersPackage()
+    fireEvent.click(screen.getByRole('button', { name: /Diamond/i }))
+    expect(screen.getByRole('button', { name: 'Register Interest' })).toBeInTheDocument()
+  })
+
+  it('recalculates the displayed and submitted amount when the currency changes', async () => {
+    const fetchMock = setupFetch({
+      '/api/nation/give/initialize': () =>
+        Promise.resolve({ ok: true, json: () => Promise.resolve({ pledge: false, link: 'https://checkout.example' }) }),
+    })
+    render(<FoundingPartnerCTA bankDetails={bankDetails} />)
+    selectLadderPackage()
+    fireEvent.click(screen.getByRole('button', { name: /Gatekeeper Friend/i }))
+    expect(screen.getByText('Gatekeeper Friend — NGN 30,000')).toBeInTheDocument()
+
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'USD' } })
+    expect(screen.getByText('Gatekeeper Friend — USD 19')).toBeInTheDocument()
+
+    fillDonor()
+    fireEvent.click(screen.getByRole('button', { name: 'Give Now' }))
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        '/api/nation/give/initialize',
+        expect.objectContaining({
+          body: expect.stringContaining('"currency":"USD"'),
+        })
+      )
+    })
+  })
+
+  it('includes optional donor fields (phone, country, org) in the initialize submission', async () => {
+    const fetchMock = setupFetch({
+      '/api/nation/give/initialize': () =>
+        Promise.resolve({ ok: true, json: () => Promise.resolve({ pledge: false, link: 'https://checkout.example' }) }),
+    })
+    render(<FoundingPartnerCTA bankDetails={bankDetails} />)
+    selectLadderPackage()
+    fireEvent.click(screen.getByRole('button', { name: /Gatekeeper Friend/i }))
+    fillDonor()
+    fireEvent.change(screen.getByPlaceholderText('Phone (optional)'), { target: { value: '+1234567890' } })
+    fireEvent.change(screen.getByPlaceholderText('Country (optional)'), { target: { value: 'Nigeria' } })
+    fireEvent.change(screen.getByPlaceholderText('Organization (optional)'), { target: { value: 'Acme Inc' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Give Now' }))
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        '/api/nation/give/initialize',
+        expect.objectContaining({
+          body: JSON.stringify({
+            package: 'LADDER',
+            tier: 'GATEKEEPER_FRIEND',
+            currency: 'NGN',
+            donorName: 'Ada Okoye',
+            donorEmail: 'ada@example.com',
+            donorPhone: '+1234567890',
+            donorCountry: 'Nigeria',
+            donorOrg: 'Acme Inc',
+          }),
+        })
+      )
+    })
+  })
+
+  it('disables the submit button and shows a waiting label while the initialize request is in flight', async () => {
+    let resolveFetch
+    setupFetch({
+      '/api/nation/give/initialize': () =>
+        new Promise((resolve) => { resolveFetch = resolve }),
+    })
+    render(<FoundingPartnerCTA bankDetails={bankDetails} />)
+    selectLadderPackage()
+    fireEvent.click(screen.getByRole('button', { name: /Gatekeeper Friend/i }))
+    fillDonor()
+    fireEvent.click(screen.getByRole('button', { name: 'Give Now' }))
+
+    const pendingButton = await screen.findByRole('button', { name: 'Please wait…' })
+    expect(pendingButton).toBeDisabled()
+
+    resolveFetch({ ok: true, json: () => Promise.resolve({ pledge: false, link: 'https://checkout.example' }) })
+    await waitFor(() => expect(window.location.href).toBe('https://checkout.example'))
+  })
+
+  it('disables the manual confirm button and shows a waiting label while the manual request is in flight', async () => {
+    let resolveFetch
+    setupFetch({
+      '/api/nation/give/manual': () => new Promise((resolve) => { resolveFetch = resolve }),
+    })
+    render(<FoundingPartnerCTA bankDetails={bankDetails} />)
+    selectLadderPackage()
+    fireEvent.click(screen.getByRole('button', { name: /Gatekeeper Friend/i }))
+    fireEvent.click(screen.getByText('Prefer a direct bank transfer?'))
+
+    const panel = screen.getByText('Give by Bank Transfer').closest('div')
+    fillDonor(within(panel))
+    fireEvent.click(within(panel).getByRole('button', { name: /Confirm/ }))
+
+    const pendingButton = await within(panel).findByRole('button', { name: 'Please wait…' })
+    expect(pendingButton).toBeDisabled()
+
+    resolveFetch({ ok: true, json: () => Promise.resolve({}) })
+    await screen.findByText("Thank you — we'll reconcile your gift and follow up by email.".replace("'", '’'))
+  })
+
+  it('does not submit the form when required fields (name/email) are left empty', () => {
+    const fetchMock = setupFetch()
+    render(<FoundingPartnerCTA bankDetails={bankDetails} />)
+    selectLadderPackage()
+    fireEvent.click(screen.getByRole('button', { name: /Gatekeeper Friend/i }))
+
+    const submitButton = screen.getByRole('button', { name: 'Give Now' })
+    fireEvent.click(submitButton)
+
+    expect(fetchMock).not.toHaveBeenCalledWith('/api/nation/give/initialize', expect.anything())
+  })
 })
