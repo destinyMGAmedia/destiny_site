@@ -155,6 +155,29 @@ describe('proxy', () => {
     expect(config.matcher).toEqual(['/:path*'])
   })
 
+  describe('x-nation-proxy-ran diagnostic header', () => {
+    it('sets the header on a plain pass-through response', async () => {
+      const req = makeRequest('http://www.destinymissionglobal.org/about')
+      const res = await proxy(req)
+      expect(res.headers.get('x-nation-proxy-ran')).toBe('1')
+    })
+
+    it('sets the header on a nation-host rewrite response', async () => {
+      const req = makeRequest(`http://${DEFAULT_NATION_HOST}/about`)
+      const res = await proxy(req)
+      expect(res.headers.get('x-nation-proxy-ran')).toBe('1')
+      expect(new URL(res.headers.get('x-middleware-rewrite')).pathname).toBe('/nation/about')
+    })
+
+    it('sets the header on an admin redirect response', async () => {
+      getToken.mockResolvedValue(null)
+      const req = makeRequest('http://www.destinymissionglobal.org/admin/dashboard')
+      const res = await proxy(req)
+      expect(res.headers.get('x-nation-proxy-ran')).toBe('1')
+      expect(res.status).toBe(307)
+    })
+  })
+
   describe('admin role-based access control', () => {
     it('passes through non-admin-auth paths without checking the token at all', async () => {
       const req = makeRequest('http://www.destinymissionglobal.org/about')

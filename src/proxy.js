@@ -12,7 +12,15 @@ import { getNationBase } from '@/lib/nation/host'
 // A second root-level middleware.js/proxy.js previously lived alongside this file and was
 // silently never invoked at runtime (Next.js only wires up the one canonical proxy file,
 // which for a `src/app` project must be src/proxy.js) — that duplicate has been removed.
+// TEMPORARY DIAGNOSTIC: proves definitively whether this function executes at all in
+// production. Remove once the nation subdomain rewrite is confirmed working live.
 export async function proxy(req) {
+  const res = await handleProxy(req)
+  res.headers.set('x-nation-proxy-ran', '1')
+  return res
+}
+
+async function handleProxy(req) {
   const { pathname } = req.nextUrl
 
   if (
