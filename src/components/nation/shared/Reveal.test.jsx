@@ -28,8 +28,10 @@ describe('Reveal', () => {
   })
 
   it('applies the given inline style', () => {
-    const { container } = render(<Reveal style={{ color: 'red' }}>content</Reveal>)
-    expect(container.firstChild).toHaveStyle({ color: 'red' })
+    // Use a non-color property — framer-motion normalizes colors (red → rgb(...)),
+    // which would make a color assertion flaky.
+    const { container } = render(<Reveal style={{ marginTop: '10px' }}>content</Reveal>)
+    expect(container.firstChild).toHaveStyle({ marginTop: '10px' })
   })
 
   it('renders multiple children correctly', () => {

@@ -5,8 +5,9 @@ import { GATEKEEPER_ROLES } from '@/lib/nation/gates'
 describe('GatekeeperStructure', () => {
   it('renders the section heading and intro copy', () => {
     render(<GatekeeperStructure />)
-    expect(screen.getByRole('heading', { name: 'Gatekeeper Structure' })).toBeInTheDocument()
-    expect(screen.getByText(/coordinated quarterly by the Gatekeeper Council/)).toBeInTheDocument()
+    expect(screen.getByText('The Gatekeeper Structure')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Every Gate, Three Roles' })).toBeInTheDocument()
+    expect(screen.getByText(/Coordinated quarterly by the Gatekeeper Council/)).toBeInTheDocument()
   })
 
   it('renders every gatekeeper role and description', () => {

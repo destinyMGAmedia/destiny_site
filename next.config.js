@@ -13,9 +13,9 @@ const nextConfig = {
     ],
   },
 
-  turbopack: {
-    root: __dirname,
-  },
+  // Pin file-tracing to this project dir so Vercel's build doesn't double the
+  // path (/vercel/path0/vercel/path0) and fail to write *.nft.json trace files.
+  outputFileTracingRoot: __dirname,
 }
 
 module.exports = nextConfig

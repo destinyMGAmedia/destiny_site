@@ -18,12 +18,18 @@ describe('TabNav', () => {
 
   it('renders the brand link and all tab labels', () => {
     render(<TabNav />)
-    expect(screen.getByText('DESTINY NATION')).toBeInTheDocument()
+    expect(screen.getByText('Destiny Nation')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Overview/ })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Internal Gates' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Influence Gates' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Legacy Projects' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Get Involved' })).toBeInTheDocument()
+  })
+
+  it('renders a link back to the main church site', () => {
+    render(<TabNav />)
+    const mainSite = screen.getByRole('link', { name: /Main Site/ })
+    expect(mainSite).toHaveAttribute('href', 'https://www.destinymissionglobal.org')
   })
 
   describe('when base is empty (nation subdomain)', () => {

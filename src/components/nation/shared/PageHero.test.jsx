@@ -26,12 +26,13 @@ describe('PageHero', () => {
     expect(image.src).toContain(encodeURIComponent(imgUrl('influenceGates', { w: 2000 })))
   })
 
-  it('renders the photo credit link pointing at the image credit URL', () => {
+  it('does not render a visible photo-credit overlay (Unsplash license needs no attribution)', () => {
     render(
       <PageHero imageKey="legacyProjects" eyebrow="Legacy" title="Title" subtitle="Subtitle" />
     )
-    const credit = screen.getByRole('link', { name: `Photo by ${NATION_IMAGES.legacyProjects.credit} / Unsplash` })
-    expect(credit).toHaveAttribute('href', NATION_IMAGES.legacyProjects.creditUrl)
+    expect(
+      screen.queryByText(`Photo by ${NATION_IMAGES.legacyProjects.credit} / Unsplash`)
+    ).not.toBeInTheDocument()
   })
 
   it('renders correctly for each defined image key', () => {

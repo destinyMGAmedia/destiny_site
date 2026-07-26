@@ -28,6 +28,7 @@ export default function FoundingPartnerCTA({ bankDetails }) {
   const [pledgeDone, setPledgeDone] = useState(false)
   const [showBankTransfer, setShowBankTransfer] = useState(false)
   const [manualSubmitting, setManualSubmitting] = useState(false)
+  const [manualError, setManualError] = useState('')
   const [manualDone, setManualDone] = useState(false)
 
   useEffect(() => {
@@ -78,7 +79,7 @@ export default function FoundingPartnerCTA({ bankDetails }) {
 
   async function handleManualSubmit(e) {
     e.preventDefault()
-    setError('')
+    setManualError('')
     setManualSubmitting(true)
     try {
       const res = await fetch('/api/nation/give/manual', {
@@ -94,12 +95,12 @@ export default function FoundingPartnerCTA({ bankDetails }) {
       })
       const data = await res.json()
       if (!res.ok) {
-        setError(data.error || 'Something went wrong. Please try again.')
+        setManualError(data.error || 'Something went wrong. Please try again.')
         return
       }
       setManualDone(true)
     } catch {
-      setError('Something went wrong. Please try again.')
+      setManualError('Something went wrong. Please try again.')
     } finally {
       setManualSubmitting(false)
     }
@@ -279,7 +280,7 @@ export default function FoundingPartnerCTA({ bankDetails }) {
                     onChange={(e) => setDonor({ ...donor, donorPhone: e.target.value })}
                     className="w-full bg-[#1a0533] border border-white/20 rounded-lg px-4 py-2"
                   />
-                  {error && <p className="text-red-400 text-sm">{error}</p>}
+                  {manualError && <p className="text-red-400 text-sm">{manualError}</p>}
                   <button
                     type="submit"
                     disabled={manualSubmitting}

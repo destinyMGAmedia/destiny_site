@@ -5,7 +5,8 @@ import { PARTNER_TYPES } from '@/lib/nation/gates'
 describe('WhyPartner', () => {
   it('renders the section heading and intro copy', () => {
     render(<WhyPartner />)
-    expect(screen.getByRole('heading', { name: 'Who Can Partner' })).toBeInTheDocument()
+    expect(screen.getByText('Who Can Partner')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Cross-Sector Partnership' })).toBeInTheDocument()
     expect(screen.getByText(/there is a gate for you/)).toBeInTheDocument()
   })
 

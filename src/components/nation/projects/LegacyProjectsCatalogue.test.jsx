@@ -3,10 +3,10 @@ import LegacyProjectsCatalogue from './LegacyProjectsCatalogue'
 import { LEGACY_PROJECT_TESTS, LEGACY_PROJECTS, getGroupName } from '@/lib/nation/gates'
 
 describe('LegacyProjectsCatalogue', () => {
-  it('renders the page heading and intro copy', () => {
+  it('renders the 4-test framework label and the named examples heading', () => {
     render(<LegacyProjectsCatalogue />)
-    expect(screen.getByRole('heading', { name: 'Legacy Projects', level: 1 })).toBeInTheDocument()
-    expect(screen.getByText(/must pass four tests before it counts as a legacy/)).toBeInTheDocument()
+    expect(screen.getByText('The 4-Test Framework')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Named Examples' })).toBeInTheDocument()
   })
 
   it('lists all four Legacy Project tests', () => {

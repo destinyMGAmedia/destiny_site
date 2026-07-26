@@ -4,7 +4,8 @@ import Footer from './Footer'
 describe('Footer', () => {
   it('renders the campaign name and sub-line', () => {
     render(<Footer />)
-    expect(screen.getByText('Destiny Nation — The Gatekeepers Commission')).toBeInTheDocument()
+    expect(screen.getByText('Destiny Nation')).toBeInTheDocument()
+    expect(screen.getByText('The Gatekeepers Commission')).toBeInTheDocument()
     expect(screen.getByText('30 Gates · 30 Years · One Legacy')).toBeInTheDocument()
   })
 
