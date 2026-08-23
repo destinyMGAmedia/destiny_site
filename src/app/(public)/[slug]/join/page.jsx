@@ -1,8 +1,9 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Check, UserPlus, Users, Search, AlertCircle } from 'lucide-react'
+import { Check, UserPlus, Users, Search, AlertCircle, Store, ChevronDown, ChevronUp } from 'lucide-react'
 import BackButton from '@/components/ui/BackButton'
+import { CATEGORIES } from '@/lib/yellowpages/constants'
 
 export default function JoinPage() {
   const { slug } = useParams()
@@ -24,6 +25,10 @@ export default function JoinPage() {
   })
   const [formErrors, setFormErrors] = useState({})
   const [status, setStatus] = useState('idle')
+  // Optional "list your skill/business" section — off by default, only shown/validated for
+  // MEMBER registrations. See spec/theyellowpages.md's join-page integration.
+  const [showYellowPages, setShowYellowPages] = useState(false)
+  const [ypForm, setYpForm] = useState({ listingType: 'INDIVIDUAL', name: '', category: '', description: '' })
 
   useEffect(() => {
     if (slug) {
@@ -82,6 +87,12 @@ export default function JoinPage() {
       }
       if (form.country.trim() && !isValidLocation(form.country)) {
         errors.country = 'Country should contain letters only.'
+      }
+
+      if (showYellowPages) {
+        if (!ypForm.name.trim()) errors.ypName = 'Please enter a name for your listing.'
+        if (!ypForm.category) errors.ypCategory = 'Please choose a category.'
+        if (!ypForm.description.trim()) errors.ypDescription = 'Please add a short description.'
       }
     }
 
@@ -165,7 +176,20 @@ export default function JoinPage() {
     const res = await fetch(`/api/assemblies/${slug}/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...form, type }),
+      body: JSON.stringify({
+        ...form,
+        type,
+        ...(type === 'MEMBER' && showYellowPages
+          ? {
+              yellowPages: {
+                listingType: ypForm.listingType,
+                name: ypForm.name.trim(),
+                category: ypForm.category,
+                description: ypForm.description.trim(),
+              },
+            }
+          : {}),
+      }),
     })
 
     if (res.ok) {
@@ -536,6 +560,95 @@ export default function JoinPage() {
                     <option key={center.id} value={center.id}>{center.name}</option>
                   ))}
                 </select>
+              </div>
+
+              <div className="rounded-xl border p-4" style={{ borderColor: 'var(--border)', background: 'var(--gray-100)' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowYellowPages(v => !v)}
+                  className="flex items-center justify-between w-full text-left"
+                  aria-expanded={showYellowPages}
+                >
+                  <span className="flex items-center gap-2 font-semibold text-sm text-gray-800">
+                    <Store size={16} className="text-purple-700" />
+                    Also list a skill or business in The Yellow Pages (optional)
+                  </span>
+                  {showYellowPages ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                </button>
+                <p className="text-xs text-gray-500 mt-1">
+                  Get discovered by others in the church searching for skills and businesses like yours.
+                  Free, and public &mdash; visible to anyone browsing the directory.
+                </p>
+
+                {showYellowPages && (
+                  <div className="mt-4 space-y-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        aria-pressed={ypForm.listingType === 'INDIVIDUAL'}
+                        onClick={() => setYpForm(f => ({ ...f, listingType: 'INDIVIDUAL' }))}
+                        className="card p-2 text-xs font-semibold"
+                        style={ypForm.listingType === 'INDIVIDUAL' ? { borderColor: 'var(--purple-700)', background: 'var(--purple-50)' } : undefined}
+                      >
+                        A skill I offer
+                      </button>
+                      <button
+                        type="button"
+                        aria-pressed={ypForm.listingType === 'BUSINESS'}
+                        onClick={() => setYpForm(f => ({ ...f, listingType: 'BUSINESS' }))}
+                        className="card p-2 text-xs font-semibold"
+                        style={ypForm.listingType === 'BUSINESS' ? { borderColor: 'var(--purple-700)', background: 'var(--purple-50)' } : undefined}
+                      >
+                        A business/organization
+                      </button>
+                    </div>
+
+                    <div>
+                      <label className="form-label" htmlFor="yp-join-name">
+                        {ypForm.listingType === 'BUSINESS' ? 'Business/Organization Name *' : 'What skill/service? *'}
+                      </label>
+                      <input
+                        id="yp-join-name"
+                        className={`form-input ${formErrors.ypName ? 'border-red-400' : ''}`}
+                        value={ypForm.name}
+                        onChange={(e) => { setYpForm(f => ({ ...f, name: e.target.value })); clearError('ypName') }}
+                      />
+                      <FieldError field="ypName" />
+                    </div>
+
+                    <div>
+                      <label className="form-label" htmlFor="yp-join-category">Category *</label>
+                      <select
+                        id="yp-join-category"
+                        className="form-select"
+                        value={ypForm.category}
+                        onChange={(e) => { setYpForm(f => ({ ...f, category: e.target.value })); clearError('ypCategory') }}
+                      >
+                        <option value="">Choose a category</option>
+                        {CATEGORIES.map((c) => (
+                          <option key={c.value} value={c.value}>{c.label}</option>
+                        ))}
+                      </select>
+                      <FieldError field="ypCategory" />
+                    </div>
+
+                    <div>
+                      <label className="form-label" htmlFor="yp-join-description">Description *</label>
+                      <textarea
+                        id="yp-join-description"
+                        className="form-input"
+                        rows={3}
+                        value={ypForm.description}
+                        onChange={(e) => { setYpForm(f => ({ ...f, description: e.target.value })); clearError('ypDescription') }}
+                      />
+                      <FieldError field="ypDescription" />
+                    </div>
+
+                    <p className="text-xs text-gray-400">
+                      Uses the phone, email, and location above. Add a logo, website, and more later at theyellowpages.destinymissionglobal.org.
+                    </p>
+                  </div>
+                )}
               </div>
             </>
           )}

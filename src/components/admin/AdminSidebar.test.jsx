@@ -45,6 +45,8 @@ describe('AdminSidebar', () => {
       expect(screen.getByText('Weekly Reports')).toBeInTheDocument()
       expect(screen.getByText('Contributions')).toBeInTheDocument()
       expect(screen.getByText('Payment Setup')).toBeInTheDocument()
+      expect(screen.getByText('Listings')).toBeInTheDocument()
+      expect(screen.getByText('Listings').closest('a')).toHaveAttribute('href', '/admin/yellowpages')
       expect(screen.getByText('Site Content')).toBeInTheDocument()
       expect(screen.getByText('Royal Feed')).toBeInTheDocument()
       expect(screen.getByText('Global Events')).toBeInTheDocument()
@@ -160,6 +162,7 @@ describe('AdminSidebar', () => {
       expect(screen.getByText('Royal Feed')).toBeInTheDocument()
       expect(screen.getByText('Global Events')).toBeInTheDocument()
       expect(screen.queryByText('Contributions')).not.toBeInTheDocument()
+      expect(screen.queryByText('Listings')).not.toBeInTheDocument()
     })
   })
 

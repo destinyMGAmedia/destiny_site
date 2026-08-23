@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { validateListingInput } from '@/lib/yellowpages/validation'
 
 export async function POST(req, { params }) {
   const { slug } = await params
   const body = await req.json()
-  const { 
+  const {
     type, // 'VISITOR' or 'MEMBER'
     firstName,
     lastName,
@@ -24,7 +25,8 @@ export async function POST(req, { params }) {
     howDidYouHear,
     prayerRequest,
     isConverted,
-    wantsFollowUp
+    wantsFollowUp,
+    yellowPages, // optional — see spec/theyellowpages.md's join-page integration
   } = body
 
   try {
@@ -178,6 +180,34 @@ export async function POST(req, { params }) {
             enrolledAt: new Date(),
           }
         }).catch(() => {})
+      }
+
+      // Optional Yellow Pages listing, from the join form's "list your skill/business" section.
+      // Best-effort: member creation has already succeeded and must still return 201 even if
+      // this fails — see spec/theyellowpages.md's join-page integration.
+      if (yellowPages) {
+        const { errors: ypErrors, data: ypData } = validateListingInput({
+          listingType: yellowPages.listingType,
+          name: yellowPages.name,
+          contactPersonName: `${firstName} ${lastName}`.trim(),
+          phone,
+          email,
+          category: yellowPages.category,
+          description: yellowPages.description,
+          city,
+          state,
+          country,
+        })
+
+        if (ypErrors) {
+          console.error('[YELLOWPAGES] Skipped listing creation from member registration — invalid data:', ypErrors)
+        } else {
+          await prisma.yellowPagesListing.create({
+            data: { ...ypData, assemblyId: assembly.id, memberId: member.id }
+          }).catch((err) => {
+            console.error('[YELLOWPAGES] Failed to create listing from member registration:', err)
+          })
+        }
       }
 
       return NextResponse.json({ success: true, member }, { status: 201 })
