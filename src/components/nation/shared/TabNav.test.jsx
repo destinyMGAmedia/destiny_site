@@ -49,15 +49,31 @@ describe('TabNav', () => {
     it('highlights Overview as active when pathname is "/"', () => {
       usePathname.mockReturnValue('/')
       render(<TabNav />)
-      expect(screen.getByRole('link', { name: /Overview/ })).toHaveClass('bg-[var(--gold-500)]')
-      expect(screen.getByRole('link', { name: 'Internal Gates' })).not.toHaveClass('bg-[var(--gold-500)]')
+      expect(screen.getByRole('link', { name: /Overview/ })).toHaveClass('bg-white')
+      expect(screen.getByRole('link', { name: 'Internal Gates' })).not.toHaveClass('bg-white')
     })
 
     it('highlights the matching tab as active based on pathname', () => {
       usePathname.mockReturnValue('/gates/internal')
       render(<TabNav />)
-      expect(screen.getByRole('link', { name: 'Internal Gates' })).toHaveClass('bg-[var(--gold-500)]')
-      expect(screen.getByRole('link', { name: /Overview/ })).not.toHaveClass('bg-[var(--gold-500)]')
+      expect(screen.getByRole('link', { name: 'Internal Gates' })).toHaveClass('bg-white')
+      expect(screen.getByRole('link', { name: /Overview/ })).not.toHaveClass('bg-white')
+    })
+
+    it('gives the inactive "Get Involved" tab a gold accent color', () => {
+      usePathname.mockReturnValue('/')
+      render(<TabNav />)
+      const getInvolved = screen.getByRole('link', { name: 'Get Involved' })
+      expect(getInvolved).not.toHaveClass('bg-white')
+      expect(getInvolved).toHaveStyle({ color: 'var(--gold-500)' })
+    })
+
+    it('switches the active "Get Involved" tab to the white active style, not the gold accent', () => {
+      usePathname.mockReturnValue('/partner')
+      render(<TabNav />)
+      const getInvolved = screen.getByRole('link', { name: 'Get Involved' })
+      expect(getInvolved).toHaveClass('bg-white')
+      expect(getInvolved).not.toHaveStyle({ color: 'var(--gold-500)' })
     })
   })
 
@@ -78,14 +94,14 @@ describe('TabNav', () => {
     it('highlights Overview as active when pathname equals the base path', () => {
       usePathname.mockReturnValue('/nation')
       render(<TabNav />)
-      expect(screen.getByRole('link', { name: /Overview/ })).toHaveClass('bg-[var(--gold-500)]')
+      expect(screen.getByRole('link', { name: /Overview/ })).toHaveClass('bg-white')
     })
 
     it('highlights the matching prefixed tab as active based on pathname', () => {
       usePathname.mockReturnValue('/nation/partner')
       render(<TabNav />)
-      expect(screen.getByRole('link', { name: 'Get Involved' })).toHaveClass('bg-[var(--gold-500)]')
-      expect(screen.getByRole('link', { name: /Overview/ })).not.toHaveClass('bg-[var(--gold-500)]')
+      expect(screen.getByRole('link', { name: 'Get Involved' })).toHaveClass('bg-white')
+      expect(screen.getByRole('link', { name: /Overview/ })).not.toHaveClass('bg-white')
     })
   })
 
@@ -122,6 +138,28 @@ describe('TabNav', () => {
 
       expect(screen.getByRole('button', { name: 'Open menu' })).toBeInTheDocument()
       expect(screen.getAllByRole('link', { name: 'Internal Gates' })).toHaveLength(1)
+    })
+
+    it('gives the inactive "Get Involved" tab a gold accent color in the mobile menu', () => {
+      usePathname.mockReturnValue('/')
+      render(<TabNav />)
+      fireEvent.click(screen.getByRole('button', { name: 'Open menu' }))
+      const mobileLinks = screen.getAllByRole('link', { name: 'Get Involved' })
+      const mobileGetInvolved = mobileLinks[mobileLinks.length - 1]
+
+      expect(mobileGetInvolved).not.toHaveClass('bg-white')
+      expect(mobileGetInvolved).toHaveStyle({ color: 'var(--gold-500)' })
+    })
+
+    it('switches the active "Get Involved" tab in the mobile menu to the white active style, not the gold accent', () => {
+      usePathname.mockReturnValue('/partner')
+      render(<TabNav />)
+      fireEvent.click(screen.getByRole('button', { name: 'Open menu' }))
+      const mobileLinks = screen.getAllByRole('link', { name: 'Get Involved' })
+      const mobileGetInvolved = mobileLinks[mobileLinks.length - 1]
+
+      expect(mobileGetInvolved).toHaveClass('bg-white')
+      expect(mobileGetInvolved).not.toHaveStyle({ color: 'var(--gold-500)' })
     })
   })
 })

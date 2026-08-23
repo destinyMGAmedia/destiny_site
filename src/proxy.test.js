@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 import { proxy, config } from './proxy'
 import { DEFAULT_NATION_HOST } from '@/lib/nation/host'
+import { DEFAULT_YELLOWPAGES_HOST } from '@/lib/yellowpages/host'
 
 vi.mock('next-auth/jwt', () => ({
   getToken: vi.fn(),
@@ -155,26 +156,69 @@ describe('proxy', () => {
     expect(config.matcher).toEqual(['/:path*'])
   })
 
-  describe('x-nation-proxy-ran diagnostic header', () => {
-    it('sets the header on a plain pass-through response', async () => {
-      const req = makeRequest('http://www.destinymissionglobal.org/about')
+  describe('yellow pages subdomain rewrite', () => {
+    it('passes through unmodified when the path already starts with /yellowpages', async () => {
+      const req = makeRequest(`http://${DEFAULT_YELLOWPAGES_HOST}/yellowpages/search`)
       const res = await proxy(req)
-      expect(res.headers.get('x-nation-proxy-ran')).toBe('1')
+      expect(res.headers.get('x-middleware-rewrite')).toBeNull()
     })
 
-    it('sets the header on a nation-host rewrite response', async () => {
-      const req = makeRequest(`http://${DEFAULT_NATION_HOST}/about`)
+    it('rewrites requests on the yellow pages host to /yellowpages/*', async () => {
+      const req = makeRequest(`http://${DEFAULT_YELLOWPAGES_HOST}/search`)
       const res = await proxy(req)
-      expect(res.headers.get('x-nation-proxy-ran')).toBe('1')
-      expect(new URL(res.headers.get('x-middleware-rewrite')).pathname).toBe('/nation/about')
+      const rewrite = res.headers.get('x-middleware-rewrite')
+      expect(rewrite).not.toBeNull()
+      expect(new URL(rewrite).pathname).toBe('/yellowpages/search')
     })
 
-    it('sets the header on an admin redirect response', async () => {
-      getToken.mockResolvedValue(null)
-      const req = makeRequest('http://www.destinymissionglobal.org/admin/dashboard')
+    it('rewrites the root path on the yellow pages host to /yellowpages (not /yellowpages/)', async () => {
+      const req = makeRequest(`http://${DEFAULT_YELLOWPAGES_HOST}/`)
       const res = await proxy(req)
-      expect(res.headers.get('x-nation-proxy-ran')).toBe('1')
-      expect(res.status).toBe(307)
+      const rewrite = res.headers.get('x-middleware-rewrite')
+      expect(rewrite).not.toBeNull()
+      expect(new URL(rewrite).pathname).toBe('/yellowpages')
+    })
+
+    it('rewrites when the __yellowpages=1 dev override query param is present, even on a non-matching host', async () => {
+      const req = makeRequest('http://localhost:3000/register?__yellowpages=1')
+      const res = await proxy(req)
+      const rewrite = res.headers.get('x-middleware-rewrite')
+      expect(rewrite).not.toBeNull()
+      expect(new URL(rewrite).pathname).toBe('/yellowpages/register')
+    })
+
+    it('passes through /api/* on the yellow pages host unmodified', async () => {
+      const req = makeRequest(`http://${DEFAULT_YELLOWPAGES_HOST}/api/yellowpages/listings`)
+      const res = await proxy(req)
+      expect(res.headers.get('x-middleware-rewrite')).toBeNull()
+    })
+
+    it('respects the YELLOWPAGES_HOST env override', async () => {
+      vi.stubEnv('YELLOWPAGES_HOST', 'custom-yp.example.com')
+      const req = makeRequest('http://custom-yp.example.com/register')
+      const res = await proxy(req)
+      const rewrite = res.headers.get('x-middleware-rewrite')
+      expect(rewrite).not.toBeNull()
+      expect(new URL(rewrite).pathname).toBe('/yellowpages/register')
+
+      // The default yellow pages host is no longer treated as such once overridden.
+      const req2 = makeRequest(`http://${DEFAULT_YELLOWPAGES_HOST}/register`)
+      const res2 = await proxy(req2)
+      expect(res2.headers.get('x-middleware-rewrite')).toBeNull()
+    })
+
+    it('does not rewrite a yellow pages host request against the nation branch', async () => {
+      const req = makeRequest(`http://${DEFAULT_YELLOWPAGES_HOST}/register`)
+      const res = await proxy(req)
+      const rewrite = res.headers.get('x-middleware-rewrite')
+      expect(new URL(rewrite).pathname).toBe('/yellowpages/register')
+    })
+
+    it('does not rewrite a nation host request against the yellow pages branch', async () => {
+      const req = makeRequest(`http://${DEFAULT_NATION_HOST}/partner`)
+      const res = await proxy(req)
+      const rewrite = res.headers.get('x-middleware-rewrite')
+      expect(new URL(rewrite).pathname).toBe('/nation/partner')
     })
   })
 

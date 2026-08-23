@@ -1,26 +1,22 @@
 import { getToken } from 'next-auth/jwt'
 import { NextResponse } from 'next/server'
 import { getNationBase } from '@/lib/nation/host'
+import { getYellowPagesBase } from '@/lib/yellowpages/host'
 
-// Next.js only supports a single proxy.js per project, so this combines two
+// Next.js only supports a single proxy.js per project, so this combines three
 // previously-separate concerns that both need to run before routing:
 // 1. Destiny Nation subdomain rewrite (host-based, or ?__nation=1 dev override) —
 //    see spec/destiny-nation-landing.md §1.
-// 2. Admin role-based access control (redirects unauthenticated/unauthorized admin requests) —
-//    pre-existing logic, unchanged from before this file absorbed the nation rewrite.
+// 2. The Yellow Pages subdomain rewrite (host-based, or ?__yellowpages=1 dev override) —
+//    see spec/theyellowpages.md. Independent of the nation rewrite above — a request only
+//    ever matches one subdomain host, so at most one of these two blocks fires.
+// 3. Admin role-based access control (redirects unauthenticated/unauthorized admin requests) —
+//    pre-existing logic, unchanged from before this file absorbed the subdomain rewrites.
 //
 // A second root-level middleware.js/proxy.js previously lived alongside this file and was
 // silently never invoked at runtime (Next.js only wires up the one canonical proxy file,
 // which for a `src/app` project must be src/proxy.js) — that duplicate has been removed.
-// TEMPORARY DIAGNOSTIC: proves definitively whether this function executes at all in
-// production. Remove once the nation subdomain rewrite is confirmed working live.
 export async function proxy(req) {
-  const res = await handleProxy(req)
-  res.headers.set('x-nation-proxy-ran', '1')
-  return res
-}
-
-async function handleProxy(req) {
   const { pathname } = req.nextUrl
 
   if (
@@ -40,6 +36,23 @@ async function handleProxy(req) {
     }
   }
 
+  if (
+    !pathname.startsWith('/yellowpages') &&
+    !pathname.startsWith('/api') &&
+    !pathname.startsWith('/_next') &&
+    !/\.[a-zA-Z0-9]+$/.test(pathname) // static assets, e.g. /favicon.png, /robots.txt
+  ) {
+    const host = req.headers.get('host') || ''
+    const onYellowPagesHost = getYellowPagesBase(host) === ''
+    const devOverride = req.nextUrl.searchParams.get('__yellowpages') === '1'
+
+    if (onYellowPagesHost || devOverride) {
+      const url = req.nextUrl.clone()
+      url.pathname = `/yellowpages${pathname === '/' ? '' : pathname}`
+      return NextResponse.rewrite(url)
+    }
+  }
+
   const ADMIN_AUTH_PATHS = [
     '/admin/dashboard',
     '/admin/assemblies',
@@ -47,6 +60,7 @@ async function handleProxy(req) {
     '/admin/channels',
     '/admin/hero-slides',
     '/admin/system',
+    '/admin/yellowpages',
   ]
   if (ADMIN_AUTH_PATHS.some((p) => pathname.startsWith(p))) {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
@@ -64,7 +78,7 @@ async function handleProxy(req) {
     }
 
     // ── GLOBAL_ADMIN and above only ──────────────────
-    const globalOnlyPaths = ['/admin/admins', '/admin/assemblies/new']
+    const globalOnlyPaths = ['/admin/admins', '/admin/assemblies/new', '/admin/yellowpages']
     if (
       globalOnlyPaths.some((p) => pathname.startsWith(p)) &&
       !['SUPER_ADMIN', 'GLOBAL_ADMIN'].includes(role)

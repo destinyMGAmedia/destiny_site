@@ -12,7 +12,7 @@ const TABS = [
   { path: '/gates/internal', label: 'Internal Gates' },
   { path: '/gates/influence', label: 'Influence Gates' },
   { path: '/projects', label: 'Legacy Projects' },
-  { path: '/partner', label: 'Get Involved' },
+  { path: '/partner', label: 'Get Involved', accent: true },
 ]
 
 export default function TabNav() {
@@ -39,8 +39,13 @@ export default function TabNav() {
               key={tab.path}
               href={hrefFor(tab.path)}
               className={`px-3 py-2 text-sm font-semibold rounded-lg transition-colors whitespace-nowrap ${
-                isActive(tab.path) ? 'text-[#1a0533] bg-[var(--gold-500)]' : 'text-white/80 hover:text-white hover:bg-white/10'
+                isActive(tab.path)
+                  ? 'text-[#1a0533] bg-white'
+                  : tab.accent
+                  ? 'hover:bg-white/10'
+                  : 'text-white/80 hover:text-white hover:bg-white/10'
               }`}
+              style={!isActive(tab.path) && tab.accent ? { color: 'var(--gold-500)' } : undefined}
             >
               {tab.label}
             </Link>
@@ -72,8 +77,9 @@ export default function TabNav() {
               href={hrefFor(tab.path)}
               onClick={() => setOpen(false)}
               className={`px-3 py-3 text-sm font-semibold rounded-lg ${
-                isActive(tab.path) ? 'text-[#1a0533] bg-[var(--gold-500)]' : 'text-white/80'
+                isActive(tab.path) ? 'text-[#1a0533] bg-white' : tab.accent ? '' : 'text-white/80'
               }`}
+              style={!isActive(tab.path) && tab.accent ? { color: 'var(--gold-500)' } : undefined}
             >
               {tab.label}
             </Link>

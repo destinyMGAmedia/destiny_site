@@ -44,6 +44,7 @@ describe('AdminSidebar', () => {
       expect(screen.getByText('Members')).toBeInTheDocument()
       expect(screen.getByText('Weekly Reports')).toBeInTheDocument()
       expect(screen.getByText('Contributions')).toBeInTheDocument()
+      expect(screen.getByText('Payment Setup')).toBeInTheDocument()
       expect(screen.getByText('Site Content')).toBeInTheDocument()
       expect(screen.getByText('Royal Feed')).toBeInTheDocument()
       expect(screen.getByText('Global Events')).toBeInTheDocument()
@@ -74,6 +75,30 @@ describe('AdminSidebar', () => {
       usePathname.mockReturnValue('/admin/admins/123')
       render(<AdminSidebar />)
       expect(screen.getByText('Manage Admins').closest('a')).toHaveClass('active')
+    })
+
+    it('links Payment Setup to /admin/nation/payment-setup and marks it active on that route', () => {
+      usePathname.mockReturnValue('/admin/nation/payment-setup')
+      render(<AdminSidebar />)
+      const paymentSetupLink = screen.getByText('Payment Setup').closest('a')
+      expect(paymentSetupLink).toHaveAttribute('href', '/admin/nation/payment-setup')
+      expect(paymentSetupLink).toHaveClass('active')
+    })
+
+    it('also marks the Contributions parent active on /admin/nation/payment-setup, since isActive prefix-matches "/admin/nation"', () => {
+      // Documents current (perhaps unintended) behavior: both nav items share the "active"
+      // style because Contributions' href ("/admin/nation") is a path prefix of Payment
+      // Setup's href, and isActive() matches on startsWith(href + '/').
+      usePathname.mockReturnValue('/admin/nation/payment-setup')
+      render(<AdminSidebar />)
+      expect(screen.getByText('Contributions').closest('a')).toHaveClass('active')
+    })
+
+    it('marks Contributions active (not Payment Setup) when on the /admin/nation root', () => {
+      usePathname.mockReturnValue('/admin/nation')
+      render(<AdminSidebar />)
+      expect(screen.getByText('Contributions').closest('a')).toHaveClass('active')
+      expect(screen.getByText('Payment Setup').closest('a')).not.toHaveClass('active')
     })
   })
 
@@ -128,7 +153,7 @@ describe('AdminSidebar', () => {
     it('renders the site content and editorial sections', () => {
       mockSession({ role: 'SITE_CONTENT_ADMIN', name: 'Content Admin', email: 'content@example.com' })
       render(<AdminSidebar />)
-      expect(screen.getByText('Site Content')).toBeInTheDocument()
+      expect(screen.getAllByText('Site Content').length).toBeGreaterThan(0)
       expect(screen.getByText('Global Leaders')).toBeInTheDocument()
       expect(screen.getByText('Hero Slides')).toBeInTheDocument()
       expect(screen.getByText('YouTube Channels')).toBeInTheDocument()

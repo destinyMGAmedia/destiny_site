@@ -93,6 +93,7 @@ export default function AdminSidebar({ onItemClick }) {
 
             <NavSection title="Destiny Nation">
               <NavItem href="/admin/nation" icon={Landmark} label="Contributions" active={isActive('/admin/nation')} onClick={onItemClick} />
+              <NavItem href="/admin/nation/payment-setup" icon={Settings} label="Payment Setup" active={isActive('/admin/nation/payment-setup')} onClick={onItemClick} />
             </NavSection>
 
             <NavSection title="Global Content">
