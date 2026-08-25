@@ -71,8 +71,8 @@ export default function Nav() {
         </Link>
 
         {showFilters && (
-          <div className="flex-1 flex items-center gap-2 max-w-xl">
-            <div className="relative flex-1">
+          <div className="flex-1 min-w-0 flex items-center gap-2 max-w-xl">
+            <div className="relative flex-1 min-w-0">
               <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--yp-ink-soft)' }} />
               <input
                 className="yp-input !pl-8 !py-1.5 text-sm"
