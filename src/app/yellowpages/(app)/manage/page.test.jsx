@@ -67,6 +67,21 @@ describe('ManagePage', () => {
     expect(JSON.parse(form.getAttribute('data-owner-contact'))).toEqual({ phone: '08012345678' })
   })
 
+  it('truncates a long listing name and keeps the edit icon from shrinking in the list step', async () => {
+    const longListing = { ...listing, name: 'Extremely Long Business Name That Should Not Wrap The Row Layout Ltd' }
+    global.fetch.mockResolvedValue({ ok: true, json: () => Promise.resolve({ listings: [longListing] }) })
+    renderManage()
+    fireEvent.change(screen.getByLabelText('Phone Number'), { target: { value: '08012345678' } })
+    fireEvent.click(screen.getByText('Find My Listing'))
+
+    const nameEl = await screen.findByText(longListing.name)
+    expect(nameEl).toHaveClass('truncate')
+    expect(nameEl.parentElement).toHaveClass('min-w-0')
+
+    const button = nameEl.closest('button')
+    expect(button.querySelector('svg')).toHaveClass('shrink-0')
+  })
+
   it('shows the saved confirmation after ListingForm calls onSuccess', async () => {
     global.fetch.mockResolvedValue({ ok: true, json: () => Promise.resolve({ listings: [listing] }) })
     renderManage()

@@ -42,4 +42,18 @@ describe('YellowPagesCoverPage', () => {
     renderCover()
     expect(screen.queryByText('List Your Skill or Business')).not.toBeInTheDocument()
   })
+
+  it('applies mobile-friendly horizontal padding to the header and every section', () => {
+    const { container } = renderCover()
+    const header = container.querySelector('header')
+    expect(header).toHaveClass('px-4')
+    expect(header).toHaveClass('sm:px-6')
+
+    const sections = container.querySelectorAll('section')
+    expect(sections.length).toBeGreaterThan(0)
+    for (const section of sections) {
+      expect(section).toHaveClass('px-4')
+      expect(section).toHaveClass('sm:px-6')
+    }
+  })
 })

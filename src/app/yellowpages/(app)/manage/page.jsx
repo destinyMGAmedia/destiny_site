@@ -61,7 +61,7 @@ export default function ManagePage() {
 
   if (step === 'SAVED') {
     return (
-      <div className="max-w-lg mx-auto px-4 py-16 text-center">
+      <div className="max-w-lg mx-auto px-4 py-10 sm:py-16 text-center">
         <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: 'var(--yp-yellow-100)' }}>
           <Check size={28} style={{ color: 'var(--yp-yellow-600)' }} />
         </div>
@@ -114,19 +114,19 @@ export default function ManagePage() {
 
   if (step === 'LIST') {
     return (
-      <div className="max-w-lg mx-auto px-4 py-16">
+      <div className="max-w-lg mx-auto px-4 py-10 sm:py-16">
         <h1 className="text-2xl font-bold mb-1" style={{ color: 'var(--yp-ink)' }}>Your Listings</h1>
         <p className="text-sm mb-6" style={{ color: 'var(--yp-ink-soft)' }}>Select one to edit.</p>
         <div className="space-y-3">
           {listings.map((l) => (
-            <button key={l.id} onClick={() => selectListing(l)} className="yp-card w-full p-4 text-left flex items-center justify-between">
-              <div>
-                <p className="font-semibold">{l.name}</p>
+            <button key={l.id} onClick={() => selectListing(l)} className="yp-card w-full p-4 text-left flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="font-semibold truncate">{l.name}</p>
                 <p className="text-xs" style={{ color: 'var(--yp-ink-soft)' }}>
                   {categoryLabel(l.category)}{!l.isActive ? ' · Deactivated by admin' : ''}
                 </p>
               </div>
-              <Pencil size={16} style={{ color: 'var(--yp-yellow-600)' }} />
+              <Pencil size={16} className="shrink-0" style={{ color: 'var(--yp-yellow-600)' }} />
             </button>
           ))}
         </div>
@@ -135,7 +135,7 @@ export default function ManagePage() {
   }
 
   return (
-    <div className="max-w-md mx-auto px-4 py-16">
+    <div className="max-w-md mx-auto px-4 py-10 sm:py-16">
       <div className="text-center mb-8">
         <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: 'var(--yp-yellow-100)' }}>
           <Search size={24} style={{ color: 'var(--yp-yellow-600)' }} />

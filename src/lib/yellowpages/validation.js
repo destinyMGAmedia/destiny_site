@@ -26,10 +26,9 @@ export function validateListingInput(body = {}) {
     errors.name = listingType === 'BUSINESS' ? 'Business/organization name is required.' : 'Your name is required.'
   }
 
+  // Optional even for BUSINESS — deferred to the "complete your profile" flow after creation,
+  // so the initial form only asks for what's truly needed to make the listing useful.
   const contactPersonName = (body.contactPersonName || '').trim()
-  if (listingType === 'BUSINESS' && !contactPersonName) {
-    errors.contactPersonName = 'Contact person name is required for a business listing.'
-  }
 
   const phone = sanitizePhone(body.phone)
   if (!phone) {

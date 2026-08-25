@@ -37,4 +37,16 @@ describe('CategoryShowcase', () => {
     expect(screen.queryAllByRole('link')).toHaveLength(0)
     expect(screen.queryAllByRole('button')).toHaveLength(0)
   })
+
+  it('keeps icons from shrinking and lets long labels wrap instead of overflowing', () => {
+    const { container } = render(<CategoryShowcase />)
+    const items = container.querySelectorAll('li')
+    expect(items.length).toBeGreaterThan(0)
+    for (const item of items) {
+      expect(item.querySelector('svg')).toHaveClass('shrink-0')
+      const label = item.querySelector('span')
+      expect(label).toHaveClass('min-w-0')
+      expect(label).toHaveClass('break-words')
+    }
+  })
 })

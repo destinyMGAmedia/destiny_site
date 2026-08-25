@@ -18,12 +18,12 @@ export default function YellowPagesCoverPage() {
 
   return (
     <div>
-      <header className="max-w-6xl mx-auto px-6 pt-8 flex items-center gap-2 font-bold">
+      <header className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 flex items-center gap-2 font-bold">
         <span className="inline-block w-6 h-6 rounded" style={{ background: 'var(--yp-yellow-600)' }} />
         The Yellow Pages
       </header>
 
-      <section className="max-w-6xl mx-auto px-6 py-14 grid md:grid-cols-2 gap-10 items-center">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-14 grid md:grid-cols-2 gap-10 items-center">
         <div>
           <h1 className="text-4xl sm:text-5xl font-bold mb-4" style={{ color: 'var(--yp-ink)' }}>
             Skills &amp; Businesses, Right Here in the Family
@@ -39,7 +39,7 @@ export default function YellowPagesCoverPage() {
         <WorkersIllustration />
       </section>
 
-      <section className="max-w-6xl mx-auto px-6 py-12 grid sm:grid-cols-3 gap-6">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12 grid sm:grid-cols-3 gap-6">
         {STEPS.map((step) => (
           <div key={step.title} className="yp-card p-6">
             <step.icon size={22} style={{ color: 'var(--yp-yellow-600)' }} className="mb-3" />
@@ -49,7 +49,7 @@ export default function YellowPagesCoverPage() {
         ))}
       </section>
 
-      <section className="max-w-6xl mx-auto px-6 py-12">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
         <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--yp-ink)' }}>What&rsquo;s In the Directory</h2>
         <p className="mb-6" style={{ color: 'var(--yp-ink-soft)' }}>
           From trades to tech, hospitality to health — a growing list of categories.
@@ -57,7 +57,7 @@ export default function YellowPagesCoverPage() {
         <CategoryShowcase />
       </section>
 
-      <section className="text-center px-6 py-16" style={{ background: 'var(--yp-yellow-100)' }}>
+      <section className="text-center px-4 sm:px-6 py-16" style={{ background: 'var(--yp-yellow-100)' }}>
         <h2 className="text-2xl font-bold mb-3" style={{ color: 'var(--yp-ink)' }}>Ready to look around?</h2>
         <Link href={`${base}/browse`} className="yp-btn-primary">
           Explore the Directory <ArrowRight size={16} />

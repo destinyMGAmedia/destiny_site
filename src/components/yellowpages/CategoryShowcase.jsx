@@ -38,8 +38,8 @@ export default function CategoryShowcase() {
             className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium"
             style={{ background: 'var(--yp-surface)', border: '1px solid var(--yp-border)', color: 'var(--yp-ink-soft)' }}
           >
-            <Icon size={16} style={{ color: 'var(--yp-yellow-600)' }} />
-            {c.label}
+            <Icon size={16} className="shrink-0" style={{ color: 'var(--yp-yellow-600)' }} />
+            <span className="min-w-0 break-words">{c.label}</span>
           </li>
         )
       })}

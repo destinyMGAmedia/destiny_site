@@ -100,4 +100,28 @@ describe('ListingDetailPage', () => {
     await waitFor(() => expect(screen.getByText('Acme Travels')).toBeInTheDocument(), { timeout: 3000 })
     expect(screen.queryByText('Photos')).not.toBeInTheDocument()
   }, 10000)
+
+  it('keeps a long business name from overflowing its header row on narrow screens', async () => {
+    const longName = 'A'.repeat(80) + ' Extremely Long Business Name Nigeria Limited'
+    global.fetch = vi.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve({ listing: { ...fullListing, name: longName } }) }))
+    render(<ListingDetailPage />)
+
+    const heading = await screen.findByText(longName, {}, { timeout: 3000 })
+    expect(heading).toHaveClass('break-words')
+    expect(heading.parentElement).toHaveClass('min-w-0')
+    expect(heading.parentElement).toHaveClass('flex-1')
+  }, 10000)
+
+  it('lets a long social link wrap instead of overflowing its pill', async () => {
+    const longHandle = 'https://facebook.com/' + 'a'.repeat(100)
+    global.fetch = vi.fn(() => Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ listing: { ...fullListing, socialLinks: { facebook: longHandle } } }),
+    }))
+    render(<ListingDetailPage />)
+
+    const pill = await screen.findByText(`facebook: ${longHandle}`, {}, { timeout: 3000 })
+    expect(pill).toHaveClass('break-all')
+    expect(pill).toHaveClass('max-w-full')
+  }, 10000)
 })

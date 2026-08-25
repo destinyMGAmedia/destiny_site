@@ -57,8 +57,8 @@ export default function ListingDetailPage() {
             <Briefcase size={26} style={{ color: 'var(--yp-yellow-600)' }} />
           </div>
         )}
-        <div>
-          <h1 className="text-3xl font-bold" style={{ fontFamily: 'var(--font-serif)', color: 'var(--yp-ink)' }}>{listing.name}</h1>
+        <div className="min-w-0 flex-1">
+          <h1 className="text-2xl sm:text-3xl font-bold break-words" style={{ fontFamily: 'var(--font-serif)', color: 'var(--yp-ink)' }}>{listing.name}</h1>
           {listing.contactPersonName && listing.contactPersonName !== listing.name && (
             <p className="text-sm" style={{ color: 'var(--yp-ink-soft)' }}>
               {listing.contactPersonName}{listing.position ? `, ${listing.position}` : ''}
@@ -149,7 +149,7 @@ export default function ListingDetailPage() {
         {socialLinks.length > 0 && (
           <div className="flex flex-wrap gap-3 mt-3 text-sm">
             {socialLinks.map(([key, value]) => (
-              <span key={key} className="yp-pill">{key}: {value}</span>
+              <span key={key} className="yp-pill max-w-full break-all">{key}: {value}</span>
             ))}
           </div>
         )}

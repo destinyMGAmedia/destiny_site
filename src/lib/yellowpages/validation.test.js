@@ -40,9 +40,10 @@ describe('validateListingInput', () => {
     expect(errors.name).toBeDefined()
   })
 
-  it('requires contactPersonName for BUSINESS listings', () => {
-    const { errors } = validateListingInput({ ...validBusiness, contactPersonName: '' })
-    expect(errors.contactPersonName).toBeDefined()
+  it('does not require contactPersonName for BUSINESS listings — deferred to "complete your profile"', () => {
+    const { errors, data } = validateListingInput({ ...validBusiness, contactPersonName: '' })
+    expect(errors).toBeNull()
+    expect(data.contactPersonName).toBeNull()
   })
 
   it('does not require contactPersonName for INDIVIDUAL listings', () => {
