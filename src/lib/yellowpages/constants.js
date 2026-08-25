@@ -36,3 +36,6 @@ export const SOCIAL_LINK_KEYS = ['facebook', 'instagram', 'linkedin', 'tiktok', 
 export const MAX_DESCRIPTION_CHARS = 1200 // ~150 words
 
 export const LISTINGS_PAGE_SIZE = 12
+
+// Work/personal photos shown in the timeline feed — images only, no video.
+export const MAX_PORTFOLIO_IMAGES = 6

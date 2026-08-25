@@ -1,7 +1,7 @@
 // Shared validators for The Yellow Pages public forms/routes. Mirrors the validation style
 // already used in src/app/(public)/[slug]/join/page.jsx (sanitizePhone/isValidPhone/isValidEmail).
 
-import { LISTING_TYPES, PREFERRED_CONTACTS, CATEGORY_VALUES, SOCIAL_LINK_KEYS, MAX_DESCRIPTION_CHARS } from './constants'
+import { LISTING_TYPES, PREFERRED_CONTACTS, CATEGORY_VALUES, SOCIAL_LINK_KEYS, MAX_DESCRIPTION_CHARS, MAX_PORTFOLIO_IMAGES } from './constants'
 
 export const sanitizePhone = (value) => (value || '').replace(/[^\d+]/g, '').replace(/(?!^)\+/g, '')
 export const isValidPhone = (value) => /^\+?\d{7,15}$/.test((value || '').trim())
@@ -88,6 +88,19 @@ export function validateListingInput(body = {}) {
     }
   }
 
+  // Work/personal photos for the timeline feed — images only (Cloudinary URLs), no video.
+  let portfolioImages = []
+  if (body.portfolioImages !== undefined) {
+    if (!Array.isArray(body.portfolioImages)) {
+      errors.portfolioImages = 'Invalid photos.'
+    } else {
+      portfolioImages = body.portfolioImages.filter((v) => typeof v === 'string' && v.trim()).map((v) => v.trim())
+      if (portfolioImages.length > MAX_PORTFOLIO_IMAGES) {
+        errors.portfolioImages = `You can add up to ${MAX_PORTFOLIO_IMAGES} photos.`
+      }
+    }
+  }
+
   if (Object.keys(errors).length > 0) {
     return { errors, data: null }
   }
@@ -115,6 +128,7 @@ export function validateListingInput(body = {}) {
       certifications: (body.certifications || '').trim() || null,
       logoUrl: (body.logoUrl || '').trim() || null,
       photoUrl: (body.photoUrl || '').trim() || null,
+      portfolioImages,
       licenseNumber: (body.licenseNumber || '').trim() || null,
       preferredContact,
     },

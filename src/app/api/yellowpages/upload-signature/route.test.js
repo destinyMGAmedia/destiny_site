@@ -29,6 +29,16 @@ describe('GET /api/yellowpages/upload-signature', () => {
     expect(generateUploadSignature).toHaveBeenCalledWith('dmga/global/yellowpages', ['yellowpages', 'photo'])
   })
 
+  it('tags a "portfolio" upload correctly', async () => {
+    await GET(makeRequest('?type=portfolio'))
+    expect(generateUploadSignature).toHaveBeenCalledWith('dmga/global/yellowpages', ['yellowpages', 'portfolio'])
+  })
+
+  it('falls back to "logo" for an unrecognized type value', async () => {
+    await GET(makeRequest('?type=video'))
+    expect(generateUploadSignature).toHaveBeenCalledWith('dmga/global/yellowpages', ['yellowpages', 'logo'])
+  })
+
   it('returns the signature payload as-is', async () => {
     const res = await GET(makeRequest())
     const body = await res.json()

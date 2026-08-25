@@ -3,7 +3,12 @@ import ListingCard from './ListingCard'
 import YellowPagesChrome from './shared/YellowPagesChrome'
 import { usePathname } from 'next/navigation'
 
-vi.mock('next/navigation', () => ({ usePathname: vi.fn(() => '/') }))
+// ListingCard renders inside YellowPagesChrome, which also renders Nav — Nav needs these too.
+vi.mock('next/navigation', () => ({
+  usePathname: vi.fn(() => '/'),
+  useRouter: vi.fn(() => ({ replace: vi.fn() })),
+  useSearchParams: vi.fn(() => new URLSearchParams()),
+}))
 
 const baseListing = {
   id: 'l1',
@@ -16,6 +21,7 @@ const baseListing = {
   ratingCount: 0,
   avgRating: null,
   logoUrl: null,
+  portfolioImages: [],
 }
 
 function renderCard(listing, base = '/yellowpages') {
@@ -42,19 +48,17 @@ describe('ListingCard', () => {
     expect(screen.getByText('Lagos, Nigeria')).toBeInTheDocument()
   })
 
-  it('shows "No reviews yet" when ratingCount is 0', () => {
+  it('shows no rating badge when ratingCount is 0', () => {
     renderCard(baseListing)
-    expect(screen.getByText('No reviews yet')).toBeInTheDocument()
+    expect(screen.queryByText(/\(0\)/)).not.toBeInTheDocument()
   })
 
-  it('shows the average rating and count when reviews exist', () => {
+  it('shows the rating count when reviews exist', () => {
     renderCard({ ...baseListing, ratingCount: 3, avgRating: 4.3 })
     expect(screen.getByText('(3)')).toBeInTheDocument()
   })
 
   it('renders the logo image when logoUrl is set', () => {
-    // The logo <img> has an empty alt (decorative), which gives it ARIA role
-    // "presentation" rather than "img" — so it must be queried directly, not via getByRole.
     const { container } = renderCard({ ...baseListing, logoUrl: 'https://example.com/logo.png' })
     expect(container.querySelector('img')).toHaveAttribute('src', 'https://example.com/logo.png')
   })
@@ -62,6 +66,17 @@ describe('ListingCard', () => {
   it('falls back to the placeholder icon when logoUrl is absent', () => {
     const { container } = renderCard(baseListing)
     expect(container.querySelector('img')).not.toBeInTheDocument()
+  })
+
+  it('renders the first portfolio image as a cover photo when present', () => {
+    const { container } = renderCard({ ...baseListing, portfolioImages: ['https://example.com/work1.jpg', 'https://example.com/work2.jpg'] })
+    const images = container.querySelectorAll('img')
+    expect(images[images.length - 1]).toHaveAttribute('src', 'https://example.com/work1.jpg')
+  })
+
+  it('does not render a cover photo when there are no portfolio images', () => {
+    const { container } = renderCard(baseListing)
+    expect(container.querySelectorAll('img')).toHaveLength(0)
   })
 
   it('renders an empty location slot when city, state, and country are all missing', () => {

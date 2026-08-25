@@ -904,6 +904,7 @@ model YellowPagesListing {
   certifications    String?
   logoUrl           String?
   photoUrl          String?
+  portfolioImages   String[]            @default([]) // work/personal photos for the timeline feed — images only, no video
   licenseNumber     String?
   preferredContact  PreferredContact    @default(PHONE)
   isActive          Boolean             @default(true) // admin hide/deactivate flips this; excluded from all public queries when false

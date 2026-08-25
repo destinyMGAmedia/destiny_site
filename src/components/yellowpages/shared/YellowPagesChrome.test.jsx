@@ -1,8 +1,12 @@
 import { render, screen } from '@testing-library/react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import YellowPagesChrome, { useYellowPagesBase } from './YellowPagesChrome'
 
-vi.mock('next/navigation', () => ({ usePathname: vi.fn(() => '/') }))
+vi.mock('next/navigation', () => ({
+  usePathname: vi.fn(() => '/'),
+  useRouter: vi.fn(() => ({ replace: vi.fn() })),
+  useSearchParams: vi.fn(() => new URLSearchParams()),
+}))
 
 function BaseProbe() {
   return <span data-testid="base">{useYellowPagesBase()}</span>

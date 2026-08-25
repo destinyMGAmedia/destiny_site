@@ -1,74 +1,97 @@
-import { render, screen, fireEvent } from '@testing-library/react'
-import { usePathname } from 'next/navigation'
+import { render, screen, within, fireEvent, waitFor } from '@testing-library/react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import Nav from './Nav'
 import YellowPagesChrome from './YellowPagesChrome'
 
-vi.mock('next/navigation', () => ({ usePathname: vi.fn(() => '/') }))
+vi.mock('next/navigation', () => ({
+  usePathname: vi.fn(),
+  useRouter: vi.fn(),
+  useSearchParams: vi.fn(),
+}))
 
-function renderWithBase(base) {
-  return render(
+function renderWithBase(base, { pathname = '/yellowpages/register', query = '', assemblies = [] } = {}) {
+  const replace = vi.fn()
+  usePathname.mockReturnValue(pathname)
+  useRouter.mockReturnValue({ replace })
+  useSearchParams.mockReturnValue(new URLSearchParams(query))
+  global.fetch = vi.fn(() => Promise.resolve({ json: () => Promise.resolve(assemblies) }))
+
+  render(
     <YellowPagesChrome base={base}>
       <div />
     </YellowPagesChrome>
   )
+  return { replace }
 }
 
 describe('Nav', () => {
-  it('links Home to "/" when base is "" (on the subdomain)', () => {
-    usePathname.mockReturnValue('/')
-    renderWithBase('')
-    expect(screen.getAllByText('Home')[0].closest('a')).toHaveAttribute('href', '/')
+  it('links the brand mark to the browse feed, prefixed with the base', () => {
+    renderWithBase('/yellowpages', { pathname: '/yellowpages/browse' })
+    expect(screen.getAllByText('The Yellow Pages')[0].closest('a')).toHaveAttribute('href', '/yellowpages/browse')
   })
 
-  it('links Home to "/yellowpages" when base is "/yellowpages" (main-domain fallback)', () => {
-    usePathname.mockReturnValue('/yellowpages')
+  it('renders icon-only tabs with no visible text labels', () => {
     renderWithBase('/yellowpages')
-    expect(screen.getAllByText('Home')[0].closest('a')).toHaveAttribute('href', '/yellowpages')
+    const nav = within(screen.getByRole('banner'))
+    expect(nav.queryByText('Home')).not.toBeInTheDocument()
+    expect(nav.queryByText('List Your Skill or Business')).not.toBeInTheDocument()
   })
 
-  it('prefixes non-root tabs with the base', () => {
-    usePathname.mockReturnValue('/yellowpages/search')
+  it('exposes each tab via an accessible label', () => {
     renderWithBase('/yellowpages')
-    expect(screen.getAllByText('Browse')[0].closest('a')).toHaveAttribute('href', '/yellowpages/search')
+    expect(screen.getByLabelText('Home feed')).toHaveAttribute('href', '/yellowpages/browse')
+    expect(screen.getByLabelText('List your skill or business')).toHaveAttribute('href', '/yellowpages/register')
+    expect(screen.getByLabelText('Manage my listing')).toHaveAttribute('href', '/yellowpages/manage')
   })
 
-  it('renders the accent "List Your Skill or Business" CTA', () => {
-    usePathname.mockReturnValue('/')
-    renderWithBase('')
-    expect(screen.getAllByText('List Your Skill or Business').length).toBeGreaterThan(0)
+  it('does not render a "Main Site" link', () => {
+    renderWithBase('/yellowpages')
+    const nav = within(screen.getByRole('banner'))
+    expect(nav.queryByText('Main Site')).not.toBeInTheDocument()
+    expect(nav.queryByText('www.destinymissionglobal.org')).not.toBeInTheDocument()
   })
 
-  it('links to the main site', () => {
-    usePathname.mockReturnValue('/')
-    renderWithBase('')
-    expect(screen.getByText('Main Site').closest('a')).toHaveAttribute('href', 'https://www.destinymissionglobal.org')
+  it('does not render a mobile hamburger menu', () => {
+    renderWithBase('/yellowpages')
+    expect(screen.queryByLabelText('Open menu')).not.toBeInTheDocument()
   })
 
-  it('opens the mobile menu on toggle click and closes again on second click', () => {
-    usePathname.mockReturnValue('/')
-    renderWithBase('')
-
-    // "Destiny Mission Global Assembly" also appears once in the Footer, so the mobile
-    // nav's own copy of that link only exists in the DOM while the menu is open.
-    expect(screen.queryAllByText('Destiny Mission Global Assembly')).toHaveLength(1)
-
-    fireEvent.click(screen.getByLabelText('Open menu'))
-    expect(screen.getByLabelText('Close menu')).toBeInTheDocument()
-    expect(screen.queryAllByText('Destiny Mission Global Assembly')).toHaveLength(2)
-
-    fireEvent.click(screen.getByLabelText('Close menu'))
-    expect(screen.getByLabelText('Open menu')).toBeInTheDocument()
-    expect(screen.queryAllByText('Destiny Mission Global Assembly')).toHaveLength(1)
+  it('does not show the search/assembly filter on non-browse pages', () => {
+    renderWithBase('/yellowpages', { pathname: '/yellowpages/register' })
+    expect(screen.queryByLabelText('Search')).not.toBeInTheDocument()
   })
 
-  it('closes the mobile menu when a tab link is clicked', () => {
-    usePathname.mockReturnValue('/')
-    renderWithBase('')
+  it('shows the search/assembly filter on the browse page', () => {
+    renderWithBase('/yellowpages', { pathname: '/yellowpages/browse' })
+    expect(screen.getByLabelText('Search')).toBeInTheDocument()
+    expect(screen.getByLabelText('Assembly')).toBeInTheDocument()
+  })
 
-    fireEvent.click(screen.getByLabelText('Open menu'))
-    const mobileHomeLink = screen.getAllByText('Home')[1]
-    fireEvent.click(mobileHomeLink)
+  it('shows the search filter on a category page too', () => {
+    renderWithBase('/yellowpages', { pathname: '/yellowpages/category/TECHNOLOGY_IT' })
+    expect(screen.getByLabelText('Search')).toBeInTheDocument()
+  })
 
-    expect(screen.getByLabelText('Open menu')).toBeInTheDocument()
+  it('debounces search input and updates the URL, preserving other params', async () => {
+    const { replace } = renderWithBase('/yellowpages', { pathname: '/yellowpages/browse', query: 'category=TECHNOLOGY_IT' })
+
+    fireEvent.change(screen.getByLabelText('Search'), { target: { value: 'plumber' } })
+
+    await waitFor(() => expect(replace).toHaveBeenCalled(), { timeout: 2000 })
+    const url = replace.mock.calls[0][0]
+    expect(url).toContain('q=plumber')
+    expect(url).toContain('category=TECHNOLOGY_IT')
+  })
+
+  it('updates the URL immediately (no debounce) when the assembly select changes', async () => {
+    const { replace } = renderWithBase('/yellowpages', {
+      pathname: '/yellowpages/browse',
+      assemblies: [{ slug: 'lagos', name: 'Lagos' }],
+    })
+
+    await waitFor(() => expect(screen.getByRole('option', { name: 'Lagos' })).toBeInTheDocument())
+    fireEvent.change(screen.getByLabelText('Assembly'), { target: { value: 'lagos' } })
+
+    expect(replace).toHaveBeenCalledWith(expect.stringContaining('assemblySlug=lagos'), { scroll: false })
   })
 })

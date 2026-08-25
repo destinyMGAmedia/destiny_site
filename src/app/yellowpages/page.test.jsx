@@ -1,64 +1,45 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { useRouter, usePathname } from 'next/navigation'
-import YellowPagesHome from './page'
-import YellowPagesChrome from '@/components/yellowpages/shared/YellowPagesChrome'
+import { render, screen } from '@testing-library/react'
+import YellowPagesCoverPage from './page'
+import YellowPagesBaseOnly from '@/components/yellowpages/shared/YellowPagesBaseOnly'
 
-vi.mock('next/navigation', () => ({
-  useRouter: vi.fn(),
-  usePathname: vi.fn(() => '/'),
-}))
-
-const oneListing = {
-  id: 'l1', name: 'Acme Travels', category: 'TOURISM_TRAVEL', description: 'We plan trips.',
-  city: 'Lagos', state: null, country: 'Nigeria', ratingCount: 0, avgRating: null, logoUrl: null,
-}
-
-function renderHome() {
+function renderCover(base = '/yellowpages') {
   return render(
-    <YellowPagesChrome base="/yellowpages">
-      <YellowPagesHome />
-    </YellowPagesChrome>
+    <YellowPagesBaseOnly base={base}>
+      <YellowPagesCoverPage />
+    </YellowPagesBaseOnly>
   )
 }
 
-describe('YellowPagesHome', () => {
-  const push = vi.fn()
-
-  beforeEach(() => {
-    vi.clearAllMocks()
-    useRouter.mockReturnValue({ push })
-    usePathname.mockReturnValue('/')
-    global.fetch = vi.fn(() => Promise.resolve({ json: () => Promise.resolve({ listings: [] }) }))
+describe('YellowPagesCoverPage', () => {
+  it('renders the branding heading', () => {
+    renderCover()
+    expect(screen.getByText('Skills & Businesses, Right Here in the Family')).toBeInTheDocument()
   })
 
-  it('renders the category grid', () => {
-    renderHome()
-    expect(screen.getByText('Browse by Category')).toBeInTheDocument()
+  it('links both CTAs to the browse feed, prefixed with the base', () => {
+    renderCover('/yellowpages')
+    const ctas = screen.getAllByText('Explore the Directory')
+    expect(ctas.length).toBeGreaterThan(0)
+    for (const cta of ctas) {
+      expect(cta.closest('a')).toHaveAttribute('href', '/yellowpages/browse')
+    }
   })
 
-  it('navigates to /search with the query when the hero search form is submitted', () => {
-    renderHome()
-    fireEvent.change(screen.getByLabelText('Search'), { target: { value: 'plumber' } })
-    fireEvent.click(screen.getByText('Search'))
-    expect(push).toHaveBeenCalledWith('/yellowpages/search?q=plumber')
+  it('renders the how-it-works steps', () => {
+    renderCover()
+    expect(screen.getByText('Search')).toBeInTheDocument()
+    expect(screen.getByText('Connect')).toBeInTheDocument()
+    expect(screen.getByText('Trust')).toBeInTheDocument()
   })
 
-  it('navigates to /search with no query string when the search box is empty', () => {
-    renderHome()
-    fireEvent.click(screen.getByText('Search'))
-    expect(push).toHaveBeenCalledWith('/yellowpages/search')
+  it('renders the category showcase as non-clickable items', () => {
+    renderCover()
+    expect(screen.getByText('Technology & IT')).toBeInTheDocument()
+    expect(screen.getByText('Technology & IT').closest('a')).toBeNull()
   })
 
-  it('renders recently added listings fetched from the API', async () => {
-    global.fetch = vi.fn(() => Promise.resolve({ json: () => Promise.resolve({ listings: [oneListing] }) }))
-    renderHome()
-    await waitFor(() => expect(screen.getByText('Recently Added')).toBeInTheDocument(), { timeout: 4000 })
-    expect(screen.getByText('Acme Travels')).toBeInTheDocument()
-  })
-
-  it('does not render the "Recently Added" section when there are no listings', async () => {
-    renderHome()
-    await waitFor(() => expect(global.fetch).toHaveBeenCalled(), { timeout: 4000 })
-    expect(screen.queryByText('Recently Added')).not.toBeInTheDocument()
+  it('does not render a Nav (no "List Your Skill or Business" tab present)', () => {
+    renderCover()
+    expect(screen.queryByText('List Your Skill or Business')).not.toBeInTheDocument()
   })
 })

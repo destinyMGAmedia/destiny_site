@@ -101,6 +101,20 @@ describe('GET /api/yellowpages/listings', () => {
     expect(args.skip).toBe(24)
     expect(args.take).toBe(12)
   })
+
+  it('returns a JSON 500 (not an unhandled crash) when the database is unreachable', async () => {
+    prisma.yellowPagesListing.count.mockRejectedValue(new Error('P1001: Can’t reach database server'))
+    const res = await GET(makeGetRequest())
+    const body = await res.json()
+    expect(res.status).toBe(500)
+    expect(body.error).toBeDefined()
+  })
+
+  it('also returns a JSON 500 when the assemblySlug lookup itself fails', async () => {
+    prisma.assembly.findUnique.mockRejectedValue(new Error('db down'))
+    const res = await GET(makeGetRequest('?assemblySlug=lagos'))
+    expect(res.status).toBe(500)
+  })
 })
 
 describe('POST /api/yellowpages/listings', () => {

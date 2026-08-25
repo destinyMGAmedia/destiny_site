@@ -39,33 +39,38 @@ export async function GET(req) {
     ]
   }
 
-  if (assemblySlug) {
-    const assembly = await prisma.assembly.findUnique({ where: { slug: assemblySlug } })
-    if (!assembly) {
-      // Unknown assembly filter — no matches, not an error (soft filter mismatch).
-      return NextResponse.json({ listings: [], page, pageSize: LISTINGS_PAGE_SIZE, total: 0, totalPages: 0 })
+  try {
+    if (assemblySlug) {
+      const assembly = await prisma.assembly.findUnique({ where: { slug: assemblySlug } })
+      if (!assembly) {
+        // Unknown assembly filter — no matches, not an error (soft filter mismatch).
+        return NextResponse.json({ listings: [], page, pageSize: LISTINGS_PAGE_SIZE, total: 0, totalPages: 0 })
+      }
+      where.assemblyId = assembly.id
     }
-    where.assemblyId = assembly.id
+
+    const [total, listings] = await Promise.all([
+      prisma.yellowPagesListing.count({ where }),
+      prisma.yellowPagesListing.findMany({
+        where,
+        include: { ratings: { select: { stars: true } }, assembly: { select: { slug: true, name: true } } },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * LISTINGS_PAGE_SIZE,
+        take: LISTINGS_PAGE_SIZE,
+      }),
+    ])
+
+    return NextResponse.json({
+      listings: listings.map(withRatingSummary),
+      page,
+      pageSize: LISTINGS_PAGE_SIZE,
+      total,
+      totalPages: Math.ceil(total / LISTINGS_PAGE_SIZE),
+    })
+  } catch (error) {
+    console.error('[YELLOWPAGES] Failed to list listings:', error)
+    return NextResponse.json({ error: 'Failed to load listings' }, { status: 500 })
   }
-
-  const [total, listings] = await Promise.all([
-    prisma.yellowPagesListing.count({ where }),
-    prisma.yellowPagesListing.findMany({
-      where,
-      include: { ratings: { select: { stars: true } }, assembly: { select: { slug: true, name: true } } },
-      orderBy: { createdAt: 'desc' },
-      skip: (page - 1) * LISTINGS_PAGE_SIZE,
-      take: LISTINGS_PAGE_SIZE,
-    }),
-  ])
-
-  return NextResponse.json({
-    listings: listings.map(withRatingSummary),
-    page,
-    pageSize: LISTINGS_PAGE_SIZE,
-    total,
-    totalPages: Math.ceil(total / LISTINGS_PAGE_SIZE),
-  })
 }
 
 // POST /api/yellowpages/listings — public, unauthenticated listing submission. Auto-publishes

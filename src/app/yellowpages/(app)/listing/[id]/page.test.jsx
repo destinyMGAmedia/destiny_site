@@ -81,4 +81,23 @@ describe('ListingDetailPage', () => {
     await waitFor(() => expect(screen.getByText('No reviews yet')).toBeInTheDocument(), { timeout: 3000 })
     expect(screen.getByText('No reviews yet — be the first to leave one.')).toBeInTheDocument()
   }, 10000)
+
+  it('renders a photo gallery when portfolioImages are present', async () => {
+    global.fetch = vi.fn(() => Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ listing: { ...fullListing, portfolioImages: ['https://example.com/a.jpg', 'https://example.com/b.jpg'] } }),
+    }))
+    const { container } = render(<ListingDetailPage />)
+
+    await waitFor(() => expect(screen.getByText('Photos')).toBeInTheDocument(), { timeout: 3000 })
+    expect(container.querySelectorAll('img[src="https://example.com/a.jpg"]')).toHaveLength(1)
+  }, 10000)
+
+  it('does not render a Photos section when there are no portfolio images', async () => {
+    global.fetch = vi.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve({ listing: { ...fullListing, portfolioImages: [] } }) }))
+    render(<ListingDetailPage />)
+
+    await waitFor(() => expect(screen.getByText('Acme Travels')).toBeInTheDocument(), { timeout: 3000 })
+    expect(screen.queryByText('Photos')).not.toBeInTheDocument()
+  }, 10000)
 })

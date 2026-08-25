@@ -1,7 +1,8 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { AlertCircle } from 'lucide-react'
-import { CATEGORIES, PREFERRED_CONTACTS, MAX_DESCRIPTION_CHARS } from '@/lib/yellowpages/constants'
+import { AlertCircle, X, Loader2, ImagePlus } from 'lucide-react'
+import { CATEGORIES, PREFERRED_CONTACTS, MAX_DESCRIPTION_CHARS, MAX_PORTFOLIO_IMAGES } from '@/lib/yellowpages/constants'
+import { useYellowPagesUpload } from '@/lib/yellowpages/useYellowPagesUpload'
 import ImageUploadField from './ImageUploadField'
 
 const PREFERRED_CONTACT_LABELS = { PHONE: 'Phone Call', WHATSAPP: 'WhatsApp', EMAIL: 'Email' }
@@ -29,6 +30,7 @@ const EMPTY_FORM = {
   certifications: '',
   logoUrl: '',
   photoUrl: '',
+  portfolioImages: [],
   licenseNumber: '',
   preferredContact: 'PHONE',
 }
@@ -45,12 +47,66 @@ function FieldError({ errors, field }) {
   ) : null
 }
 
+// Multi-photo uploader for the "work/personal photos" gallery — images only, no video.
+function PortfolioImagesField({ images, onChange }) {
+  const { upload, uploading, error } = useYellowPagesUpload()
+
+  const handleFiles = async (files) => {
+    const remaining = MAX_PORTFOLIO_IMAGES - images.length
+    const toUpload = Array.from(files || []).slice(0, remaining)
+    for (const file of toUpload) {
+      try {
+        const result = await upload(file, 'portfolio')
+        onChange((prev) => [...prev, result.secure_url])
+      } catch {
+        // per-file error already surfaced via the hook's `error` state
+      }
+    }
+  }
+
+  return (
+    <div>
+      <span className="yp-label">
+        Work / Personal Photos <span className="font-normal text-xs" style={{ color: 'var(--yp-ink-soft)' }}>({images.length}/{MAX_PORTFOLIO_IMAGES}, images only)</span>
+      </span>
+      <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+        {images.map((url, i) => (
+          <div key={url} className="relative aspect-square rounded-lg overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={url} alt="" className="w-full h-full object-cover" />
+            <button
+              type="button"
+              onClick={() => onChange((prev) => prev.filter((_, idx) => idx !== i))}
+              className="absolute top-1 right-1 p-1 rounded-full"
+              style={{ background: 'rgba(255,255,255,0.9)' }}
+              aria-label={`Remove photo ${i + 1}`}
+            >
+              <X size={12} />
+            </button>
+          </div>
+        ))}
+        {images.length < MAX_PORTFOLIO_IMAGES && (
+          <label
+            className="aspect-square rounded-lg border-2 border-dashed flex flex-col items-center justify-center cursor-pointer text-xs gap-1"
+            style={{ borderColor: 'var(--yp-border)', color: 'var(--yp-ink-soft)' }}
+          >
+            <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => handleFiles(e.target.files)} aria-label="Add photo" />
+            {uploading ? <Loader2 size={18} className="animate-spin" /> : <ImagePlus size={18} />}
+            {uploading ? 'Uploading…' : 'Add photo'}
+          </label>
+        )}
+      </div>
+      {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
+    </div>
+  )
+}
+
 /**
  * The full listing registration form, used by /yellowpages/register. Client-validates only
  * the bare minimum (required fields) for quick feedback; the server's field-level `errors`
  * response is the source of truth and is merged into formErrors on submit.
  */
-export default function ListingForm({ initialValues, onSuccess }) {
+export default function ListingForm({ initialValues, onSuccess, mode = 'create', listingId, ownerContact }) {
   const [form, setForm] = useState({ ...EMPTY_FORM, ...initialValues })
   const [formErrors, setFormErrors] = useState({})
   const [assemblies, setAssemblies] = useState([])
@@ -94,14 +150,19 @@ export default function ListingForm({ initialValues, onSuccess }) {
     setSubmitError('')
     setStatus('loading')
 
+    const payload = {
+      ...form,
+      yearsInOperation: form.yearsInOperation === '' ? null : Number(form.yearsInOperation),
+      ...(mode === 'edit' ? { ownerPhone: ownerContact?.phone, ownerEmail: ownerContact?.email } : {}),
+    }
+    const url = mode === 'edit' ? `/api/yellowpages/listings/${listingId}` : '/api/yellowpages/listings'
+    const method = mode === 'edit' ? 'PATCH' : 'POST'
+
     try {
-      const res = await fetch('/api/yellowpages/listings', {
-        method: 'POST',
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...form,
-          yearsInOperation: form.yearsInOperation === '' ? null : Number(form.yearsInOperation),
-        }),
+        body: JSON.stringify(payload),
       })
       const data = await res.json()
 
@@ -249,6 +310,8 @@ export default function ListingForm({ initialValues, onSuccess }) {
         <ImageUploadField label="Professional Photo" type="photo" value={form.photoUrl} onChange={set('photoUrl')} />
       </div>
 
+      <PortfolioImagesField images={form.portfolioImages} onChange={(updater) => setForm((f) => ({ ...f, portfolioImages: updater(f.portfolioImages) }))} />
+
       <div>
         <label className="yp-label" htmlFor="yp-website">Website</label>
         <input id="yp-website" className="yp-input" placeholder="https://…" value={form.website} onChange={(e) => set('website')(e.target.value)} />
@@ -304,7 +367,7 @@ export default function ListingForm({ initialValues, onSuccess }) {
       )}
 
       <button type="submit" disabled={status === 'loading'} className="yp-btn-primary w-full justify-center">
-        {status === 'loading' ? 'Submitting…' : 'List My Skill or Business'}
+        {status === 'loading' ? 'Saving…' : mode === 'edit' ? 'Save Changes' : 'List My Skill or Business'}
       </button>
     </form>
   )

@@ -1,14 +1,13 @@
 import { render, screen } from '@testing-library/react'
-import SearchPage from './page'
+import BrowsePage from './page'
 
 vi.mock('@/components/yellowpages/ListingsBrowser', () => ({
   default: ({ lockedCategory }) => <div data-testid="browser" data-locked-category={lockedCategory || ''} />,
 }))
 
-describe('SearchPage', () => {
-  it('renders the heading and ListingsBrowser with no locked category', () => {
-    render(<SearchPage />)
-    expect(screen.getByText('Browse the Directory')).toBeInTheDocument()
+describe('BrowsePage', () => {
+  it('renders ListingsBrowser with no locked category', () => {
+    render(<BrowsePage />)
     expect(screen.getByTestId('browser')).toHaveAttribute('data-locked-category', '')
   })
 })

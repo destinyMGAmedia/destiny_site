@@ -1,11 +1,13 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { useRouter, usePathname, useSearchParams } from 'next/navigation'
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import ListingsBrowser from './ListingsBrowser'
 import YellowPagesChrome from './shared/YellowPagesChrome'
 
+// ListingsBrowser renders inside YellowPagesChrome, which also renders Nav — Nav needs these
+// too now that it hosts the search/assembly filter.
 vi.mock('next/navigation', () => ({
-  useRouter: vi.fn(),
-  usePathname: vi.fn(),
+  usePathname: vi.fn(() => '/yellowpages/browse'),
+  useRouter: vi.fn(() => ({ replace: vi.fn() })),
   useSearchParams: vi.fn(),
 }))
 
@@ -15,34 +17,29 @@ const emptyResult = { listings: [], total: 0, totalPages: 0 }
 const oneListingResult = {
   listings: [{
     id: 'l1', name: 'Acme Travels', category: 'TOURISM_TRAVEL', description: 'We plan trips.',
-    city: 'Lagos', state: null, country: 'Nigeria', ratingCount: 0, avgRating: null, logoUrl: null,
+    city: 'Lagos', state: null, country: 'Nigeria', ratingCount: 0, avgRating: null, logoUrl: null, portfolioImages: [],
   }],
   total: 1,
   totalPages: 1,
 }
 
-function mockFetchSequence({ assemblies = [], listings = emptyResult } = {}) {
-  global.fetch = vi.fn((url) => {
-    if (String(url).includes('/api/assemblies')) {
-      return Promise.resolve({ json: () => Promise.resolve(assemblies) })
-    }
-    return Promise.resolve({ json: () => Promise.resolve(listings) })
-  })
+function mockFetch(listings = emptyResult) {
+  global.fetch = vi.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve(listings) }))
 }
 
 function renderBrowser(props = {}, initialQuery = '') {
-  const replace = vi.fn()
-  useRouter.mockReturnValue({ replace })
-  usePathname.mockReturnValue('/yellowpages/search')
   useSearchParams.mockReturnValue(new URLSearchParams(initialQuery))
-
-  render(
+  return render(
     <YellowPagesChrome base="/yellowpages">
       <ListingsBrowser {...props} />
     </YellowPagesChrome>
   )
-  return { replace }
 }
+
+// The desktop sidebar and mobile chip row both render in jsdom (CSS is not processed in
+// tests, so `hidden`/`lg:*` utility classes have no effect) — scope to the first tablist
+// (the sidebar) when asserting on a specific chip.
+const sidebarTablist = () => within(screen.getAllByRole('tablist')[0])
 
 describe('ListingsBrowser', () => {
   beforeEach(() => {
@@ -50,26 +47,35 @@ describe('ListingsBrowser', () => {
   })
 
   it('shows a loading state, then renders results from the API', async () => {
-    mockFetchSequence({ listings: oneListingResult })
+    mockFetch(oneListingResult)
     renderBrowser()
 
     expect(screen.getByText('Loading listings…')).toBeInTheDocument()
     await waitFor(() => expect(screen.getByText('Acme Travels')).toBeInTheDocument(), WAIT)
   }, 10000)
 
+  it('shows an error message (not a crash) when the API returns a non-ok response', async () => {
+    global.fetch = vi.fn(() => Promise.resolve({ ok: false, json: () => Promise.resolve({ error: 'Failed to load listings' }) }))
+    renderBrowser()
+
+    await waitFor(() => expect(screen.getByText('Could not load listings. Please try again.')).toBeInTheDocument(), WAIT)
+    // Must not have thrown trying to read `.length` off an undefined `listings` field.
+    expect(screen.queryByText(/No listings match your search yet/)).not.toBeInTheDocument()
+  }, 10000)
+
   it('shows the empty state with a link to register when there are no results', async () => {
-    mockFetchSequence({ listings: emptyResult })
+    mockFetch(emptyResult)
     renderBrowser()
 
     await waitFor(() => expect(screen.getByText(/No listings match your search yet/)).toBeInTheDocument(), WAIT)
     expect(screen.getByText('list your skill or business')).toHaveAttribute('href', 'register')
   }, 10000)
 
-  it('hides the category select and forces lockedCategory into the fetch when provided', async () => {
-    mockFetchSequence({ listings: emptyResult })
+  it('hides the category sidebar/chips and forces lockedCategory into the fetch when provided', async () => {
+    mockFetch(emptyResult)
     renderBrowser({ lockedCategory: 'TECHNOLOGY_IT' })
 
-    expect(screen.queryByLabelText('Category')).not.toBeInTheDocument()
+    expect(screen.queryByRole('tablist')).not.toBeInTheDocument()
 
     await waitFor(() => {
       const call = global.fetch.mock.calls.find(([url]) => String(url).includes('/api/yellowpages/listings'))
@@ -77,38 +83,67 @@ describe('ListingsBrowser', () => {
     }, WAIT)
   }, 10000)
 
-  it('shows the category select when no lockedCategory is given', async () => {
-    mockFetchSequence({ listings: emptyResult })
+  it('shows the category chip sidebar when no lockedCategory is given, with "All" selected by default', async () => {
+    mockFetch(emptyResult)
     renderBrowser()
-    await waitFor(() => expect(screen.getByLabelText('Category')).toBeInTheDocument(), WAIT)
+    await waitFor(() => expect(screen.getAllByRole('tablist').length).toBeGreaterThan(0), WAIT)
+    expect(sidebarTablist().getByRole('tab', { name: 'All' })).toHaveAttribute('aria-selected', 'true')
   }, 10000)
 
-  it('re-fetches and updates the URL when the search text changes', async () => {
-    mockFetchSequence({ listings: emptyResult })
-    const { replace } = renderBrowser()
-    await waitFor(() => expect(global.fetch).toHaveBeenCalled(), WAIT)
+  it('selecting a category chip re-fetches with that category and marks it selected', async () => {
+    mockFetch(emptyResult)
+    renderBrowser()
+    await waitFor(() => expect(screen.getAllByRole('tablist').length).toBeGreaterThan(0), WAIT)
 
-    fireEvent.change(screen.getByLabelText('Search'), { target: { value: 'plumber' } })
+    fireEvent.click(sidebarTablist().getByRole('tab', { name: 'Technology & IT' }))
 
+    await waitFor(() => {
+      const call = global.fetch.mock.calls.findLast(([url]) => String(url).includes('/api/yellowpages/listings'))
+      expect(call[0]).toContain('category=TECHNOLOGY_IT')
+    }, WAIT)
+    expect(sidebarTablist().getByRole('tab', { name: 'Technology & IT' })).toHaveAttribute('aria-selected', 'true')
+  }, 10000)
+
+  it('re-fetches when the URL search param (q) changes, e.g. set by Nav', async () => {
+    mockFetch(emptyResult)
+    renderBrowser({}, 'q=plumber')
     await waitFor(() => {
       const call = global.fetch.mock.calls.find(([url]) => String(url).includes('q=plumber'))
       expect(call).toBeDefined()
     }, WAIT)
-    await waitFor(() => expect(replace).toHaveBeenCalledWith(expect.stringContaining('q=plumber'), { scroll: false }), WAIT)
   }, 10000)
 
-  it('disables Prev on page 1 and advances to page 2 on Next', async () => {
-    mockFetchSequence({ listings: { ...oneListingResult, totalPages: 2 } })
+  it('re-fetches when the URL search param (assemblySlug) changes, e.g. set by Nav', async () => {
+    mockFetch(emptyResult)
+    renderBrowser({}, 'assemblySlug=lagos')
+    await waitFor(() => {
+      const call = global.fetch.mock.calls.find(([url]) => String(url).includes('assemblySlug=lagos'))
+      expect(call).toBeDefined()
+    }, WAIT)
+  }, 10000)
+
+  it('shows a "Load More" button when more pages exist, and appends results on click', async () => {
+    mockFetch({ ...oneListingResult, totalPages: 2 })
     renderBrowser()
 
-    await waitFor(() => expect(screen.getByText('Page 1 of 2')).toBeInTheDocument(), WAIT)
-    expect(screen.getByText('Prev').closest('button')).toBeDisabled()
+    await waitFor(() => expect(screen.getByText('Load More')).toBeInTheDocument(), WAIT)
 
-    fireEvent.click(screen.getByText('Next').closest('button'))
+    const secondListing = { ...oneListingResult.listings[0], id: 'l2', name: 'Beta Plumbing' }
+    global.fetch.mockImplementationOnce((url) => {
+      expect(url).toContain('page=2')
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ listings: [secondListing], total: 2, totalPages: 2 }) })
+    })
 
-    await waitFor(() => {
-      const call = global.fetch.mock.calls.findLast(([url]) => String(url).includes('/api/yellowpages/listings'))
-      expect(call[0]).toContain('page=2')
-    }, WAIT)
+    fireEvent.click(screen.getByText('Load More'))
+
+    await waitFor(() => expect(screen.getByText('Beta Plumbing')).toBeInTheDocument(), WAIT)
+    expect(screen.getByText('Acme Travels')).toBeInTheDocument()
+  }, 10000)
+
+  it('does not show "Load More" once the last page has been reached', async () => {
+    mockFetch(oneListingResult)
+    renderBrowser()
+    await waitFor(() => expect(screen.getByText('Acme Travels')).toBeInTheDocument(), WAIT)
+    expect(screen.queryByText('Load More')).not.toBeInTheDocument()
   }, 10000)
 })

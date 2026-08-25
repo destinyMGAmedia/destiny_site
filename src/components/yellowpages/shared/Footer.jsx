@@ -3,8 +3,9 @@ import Link from 'next/link'
 import { useYellowPagesBase } from './YellowPagesChrome'
 
 const QUICK_LINKS = [
-  { path: '/search', label: 'Browse the Directory' },
+  { path: '/browse', label: 'Browse the Directory' },
   { path: '/register', label: 'List Your Skill or Business' },
+  { path: '/manage', label: 'Manage My Listing' },
 ]
 
 export default function Footer() {

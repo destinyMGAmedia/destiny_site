@@ -4,9 +4,11 @@ import RegisterPage from './page'
 import ListingForm from '@/components/yellowpages/ListingForm'
 import YellowPagesChrome from '@/components/yellowpages/shared/YellowPagesChrome'
 
+// RegisterPage renders inside YellowPagesChrome, which also renders Nav — Nav needs useRouter too.
 vi.mock('next/navigation', () => ({
   useSearchParams: vi.fn(),
   usePathname: vi.fn(() => '/'),
+  useRouter: vi.fn(() => ({ replace: vi.fn() })),
 }))
 vi.mock('@/components/yellowpages/ListingForm', () => ({
   default: vi.fn(({ onSuccess }) => (

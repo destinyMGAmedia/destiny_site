@@ -462,13 +462,13 @@ h1, h2, h3, h4 {
   /* Muted mustard/bronze — desaturated (~40-45%), not a bright saturated yellow. Nods to
      "Yellow Pages" without reading loud; meant to sit mostly as an accent against neutral
      ink/cream, not as large flat colour fills. */
-  --yp-yellow-800: #614b1a;
-  --yp-yellow-700: #795e20;
-  --yp-yellow-600: #a17e2b; /* primary accent — buttons, active states */
-  --yp-yellow-500: #c99d36;
-  --yp-yellow-400: #d6b566;
-  --yp-yellow-200: #eadbb8;
-  --yp-yellow-100: #f5efe0;
+  --yp-yellow-800: #684e12;
+  --yp-yellow-700: #8b6818;
+  --yp-yellow-600: #b68920; /* primary accent — buttons, active states */
+  --yp-yellow-500: #daa72f;
+  --yp-yellow-400: #e3bd63;
+  --yp-yellow-200: #f1e1bc;
+  --yp-yellow-100: #f7f1e3;
   --yp-ink: #211d16;       /* warm near-black */
   --yp-ink-soft: #5c5443;  /* muted warm gray-brown */
   --yp-cream: #faf8f4;     /* soft neutral warm white — not a yellow wash */
@@ -545,7 +545,7 @@ h1, h2, h3, h4 {
 .yp-select { cursor: pointer; }
 .yp-input:focus, .yp-select:focus, .yp-textarea:focus {
   border-color: var(--yp-yellow-600);
-  box-shadow: 0 0 0 3px rgba(161, 126, 43, 0.18);
+  box-shadow: 0 0 0 3px rgba(182, 137, 32, 0.2);
 }
 
 .yp-label {

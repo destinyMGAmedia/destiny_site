@@ -35,9 +35,9 @@ export default function ListingDetailPage() {
 
   if (status === 'error' || !listing) {
     return (
-      <div className="section-container text-center">
-        <h1 className="section-heading" style={{ color: 'var(--yp-ink)' }}>Listing Not Found</h1>
-        <p className="section-subheading">This listing may have been removed.</p>
+      <div className="max-w-xl mx-auto px-4 py-16 text-center">
+        <h1 className="text-2xl font-bold mb-1" style={{ color: 'var(--yp-ink)' }}>Listing Not Found</h1>
+        <p className="text-sm" style={{ color: 'var(--yp-ink-soft)' }}>This listing may have been removed.</p>
       </div>
     )
   }
@@ -47,7 +47,7 @@ export default function ListingDetailPage() {
   const socialLinks = Object.entries(listing.socialLinks || {}).filter(([, v]) => v)
 
   return (
-    <div className="section-container max-w-3xl">
+    <div className="max-w-xl mx-auto px-4 py-6">
       <div className="flex items-start gap-4 mb-6">
         {listing.logoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -109,6 +109,18 @@ export default function ListingDetailPage() {
           <p className="text-sm mt-3" style={{ color: 'var(--yp-ink-soft)' }}>{listing.yearsInOperation} years in operation</p>
         )}
       </div>
+
+      {listing.portfolioImages?.length > 0 && (
+        <div className="yp-card p-6 mb-8">
+          <h2 className="font-bold text-lg mb-3">Photos</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {listing.portfolioImages.map((url) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={url} src={url} alt="" className="w-full aspect-square object-cover rounded-lg" />
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="yp-card p-6 mb-8">
         <h2 className="font-bold text-lg mb-3 flex items-center gap-2">
