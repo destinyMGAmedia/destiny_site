@@ -32,10 +32,11 @@ export default function ListingCard({ listing }) {
             ) : null}
           </div>
           <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-            <span className="yp-pill">{categoryLabel(listing.category)}</span>
+            <span className="yp-pill shrink-0">{categoryLabel(listing.category)}</span>
             {location && (
-              <span className="flex items-center gap-1 text-xs" style={{ color: 'var(--yp-ink-soft)' }}>
-                <MapPin size={12} /> {location}
+              <span className="flex items-center gap-1 text-xs min-w-0 max-w-full" style={{ color: 'var(--yp-ink-soft)' }}>
+                <MapPin size={12} className="shrink-0" />
+                <span className="truncate">{location}</span>
               </span>
             )}
           </div>

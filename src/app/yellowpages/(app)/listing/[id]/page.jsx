@@ -65,10 +65,11 @@ export default function ListingDetailPage() {
             </p>
           )}
           <div className="flex items-center gap-3 mt-2 flex-wrap">
-            <span className="yp-pill">{categoryLabel(listing.category)}</span>
+            <span className="yp-pill shrink-0">{categoryLabel(listing.category)}</span>
             {location && (
-              <span className="flex items-center gap-1 text-sm" style={{ color: 'var(--yp-ink-soft)' }}>
-                <MapPin size={14} /> {location}
+              <span className="flex items-center gap-1 text-sm min-w-0 max-w-full" style={{ color: 'var(--yp-ink-soft)' }}>
+                <MapPin size={14} className="shrink-0" />
+                <span className="truncate">{location}</span>
               </span>
             )}
           </div>

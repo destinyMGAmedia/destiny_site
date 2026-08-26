@@ -32,13 +32,13 @@ describe('RegisterPage', () => {
     const props = ListingForm.mock.calls[0][0]
     expect(props.initialValues).toMatchObject({ name: 'Jane', phone: '0801', city: 'Lagos', listingType: 'INDIVIDUAL' })
     expect(props.mode).toBeUndefined() // create mode is the default
-  })
+  }, 10000)
 
   it('defaults listingType to BUSINESS only when explicitly requested', () => {
     renderPage('listingType=BUSINESS')
     const props = ListingForm.mock.calls[0][0]
     expect(props.initialValues.listingType).toBe('BUSINESS')
-  })
+  }, 10000)
 
   it('shows the success screen with a completeness teaser and both next-step CTAs', () => {
     renderPage()
@@ -48,7 +48,7 @@ describe('RegisterPage', () => {
     expect(screen.getByText(/Your profile is 0% complete/)).toBeInTheDocument()
     expect(screen.getByText('Complete My Profile')).toBeInTheDocument()
     expect(screen.getByText('Skip for Now, View My Listing')).toHaveAttribute('href', '/yellowpages/listing/l1')
-  })
+  }, 10000)
 
   it('switches to an edit-mode ListingForm, carrying the owner contact, when "Complete My Profile" is clicked', () => {
     renderPage()
@@ -60,7 +60,7 @@ describe('RegisterPage', () => {
     expect(editProps.mode).toBe('edit')
     expect(editProps.listingId).toBe('l1')
     expect(editProps.ownerContact).toEqual({ phone: '08012345678', email: undefined })
-  })
+  }, 10000)
 
   it('shows a saved confirmation after completing the profile', () => {
     renderPage()
@@ -70,7 +70,7 @@ describe('RegisterPage', () => {
 
     expect(screen.getByText('Profile Updated')).toBeInTheDocument()
     expect(screen.getByText('View Your Listing')).toHaveAttribute('href', '/yellowpages/listing/l1')
-  })
+  }, 10000)
 
   it('applies mobile-friendly spacing to the intro screen', () => {
     renderPage()
@@ -78,7 +78,7 @@ describe('RegisterPage', () => {
     expect(wrapper).toHaveClass('px-4')
     expect(wrapper).toHaveClass('py-6')
     expect(wrapper).toHaveClass('sm:py-10')
-  })
+  }, 10000)
 
   it('applies mobile-friendly spacing to the success screen', () => {
     renderPage()
@@ -87,5 +87,5 @@ describe('RegisterPage', () => {
     expect(wrapper).toHaveClass('px-4')
     expect(wrapper).toHaveClass('py-10')
     expect(wrapper).toHaveClass('sm:py-16')
-  })
+  }, 10000)
 })

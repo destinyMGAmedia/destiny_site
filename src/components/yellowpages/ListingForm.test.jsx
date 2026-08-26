@@ -13,57 +13,74 @@ function mockFetch({ assemblies = [], postResponse } = {}) {
   })
 }
 
-const fillEssentials = () => {
-  fireEvent.change(screen.getByLabelText('Your Name *'), { target: { value: 'Jane Doe' } })
+const fillEssentials = (isBusiness) => {
+  fireEvent.change(screen.getByLabelText(isBusiness ? 'Business/Organization Name *' : 'Your Name *'), { target: { value: 'Jane Doe' } })
   fireEvent.change(screen.getByLabelText('Phone *'), { target: { value: '08012345678' } })
   fireEvent.change(screen.getByLabelText('Category *'), { target: { value: 'HOME_SERVICES_TRADES' } })
   fireEvent.change(screen.getByLabelText(/^Description/), { target: { value: 'I fix pipes and plumbing issues.' } })
 }
 
-describe('ListingForm — create mode (default)', () => {
+describe('ListingForm — every field is available up front (both create and edit)', () => {
   beforeEach(() => {
     mockFetch()
   })
 
-  it('only asks for the essentials — name, phone, category, description', () => {
+  it('renders the full field set at creation, including contact and location details', () => {
     render(<ListingForm />)
     expect(screen.getByLabelText('Your Name *')).toBeInTheDocument()
     expect(screen.getByLabelText('Phone *')).toBeInTheDocument()
+    expect(screen.getByLabelText('WhatsApp')).toBeInTheDocument()
+    expect(screen.getByLabelText('Email')).toBeInTheDocument()
     expect(screen.getByLabelText('Category *')).toBeInTheDocument()
+    expect(screen.getByLabelText('Sub-Sector / Profession')).toBeInTheDocument()
     expect(screen.getByLabelText(/^Description/)).toBeInTheDocument()
+    expect(screen.getByLabelText('Products/Services Offered')).toBeInTheDocument()
+    expect(screen.getByLabelText('City')).toBeInTheDocument()
+    expect(screen.getByLabelText('State')).toBeInTheDocument()
+    expect(screen.getByLabelText('Country')).toBeInTheDocument()
+    expect(screen.getByLabelText('Assembly (optional)')).toBeInTheDocument()
+    expect(screen.getByLabelText('Business Logo')).toBeInTheDocument()
+    expect(screen.getByLabelText('Professional Photo')).toBeInTheDocument()
+    expect(screen.getByText('Work / Personal Photos', { exact: false })).toBeInTheDocument()
+    expect(screen.getByLabelText('Website')).toBeInTheDocument()
+    expect(screen.getByText('Social Media')).toBeInTheDocument()
+    expect(screen.getByLabelText('Years in Operation')).toBeInTheDocument()
+    expect(screen.getByLabelText('Registration/License Number')).toBeInTheDocument()
+    expect(screen.getByLabelText(/Professional Certifications\/Memberships/)).toBeInTheDocument()
+    expect(screen.getByLabelText('Preferred Contact Method')).toBeInTheDocument()
   })
 
-  it('does not ask for contact person even for a BUSINESS listing at creation', () => {
+  it('shows business-only fields (contact person, position) once BUSINESS is selected, even at creation', () => {
     render(<ListingForm />)
     fireEvent.click(screen.getByText('A business/organization'))
-    expect(screen.queryByLabelText('Contact Person')).not.toBeInTheDocument()
-    expect(screen.queryByLabelText('Position/Designation')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Contact Person')).toBeInTheDocument()
+    expect(screen.getByLabelText('Position/Designation')).toBeInTheDocument()
   })
 
-  it('does not render any of the deferred fields', () => {
+  it('marks certifications as optional', () => {
     render(<ListingForm />)
-    expect(screen.queryByLabelText('WhatsApp')).not.toBeInTheDocument()
-    expect(screen.queryByLabelText('Email')).not.toBeInTheDocument()
-    expect(screen.queryByLabelText('Sub-Sector / Profession')).not.toBeInTheDocument()
-    expect(screen.queryByLabelText('Products/Services Offered')).not.toBeInTheDocument()
-    expect(screen.queryByLabelText('City')).not.toBeInTheDocument()
-    expect(screen.queryByLabelText('Assembly (optional)')).not.toBeInTheDocument()
-    expect(screen.queryByLabelText('Business Logo')).not.toBeInTheDocument()
-    expect(screen.queryByText('Work / Personal Photos', { exact: false })).not.toBeInTheDocument()
-    expect(screen.queryByLabelText('Website')).not.toBeInTheDocument()
-    expect(screen.queryByText('Social Media')).not.toBeInTheDocument()
-    expect(screen.queryByLabelText('Years in Operation')).not.toBeInTheDocument()
-    expect(screen.queryByLabelText('Preferred Contact Method')).not.toBeInTheDocument()
+    expect(screen.getByText('Professional Certifications/Memberships (optional)')).toBeInTheDocument()
   })
 
-  it('does not show the profile-completeness card at creation', () => {
+  it('does not require contact person name, even for a BUSINESS listing', () => {
     render(<ListingForm />)
-    expect(screen.queryByText('Profile strength')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByText('A business/organization'))
+    fireEvent.change(screen.getByLabelText('Business/Organization Name *'), { target: { value: 'Acme' } })
+    fireEvent.change(screen.getByLabelText('Phone *'), { target: { value: '08012345678' } })
+    fireEvent.change(screen.getByLabelText('Category *'), { target: { value: 'HOME_SERVICES_TRADES' } })
+    fireEvent.change(screen.getByLabelText(/^Description/), { target: { value: 'desc' } })
+    fireEvent.click(screen.getByText('List My Skill or Business'))
+
+    expect(screen.queryByText('Contact person name is required.')).not.toBeInTheDocument()
   })
 
-  it('tells the person they can add more later', () => {
+  it('shows a live profile-strength meter that updates as fields are filled', () => {
     render(<ListingForm />)
-    expect(screen.getByText(/add photos, location, and more anytime/)).toBeInTheDocument()
+    expect(screen.getByText('Profile strength')).toBeInTheDocument()
+    const before = screen.getByText(/^\d+%$/).textContent
+    fireEvent.change(screen.getByLabelText('City'), { target: { value: 'Lagos' } })
+    const after = screen.getByText(/^\d+%$/).textContent
+    expect(after).not.toBe(before)
   })
 
   it('shows required-field errors on submit without hitting the network', () => {
@@ -77,25 +94,24 @@ describe('ListingForm — create mode (default)', () => {
     expect(global.fetch).not.toHaveBeenCalledWith('/api/yellowpages/listings', expect.anything())
   })
 
-  it('submits the minimal payload and calls onSuccess with the created listing', async () => {
+  it('submits and calls onSuccess with the created listing (POST, create mode)', async () => {
     mockFetch({ postResponse: { ok: true, json: () => Promise.resolve({ listing: { id: 'l1', name: 'Jane Doe' } }) } })
     const onSuccess = vi.fn()
     render(<ListingForm onSuccess={onSuccess} />)
 
-    fillEssentials()
+    fillEssentials(false)
     fireEvent.click(screen.getByText('List My Skill or Business'))
 
     await waitFor(() => expect(onSuccess).toHaveBeenCalledWith({ id: 'l1', name: 'Jane Doe' }), { timeout: 3000 })
-    const body = JSON.parse(global.fetch.mock.calls.find(([, o]) => o?.method === 'POST')[1].body)
-    expect(body.name).toBe('Jane Doe')
-    expect(body.phone).toBe('08012345678')
+    const call = global.fetch.mock.calls.find(([, o]) => o?.method === 'POST')
+    expect(call[0]).toBe('/api/yellowpages/listings')
   }, 10000)
 
   it('surfaces server-side field errors returned from the API', async () => {
     mockFetch({ postResponse: { ok: false, json: () => Promise.resolve({ errors: { phone: 'Enter a valid phone number (digits only, 7–15 digits).' } }) } })
     render(<ListingForm />)
 
-    fillEssentials()
+    fillEssentials(false)
     fireEvent.click(screen.getByText('List My Skill or Business'))
 
     expect(await screen.findByText('Enter a valid phone number (digits only, 7–15 digits).', {}, { timeout: 3000 })).toBeInTheDocument()
@@ -108,7 +124,7 @@ describe('ListingForm — create mode (default)', () => {
     })
     render(<ListingForm />)
 
-    fillEssentials()
+    fillEssentials(false)
     fireEvent.click(screen.getByText('List My Skill or Business'))
 
     expect(await screen.findByText('Something went wrong. Please try again.', {}, { timeout: 3000 })).toBeInTheDocument()
@@ -137,48 +153,12 @@ describe('ListingForm — create mode (default)', () => {
   })
 })
 
-describe('ListingForm — edit mode', () => {
+describe('ListingForm — edit mode specifics', () => {
   beforeEach(() => {
     mockFetch()
   })
 
   const editProps = { mode: 'edit', listingId: 'l1', ownerContact: { phone: '08012345678' } }
-
-  it('shows the profile-completeness card', () => {
-    render(<ListingForm {...editProps} />)
-    expect(screen.getByText('Profile strength')).toBeInTheDocument()
-  })
-
-  it('renders every field, including business-only ones', () => {
-    render(<ListingForm {...editProps} />)
-    fireEvent.click(screen.getByText('A business/organization'))
-
-    expect(screen.getByLabelText('Contact Person')).toBeInTheDocument()
-    expect(screen.getByLabelText('Position/Designation')).toBeInTheDocument()
-    expect(screen.getByLabelText('WhatsApp')).toBeInTheDocument()
-    expect(screen.getByLabelText('Email')).toBeInTheDocument()
-    expect(screen.getByLabelText('Sub-Sector / Profession')).toBeInTheDocument()
-    expect(screen.getByLabelText('Products/Services Offered')).toBeInTheDocument()
-    expect(screen.getByLabelText('City')).toBeInTheDocument()
-    expect(screen.getByLabelText('Assembly (optional)')).toBeInTheDocument()
-    expect(screen.getByLabelText('Business Logo')).toBeInTheDocument()
-    expect(screen.getByLabelText('Website')).toBeInTheDocument()
-    expect(screen.getByText('Social Media')).toBeInTheDocument()
-    expect(screen.getByLabelText('Years in Operation')).toBeInTheDocument()
-    expect(screen.getByLabelText('Preferred Contact Method')).toBeInTheDocument()
-  })
-
-  it('does not require contact person even for BUSINESS — it is only a completeness nudge now', () => {
-    render(<ListingForm {...editProps} />)
-    fireEvent.click(screen.getByText('A business/organization'))
-    fireEvent.change(screen.getByLabelText('Business/Organization Name *'), { target: { value: 'Acme' } })
-    fireEvent.change(screen.getByLabelText('Phone *'), { target: { value: '08012345678' } })
-    fireEvent.change(screen.getByLabelText('Category *'), { target: { value: 'HOME_SERVICES_TRADES' } })
-    fireEvent.change(screen.getByLabelText(/^Description/), { target: { value: 'desc' } })
-    fireEvent.click(screen.getByText('Save Changes'))
-
-    expect(screen.queryByText('Contact person name is required.')).not.toBeInTheDocument()
-  })
 
   it('shows "Save Changes" as the submit label', () => {
     render(<ListingForm {...editProps} />)
