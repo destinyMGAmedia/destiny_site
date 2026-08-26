@@ -146,4 +146,68 @@ describe('ListingsBrowser', () => {
     await waitFor(() => expect(screen.getByText('Acme Travels')).toBeInTheDocument(), WAIT)
     expect(screen.queryByText('Load More')).not.toBeInTheDocument()
   }, 10000)
+
+  // Responsive layout: the grid caused horizontal overflow on small screens because it was
+  // applied unconditionally and the feed column could not shrink. It must only kick in at lg,
+  // and the shrinkable wrappers must stay shrinkable.
+  describe('responsive layout', () => {
+    // ListingsBrowser's root <div> is the sole direct child of <main> in YellowPagesChrome.
+    const outerLayout = (container) => container.querySelector('main > div')
+
+    it('only applies the two-column grid at the lg breakpoint (never unconditionally)', async () => {
+      mockFetch(emptyResult)
+      const { container } = renderBrowser()
+      await waitFor(() => expect(screen.getByText(/No listings match your search yet/)).toBeInTheDocument(), WAIT)
+
+      const outer = outerLayout(container)
+      expect(outer).toHaveClass('lg:grid')
+      expect(outer).toHaveClass('lg:grid-cols-[220px_1fr]')
+      expect(outer).toHaveClass('lg:gap-8')
+      // The bug: `grid` / `gap-8` with no breakpoint prefix forced the layout on mobile.
+      expect(outer.className.split(/\s+/)).not.toContain('grid')
+      expect(outer.className.split(/\s+/)).not.toContain('gap-8')
+    }, 10000)
+
+    it('drops the grid layout classes entirely when a category is locked', async () => {
+      mockFetch(emptyResult)
+      const { container } = renderBrowser({ lockedCategory: 'TECHNOLOGY_IT' })
+      await waitFor(() => expect(screen.getByText(/No listings match your search yet/)).toBeInTheDocument(), WAIT)
+
+      const outer = outerLayout(container)
+      expect(outer).not.toHaveClass('lg:grid')
+      expect(outer).not.toHaveClass('lg:grid-cols-[220px_1fr]')
+      expect(outer).not.toHaveClass('lg:gap-8')
+    }, 10000)
+
+    it('keeps the feed column shrinkable (min-w-0) so long content cannot force overflow', async () => {
+      mockFetch(emptyResult)
+      renderBrowser()
+      await waitFor(() => expect(screen.getAllByRole('tablist').length).toBeGreaterThan(0), WAIT)
+
+      // The mobile chip row is the 2nd tablist (sidebar is 1st); its parent is the feed column.
+      const mobileChipRow = screen.getAllByRole('tablist')[1]
+      expect(mobileChipRow.parentElement).toHaveClass('min-w-0')
+      expect(mobileChipRow.parentElement).toHaveClass('max-w-xl')
+    }, 10000)
+
+    it('keeps the mobile category chip row itself shrinkable and width-capped', async () => {
+      mockFetch(emptyResult)
+      renderBrowser()
+      await waitFor(() => expect(screen.getAllByRole('tablist').length).toBeGreaterThan(0), WAIT)
+
+      const mobileChipRow = screen.getAllByRole('tablist')[1]
+      expect(mobileChipRow).toHaveClass('min-w-0')
+      expect(mobileChipRow).toHaveClass('max-w-full')
+      expect(mobileChipRow).toHaveClass('overflow-x-auto')
+      // Still hidden from the lg layout, which uses the sidebar instead.
+      expect(mobileChipRow).toHaveClass('lg:hidden')
+    }, 10000)
+
+    it('does not render the mobile chip row (or sidebar) at all when a category is locked', async () => {
+      mockFetch(emptyResult)
+      renderBrowser({ lockedCategory: 'TECHNOLOGY_IT' })
+      await waitFor(() => expect(screen.getByText(/No listings match your search yet/)).toBeInTheDocument(), WAIT)
+      expect(screen.queryAllByRole('tablist')).toHaveLength(0)
+    }, 10000)
+  })
 })

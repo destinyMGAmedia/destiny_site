@@ -2,6 +2,12 @@ import './globals.css'
 import SessionProvider from '@/components/layout/SessionProvider'
 import ErrorBoundary from '@/components/ui/ErrorBoundary'
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  // No maximumScale/userScalable — pinch-zoom stays available for accessibility.
+}
+
 export const metadata = {
   title: {
     default: 'Destiny Mission Global Assembly',

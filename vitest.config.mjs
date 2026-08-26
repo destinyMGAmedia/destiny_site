@@ -6,6 +6,10 @@ export default defineConfig({
   plugins: [react()],
   esbuild: {
     jsx: 'automatic',
+    // src/app/layout.js contains JSX in a .js file (Next.js allows this). Tell esbuild's
+    // transform pass to parse .js/.mjs/.cjs as JSX so vitest can import it.
+    include: /\.([mc]?[jt]sx?)$/,
+    loader: 'jsx',
   },
   test: {
     environment: 'jsdom',

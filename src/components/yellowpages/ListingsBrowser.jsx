@@ -94,7 +94,7 @@ export default function ListingsBrowser({ lockedCategory }) {
   const chips = [{ value: '', label: 'All' }, ...CATEGORIES]
 
   return (
-    <div className={`max-w-7xl mx-auto px-4 lg:px-8 py-6 ${lockedCategory ? '' : 'grid lg:grid-cols-[220px_1fr] gap-8'}`}>
+    <div className={`max-w-7xl mx-auto px-4 lg:px-8 py-6 ${lockedCategory ? '' : 'lg:grid lg:grid-cols-[220px_1fr] lg:gap-8'}`}>
       {!lockedCategory && (
         <aside className="hidden lg:block">
           <div className="sticky top-24 space-y-1" role="tablist" aria-label="Filter by category">
@@ -108,9 +108,9 @@ export default function ListingsBrowser({ lockedCategory }) {
         </aside>
       )}
 
-      <div className="max-w-xl w-full mx-auto">
+      <div className="max-w-xl w-full mx-auto min-w-0">
         {!lockedCategory && (
-          <div className="flex gap-2 overflow-x-auto pb-1 mb-4 lg:hidden" role="tablist" aria-label="Filter by category (mobile)" style={{ scrollbarWidth: 'none' }}>
+          <div className="flex gap-2 overflow-x-auto pb-1 mb-4 lg:hidden min-w-0 max-w-full" role="tablist" aria-label="Filter by category (mobile)" style={{ scrollbarWidth: 'none' }}>
             {chips.map((c) => (
               <CategoryChip key={c.value} value={c.value} label={c.label} active={category === c.value} onSelect={setCategory} />
             ))}

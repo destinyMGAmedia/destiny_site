@@ -480,6 +480,11 @@ h1, h2, h3, h4 {
   background: var(--yp-cream);
   color: var(--yp-ink);
   min-height: 100vh;
+  /* Clamp to the viewport and clip any stray horizontal overflow (long listing
+     text, the mobile category scroll-row) so the page can't render wider than the
+     phone screen. `clip` (not `hidden`) keeps the sticky Nav working. */
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 .yp-btn-primary {

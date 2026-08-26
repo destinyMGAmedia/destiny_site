@@ -64,7 +64,7 @@ export default function Nav() {
 
   return (
     <header className="sticky top-0 z-50 backdrop-blur-sm border-b" style={{ background: 'rgba(255, 252, 245, 0.95)', borderColor: 'var(--yp-border)' }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16 gap-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16 gap-2 sm:gap-4">
         <Link href={hrefFor('/browse')} className="font-bold tracking-wide text-sm sm:text-base shrink-0 flex items-center gap-1.5">
           <span className="inline-block w-6 h-6 rounded" style={{ background: 'var(--yp-yellow-600)' }} />
           <span className="hidden sm:inline">The Yellow Pages</span>

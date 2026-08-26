@@ -79,6 +79,23 @@ describe('Nav', () => {
     expect(screen.getByLabelText('Search').parentElement).toHaveClass('min-w-0')
   })
 
+  it('tightens the header row gap on mobile (gap-2) and restores it at sm (sm:gap-4) so the filter row fits', () => {
+    renderWithBase('/yellowpages', { pathname: '/yellowpages/browse' })
+    const headerRow = screen.getByRole('banner').querySelector('div')
+    expect(headerRow).toHaveClass('gap-2')
+    expect(headerRow).toHaveClass('sm:gap-4')
+    // The pre-fix value was a flat `gap-4` with no responsive step.
+    expect(headerRow.className.split(/\s+/)).not.toContain('gap-4')
+    expect(headerRow).toHaveClass('flex', 'items-center', 'justify-between', 'h-16')
+  })
+
+  it('applies the same responsive header gap on pages without the filter row', () => {
+    renderWithBase('/yellowpages', { pathname: '/yellowpages/register' })
+    const headerRow = screen.getByRole('banner').querySelector('div')
+    expect(headerRow).toHaveClass('gap-2')
+    expect(headerRow).toHaveClass('sm:gap-4')
+  })
+
   it('debounces search input and updates the URL, preserving other params', async () => {
     const { replace } = renderWithBase('/yellowpages', { pathname: '/yellowpages/browse', query: 'category=TECHNOLOGY_IT' })
 
