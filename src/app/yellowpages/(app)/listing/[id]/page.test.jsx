@@ -57,14 +57,34 @@ describe('ListingDetailPage', () => {
     expect(screen.getByText('Ada O.')).toBeInTheDocument()
   }, 10000)
 
-  it('shows contact links derived from the listing', async () => {
+  it('shows contact links, normalising phone/WhatsApp to full international form', async () => {
     global.fetch = vi.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve({ listing: fullListing }) }))
     render(<ListingDetailPage />)
 
-    await waitFor(() => expect(screen.getByText('Call').closest('a')).toHaveAttribute('href', 'tel:08012345678'), { timeout: 3000 })
-    expect(screen.getByText('WhatsApp').closest('a')).toHaveAttribute('href', 'https://wa.me/08012345678')
+    // country "Nigeria" (no stored dial code) → local "080…" becomes +234…
+    await waitFor(() => expect(screen.getByText('Call').closest('a')).toHaveAttribute('href', 'tel:+2348012345678'), { timeout: 3000 })
+    expect(screen.getByText('WhatsApp').closest('a')).toHaveAttribute('href', 'https://wa.me/2348012345678')
     expect(screen.getByText('Email').closest('a')).toHaveAttribute('href', 'mailto:jane@acme.com')
     expect(screen.getByText('Website').closest('a')).toHaveAttribute('href', 'https://acme.com')
+  }, 10000)
+
+  it('uses the stored countryDialCode when present', async () => {
+    global.fetch = vi.fn(() => Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ listing: { ...fullListing, country: null, countryDialCode: '44', phone: '07911123456', whatsapp: '07911123456' } }),
+    }))
+    render(<ListingDetailPage />)
+
+    await waitFor(() => expect(screen.getByText('WhatsApp').closest('a')).toHaveAttribute('href', 'https://wa.me/447911123456'), { timeout: 3000 })
+    expect(screen.getByText('Call').closest('a')).toHaveAttribute('href', 'tel:+447911123456')
+  }, 10000)
+
+  it('hides the WhatsApp button when no whatsapp number is set', async () => {
+    global.fetch = vi.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve({ listing: { ...fullListing, whatsapp: null } }) }))
+    render(<ListingDetailPage />)
+
+    await waitFor(() => expect(screen.getByText('Acme Travels')).toBeInTheDocument(), { timeout: 3000 })
+    expect(screen.queryByText('WhatsApp')).not.toBeInTheDocument()
   }, 10000)
 
   it('shows a not-found message when the listing does not exist', async () => {

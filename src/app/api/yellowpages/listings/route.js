@@ -97,8 +97,26 @@ export async function POST(req) {
     assemblyId = assembly.id
   }
 
+  // Associate the listing with an existing Member record when the submitter picked an assembly
+  // and the phone/email they entered matches a member of that assembly. `memberId` is never
+  // read from the request body — it's derived server-side here — so a member can list without
+  // registering again, and the link can't be spoofed. See spec/theyellowpages.md.
+  let memberId = null
+  if (assemblyId && (data.phone || data.email)) {
+    const contactOr = []
+    if (data.phone) contactOr.push({ phone: data.phone })
+    if (data.email) contactOr.push({ email: { equals: data.email, mode: 'insensitive' } })
+    const member = await prisma.member.findFirst({
+      where: { assemblyId, OR: contactOr },
+      select: { id: true },
+    })
+    if (member) memberId = member.id
+  }
+
   try {
-    const listing = await prisma.yellowPagesListing.create({ data: { ...data, assemblyId } })
+    const listing = await prisma.yellowPagesListing.create({
+      data: { ...data, assemblyId, ...(memberId ? { memberId } : {}) },
+    })
     return NextResponse.json({ listing: { ...listing, avgRating: null, ratingCount: 0 } }, { status: 201 })
   } catch (error) {
     console.error('[YELLOWPAGES] Failed to create listing:', error)

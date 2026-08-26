@@ -2,6 +2,7 @@ import prisma from '@/lib/prisma'
 import HeroSection from '@/components/home/HeroSection'
 import DestinyNationPreview from '@/components/home/DestinyNationPreview'
 import LiveSection from '@/components/home/LiveSection'
+import YellowPagesPreview from '@/components/home/YellowPagesPreview'
 import UpcomingProgrammes from '@/components/home/UpcomingProgrammes'
 import AssembliesStrip from '@/components/home/AssembliesStrip'
 import FounderSection from '@/components/home/FounderSection'
@@ -125,6 +126,9 @@ export default async function HomePage() {
 
       {/* 3. Live Stream */}
       <LiveSection channelId={mainChannel?.channelId} />
+
+      {/* 3b. The Yellow Pages — full-bleed CTA band for the community directory */}
+      <YellowPagesPreview />
 
       {/* 4. Upcoming Programmes (global events) */}
       <UpcomingProgrammes events={globalEvents} />

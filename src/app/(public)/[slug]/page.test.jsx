@@ -66,6 +66,17 @@ vi.mock('@/components/assembly/NationBanner', () => ({
   default: () => <div data-testid="nation-banner" />,
 }))
 
+// Recorder mock: the Yellow Pages banner is a real component of its own (covered by its own
+// test file); here we only need to prove the assembly page mounts it and hands down the
+// slug + name it derives from the loaded assembly.
+const { yellowPagesProps } = vi.hoisted(() => ({ yellowPagesProps: {} }))
+vi.mock('@/components/assembly/YellowPagesBanner', () => ({
+  default: (props) => {
+    Object.assign(yellowPagesProps, props)
+    return <div data-testid="yellow-pages-banner" />
+  },
+}))
+
 function makeAssembly(overrides = {}) {
   return {
     slug: 'test-assembly',
@@ -86,6 +97,7 @@ function makeAssembly(overrides = {}) {
 describe('AssemblyPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    for (const key of Object.keys(yellowPagesProps)) delete yellowPagesProps[key]
   })
 
   it('calls notFound() when the slug looks like a static file (contains a dot)', async () => {
@@ -132,5 +144,48 @@ describe('AssemblyPage', () => {
 
     expect(screen.getByTestId('join-us-qr')).toBeInTheDocument()
     expect(screen.getByTestId('team-section')).toBeInTheDocument()
+  })
+
+  it('mounts the Yellow Pages banner, scoped to the loaded assembly, after the dynamic sections', async () => {
+    prisma.assembly.findUnique.mockResolvedValue(
+      makeAssembly({
+        slug: 'grace-city',
+        name: 'Grace City Assembly',
+        sections: [
+          { id: 'hero-1', type: 'HERO', position: 0, isVisible: true, customContent: {} },
+          { id: 'contact-1', type: 'CONTACT', position: 1, isVisible: true, customContent: {} },
+        ],
+      })
+    )
+
+    render(await AssemblyPage({ params: Promise.resolve({ slug: 'grace-city' }) }))
+
+    const contact = screen.getByTestId('contact-section')
+    const banner = screen.getByTestId('yellow-pages-banner')
+
+    expect(banner).toBeInTheDocument()
+    // The banner comes after the last rendered dynamic section.
+    expect(contact.compareDocumentPosition(banner) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    // …and is handed the assembly's own slug + name (never a request param).
+    expect(yellowPagesProps).toEqual({ assemblySlug: 'grace-city', assemblyName: 'Grace City Assembly' })
+  })
+
+  it('still renders the Yellow Pages banner when the assembly has no non-HERO sections', async () => {
+    prisma.assembly.findUnique.mockResolvedValue(makeAssembly())
+
+    render(await AssemblyPage({ params: Promise.resolve({ slug: 'test-assembly' }) }))
+
+    expect(screen.getByTestId('yellow-pages-banner')).toBeInTheDocument()
+    expect(yellowPagesProps).toEqual({ assemblySlug: 'test-assembly', assemblyName: 'Test Assembly' })
+  })
+
+  it('does not render the Yellow Pages banner when the slug resolves to no assembly', async () => {
+    prisma.assembly.findUnique.mockResolvedValue(null)
+
+    await expect(
+      AssemblyPage({ params: Promise.resolve({ slug: 'missing-assembly' }) })
+    ).rejects.toThrow('NEXT_NOT_FOUND')
+
+    expect(yellowPagesProps).toEqual({})
   })
 })

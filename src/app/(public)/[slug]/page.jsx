@@ -16,6 +16,7 @@ import CustomSection from '@/components/assembly/CustomSection'
 import JoinUsQR from '@/components/assembly/JoinUsQR'
 import TeamSection from '@/components/assembly/TeamSection'
 import NationBanner from '@/components/assembly/NationBanner'
+import YellowPagesBanner from '@/components/assembly/YellowPagesBanner'
 
 // Force dynamic rendering for database-dependent content
 export const dynamic = 'force-dynamic'
@@ -189,6 +190,9 @@ export default async function AssemblyPage({ params }) {
       {assembly.sections
         .filter((s) => s.type !== 'HERO')
         .map((section) => renderSection(section))}
+
+      {/* The Yellow Pages — directory CTA, member-aware (links listing to member profile) */}
+      <YellowPagesBanner assemblySlug={assembly.slug} assemblyName={assembly.name} />
     </>
   )
 }

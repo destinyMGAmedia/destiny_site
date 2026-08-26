@@ -5,6 +5,7 @@ import { Phone, Mail, MessageCircle, Globe, MapPin, Briefcase, Loader2 } from 'l
 import RatingStars from '@/components/yellowpages/RatingStars'
 import RatingForm from '@/components/yellowpages/RatingForm'
 import { categoryLabel } from '@/lib/yellowpages/constants'
+import { whatsappUrl, telHref } from '@/lib/yellowpages/phone'
 
 const CONTACT_ICON = { PHONE: Phone, WHATSAPP: MessageCircle, EMAIL: Mail }
 
@@ -45,6 +46,13 @@ export default function ListingDetailPage() {
   const location = [listing.city, listing.state, listing.country].filter(Boolean).join(', ')
   const PreferredIcon = CONTACT_ICON[listing.preferredContact] || Phone
   const socialLinks = Object.entries(listing.socialLinks || {}).filter(([, v]) => v)
+
+  // Normalise phone/WhatsApp to full international form so the links work regardless of how the
+  // number was entered (local "080…" formats included). Prefer the stored dial code, fall back
+  // to deriving it from the country text for listings created before that field existed.
+  const dialOpts = { country: listing.country, dialCode: listing.countryDialCode }
+  const callHref = telHref(listing.phone, dialOpts)
+  const whatsappHref = listing.whatsapp ? whatsappUrl(listing.whatsapp, dialOpts) : null
 
   return (
     <div className="max-w-xl mx-auto px-4 py-6">
@@ -128,11 +136,11 @@ export default function ListingDetailPage() {
           Contact <PreferredIcon size={16} style={{ color: 'var(--yp-yellow-600)' }} />
         </h2>
         <div className="flex flex-wrap gap-3">
-          <a href={`tel:${listing.phone}`} className="yp-btn-outline !py-2 !px-4">
+          <a href={callHref} className="yp-btn-outline !py-2 !px-4">
             <Phone size={15} /> Call
           </a>
-          {listing.whatsapp && (
-            <a href={`https://wa.me/${listing.whatsapp.replace(/^\+/, '')}`} className="yp-btn-outline !py-2 !px-4">
+          {whatsappHref && (
+            <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className="yp-btn-outline !py-2 !px-4">
               <MessageCircle size={15} /> WhatsApp
             </a>
           )}

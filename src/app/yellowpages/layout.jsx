@@ -5,6 +5,12 @@ import YellowPagesBaseOnly from '@/components/yellowpages/shared/YellowPagesBase
 export const metadata = {
   title: 'The Yellow Pages — Destiny Mission Global',
   description: 'Find trusted skills and businesses from across the Destiny Mission Global family — search by category, location, and assembly.',
+  // Override the site-wide favicon (set in the root layout) with the Yellow Pages mark
+  // for every /yellowpages route. `icons` is replaced, not merged, by the deeper segment.
+  icons: {
+    icon: '/yellowpages-favicon.svg',
+    apple: '/yellowpages-favicon.svg',
+  },
 }
 
 // Root layout — context + theme only, deliberately no Nav/Footer here. The cover page

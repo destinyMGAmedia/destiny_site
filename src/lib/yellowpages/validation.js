@@ -2,6 +2,7 @@
 // already used in src/app/(public)/[slug]/join/page.jsx (sanitizePhone/isValidPhone/isValidEmail).
 
 import { LISTING_TYPES, PREFERRED_CONTACTS, CATEGORY_VALUES, SOCIAL_LINK_KEYS, MAX_DESCRIPTION_CHARS, MAX_PORTFOLIO_IMAGES } from './constants'
+import { resolveDialCode } from './phone'
 
 export const sanitizePhone = (value) => (value || '').replace(/[^\d+]/g, '').replace(/(?!^)\+/g, '')
 export const isValidPhone = (value) => /^\+?\d{7,15}$/.test((value || '').trim())
@@ -121,6 +122,9 @@ export function validateListingInput(body = {}) {
       city: (body.city || '').trim() || null,
       state: (body.state || '').trim() || null,
       country: (body.country || '').trim() || null,
+      // Derived from `country` so wa.me / tel: links and display formatting have a calling
+      // code to work with even when the phone was entered in local national format.
+      countryDialCode: resolveDialCode((body.country || '').trim()),
       website: website || null,
       socialLinks,
       yearsInOperation,

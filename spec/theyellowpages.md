@@ -137,7 +137,7 @@ Add `listings YellowPagesListing[]` to `Assembly` and `Member`. `contactHash` us
 - `GET /api/yellowpages/listings` — query params `q`, `category`, `assemblySlug`, `city`, `country`, `page`. Returns only `isActive: true` listings, paginated, with `avgRating`/`ratingCount` aggregated.
 - `GET /api/yellowpages/listings/[id]` — single listing incl. ratings (reviewer first-name/initial only), 404 if missing or `isActive: false`.
 - `POST /api/yellowpages/listings` — public create. Body validated server-side (name, phone, category, description required; description length-capped ~150 words / 1200 chars; email/phone format checks mirroring `join/page.jsx`'s validators). Returns 201 + created listing, or 400 with field errors.
-- `POST /api/yellowpages/listings/[id]/ratings` — public create. Body: `stars` (1–5), `comment?`, `reviewerName`, `phone` or `email`. Hash the contact, attempt create, catch the `@@unique` violation → 409 `{ error: 'You have already rated this listing.' }`. Returns 201 with the public-safe rating shape (no contactHash).
+- `POST /api/yellowpages/listings/[id]/ratings` — public create-or-edit. Body: `stars` (1–5), `comment?`, `reviewerName`, `phone` or `email`. Hash the contact, then **upsert** on `@@unique([listingId, contactHash])`: a first submission creates (201), a repeat submission from the same contact updates that person's own review (200 `{ ..., updated: true }`) — there is no login, so "same contact" is how the author is recognised. Returns the public-safe rating shape (no contactHash). A concurrent-insert race (P2002 from the upsert) falls back to an update.
 - `PATCH /api/yellowpages/listings/[id]` (admin-only, `isGlobalAdmin`) — body `{ isActive }`, toggles visibility.
 - `DELETE /api/yellowpages/listings/[id]` (admin-only) — hard delete.
 - `GET /api/yellowpages/upload-signature` — thin wrapper around `generateUploadSignature(getUploadFolder(..., 'yellowpages'))`, same pattern as existing signed-upload routes (no auth needed — same trust level as the public-registration Cloudinary flow already in the app, if one exists; otherwise this is the first client-signed public upload and should be capped via an `eager`/format allowlist in the signature params).
@@ -178,7 +178,7 @@ Add `listings YellowPagesListing[]` to `Assembly` and `Member`. `contactHash` us
 ## Error Behavior
 
 - `POST /listings` — 400 with `{ errors: { field: message } }` for validation failures (missing name/phone/category/description, malformed email/phone), mirroring `join/page.jsx`'s error shape.
-- `POST /listings/[id]/ratings` — 400 for invalid `stars` (not 1–5) or missing name+contact; 404 if listing missing/inactive; 409 on duplicate-contact rating.
+- `POST /listings/[id]/ratings` — 400 for invalid `stars` (not 1–5) or missing name+contact; 404 if listing missing/inactive; a repeat submission from the same contact is not an error — it updates that reviewer's existing rating (200, `updated: true`).
 - `PATCH`/`DELETE` on a listing — 401 if unauthenticated, 403 if authenticated but not `isGlobalAdmin`, 404 if listing doesn't exist.
 - All routes: 500 + logged error on unexpected DB failure, matching existing routes' try/catch shape.
 
@@ -187,7 +187,7 @@ Add `listings YellowPagesListing[]` to `Assembly` and `Member`. `contactHash` us
 - `src/lib/yellowpages/host.test.js` — mirrors `src/lib/nation/host.test.js` (if present) for `getYellowPagesBase`.
 - `src/proxy.test.js` — extend with cases for the new host branch (rewrite on host match, on `?__yellowpages=1`, pass-through otherwise, and that nation/yellowpages branches don't collide).
 - `src/app/api/yellowpages/listings/route.test.js` — create validation (required fields, description cap, dup handling if any), list filtering by category/assembly/location/query, `isActive` exclusion.
-- `src/app/api/yellowpages/listings/[id]/ratings/route.test.js` — valid create, duplicate-contact 409, invalid stars 400, hash never leaks in response.
+- `src/app/api/yellowpages/listings/[id]/ratings/route.test.js` — valid create (201), repeat-contact update (200 `updated:true`), invalid stars 400, hash never leaks in response.
 - `src/app/api/yellowpages/listings/[id]/route.test.js` — admin PATCH/DELETE auth gating (401/403/200).
 - Extend `src/app/api/assemblies/[slug]/register/route` test coverage (or add one if none exists) for the optional `yellowPages` payload: present → listing created + linked; absent → unchanged behavior; listing-insert failure → member creation still succeeds.
 - Component-level: at minimum a verification checklist (per CLAUDE.md's "or verification checklist" allowance) for `ListingForm`, `SearchBar`/`FilterBar`, and `RatingForm` covering empty-state, validation-error display, and submit-success paths; add `.test.jsx` files for these if the phase-2 PR has bandwidth, following the existing `Component.jsx` + `Component.test.jsx` colocation.

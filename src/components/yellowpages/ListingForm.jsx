@@ -1,8 +1,15 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { AlertCircle, X, Loader2, ImagePlus } from 'lucide-react'
+import { AlertCircle, CheckCircle2, X, Loader2, ImagePlus } from 'lucide-react'
 import { CATEGORIES, PREFERRED_CONTACTS, MAX_DESCRIPTION_CHARS, MAX_PORTFOLIO_IMAGES } from '@/lib/yellowpages/constants'
+import { isValidPhone, isValidEmail } from '@/lib/yellowpages/validation'
+import { COUNTRY_NAMES } from '@/lib/yellowpages/phone'
 import { useYellowPagesUpload } from '@/lib/yellowpages/useYellowPagesUpload'
+
+// Absolute base for links back to the main site (member registration lives there, not on the
+// Yellow Pages subdomain). Mirrors src/components/assembly/JoinUsQR.jsx. Empty in dev / on the
+// main domain, where a root-relative path already resolves correctly.
+const MAIN_SITE = process.env.NEXT_PUBLIC_APP_URL || ''
 import ImageUploadField from './ImageUploadField'
 import ProfileCompleteness from './ProfileCompleteness'
 
@@ -113,6 +120,11 @@ export default function ListingForm({ initialValues, onSuccess, mode = 'create',
   const [assemblies, setAssemblies] = useState([])
   const [status, setStatus] = useState('idle')
   const [submitError, setSubmitError] = useState('')
+  // Membership association: when an assembly is picked and a valid phone/email is entered, check
+  // whether that contact already belongs to a member of that assembly, so the person doesn't
+  // have to register again and the listing links to their member profile. Create mode only —
+  // editing an existing listing never touches this.
+  const [memberCheck, setMemberCheck] = useState({ status: 'idle', member: null })
 
   useEffect(() => {
     fetch('/api/assemblies')
@@ -120,6 +132,42 @@ export default function ListingForm({ initialValues, onSuccess, mode = 'create',
       .then((data) => setAssemblies(Array.isArray(data) ? data : []))
       .catch(() => setAssemblies([]))
   }, [])
+
+  const assemblyName = assemblies.find((a) => a.slug === form.assemblySlug)?.name
+  const trimmedPhone = form.phone.trim()
+  const trimmedEmail = form.email.trim()
+  const canCheckMembership =
+    mode !== 'edit' && !!form.assemblySlug && (isValidPhone(trimmedPhone) || isValidEmail(trimmedEmail))
+
+  useEffect(() => {
+    // Nothing to check yet — the render guard (canCheckMembership) hides any stale note, so no
+    // synchronous state reset is needed here.
+    if (!canCheckMembership) return
+
+    let cancelled = false
+    const timeout = setTimeout(async () => {
+      if (cancelled) return
+      setMemberCheck({ status: 'checking', member: null })
+      try {
+        const res = await fetch('/api/yellowpages/member-lookup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            assemblySlug: form.assemblySlug,
+            phone: isValidPhone(trimmedPhone) ? trimmedPhone : undefined,
+            email: isValidEmail(trimmedEmail) ? trimmedEmail : undefined,
+          }),
+        })
+        const data = await res.json()
+        if (cancelled) return
+        if (!res.ok) { setMemberCheck({ status: 'idle', member: null }); return }
+        setMemberCheck({ status: data.found ? 'matched' : 'unmatched', member: data.member || null })
+      } catch {
+        if (!cancelled) setMemberCheck({ status: 'idle', member: null })
+      }
+    }, 500)
+    return () => { cancelled = true; clearTimeout(timeout) }
+  }, [canCheckMembership, form.assemblySlug, trimmedPhone, trimmedEmail])
 
   const set = (field) => (value) => {
     setForm((f) => ({ ...f, [field]: value }))
@@ -293,7 +341,18 @@ export default function ListingForm({ initialValues, onSuccess, mode = 'create',
         </div>
         <div>
           <label className="yp-label" htmlFor="yp-country">Country</label>
-          <input id="yp-country" className="yp-input" value={form.country} onChange={(e) => set('country')(e.target.value)} />
+          <select id="yp-country" className="yp-select" value={form.country} onChange={(e) => set('country')(e.target.value)}>
+            <option value="">Select country</option>
+            {form.country && !COUNTRY_NAMES.includes(form.country) && (
+              <option value={form.country}>{form.country}</option>
+            )}
+            {COUNTRY_NAMES.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs" style={{ color: 'var(--yp-ink-soft)' }}>
+            Used to format your phone/WhatsApp number for people contacting you from abroad.
+          </p>
         </div>
       </div>
 
@@ -305,6 +364,46 @@ export default function ListingForm({ initialValues, onSuccess, mode = 'create',
             <option key={a.slug} value={a.slug}>{a.name}</option>
           ))}
         </select>
+
+        {canCheckMembership && memberCheck.status !== 'idle' && (
+          <div className="mt-2 text-xs" role="status">
+            {memberCheck.status === 'checking' && (
+              <p className="flex items-center gap-1.5" style={{ color: 'var(--yp-ink-soft)' }}>
+                <Loader2 size={12} className="animate-spin" /> Checking your membership…
+              </p>
+            )}
+            {memberCheck.status === 'matched' && (
+              <p className="flex items-start gap-1.5" style={{ color: 'var(--yp-yellow-700)' }}>
+                <CheckCircle2 size={13} className="mt-px shrink-0" />
+                <span>
+                  {memberCheck.member
+                    ? <>We found your membership — <strong>{memberCheck.member.firstName} {memberCheck.member.lastName}</strong>. </>
+                    : <>We found your membership record. </>}
+                  This listing will be linked to your member profile — no need to register again.
+                </span>
+              </p>
+            )}
+            {memberCheck.status === 'unmatched' && (
+              <p className="flex items-start gap-1.5" style={{ color: 'var(--yp-ink-soft)' }}>
+                <AlertCircle size={13} className="mt-px shrink-0" />
+                <span>
+                  No membership record found at {assemblyName || 'this assembly'} for that phone or email.
+                  You don&rsquo;t need to be a member to list here — but if you are one,{' '}
+                  <a
+                    href={`${MAIN_SITE}/${form.assemblySlug}/join`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline font-semibold"
+                    style={{ color: 'var(--yp-yellow-700)' }}
+                  >
+                    register as a member
+                  </a>{' '}
+                  first so your listing links to your profile.
+                </span>
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       <div id="yp-photo-section" className="grid sm:grid-cols-2 gap-4">

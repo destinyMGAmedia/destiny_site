@@ -11,6 +11,9 @@ vi.mock('@/lib/prisma', () => ({
     assembly: {
       findUnique: vi.fn(),
     },
+    member: {
+      findFirst: vi.fn(),
+    },
   },
 }))
 
@@ -120,6 +123,7 @@ describe('GET /api/yellowpages/listings', () => {
 describe('POST /api/yellowpages/listings', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    prisma.member.findFirst.mockResolvedValue(null)
   })
 
   it('returns 400 for invalid JSON', async () => {
@@ -176,5 +180,51 @@ describe('POST /api/yellowpages/listings', () => {
     prisma.yellowPagesListing.create.mockRejectedValue(new Error('db down'))
     const res = await POST(makePostRequest(validBusiness))
     expect(res.status).toBe(500)
+  })
+
+  describe('member association', () => {
+    it('links the listing to a matching member of the chosen assembly (by phone/email)', async () => {
+      prisma.assembly.findUnique.mockResolvedValue({ id: 'a1', slug: 'lagos' })
+      prisma.member.findFirst.mockResolvedValue({ id: 'm1' })
+      prisma.yellowPagesListing.create.mockResolvedValue({ id: 'l1', ...validBusiness })
+
+      await POST(makePostRequest({ ...validBusiness, assemblySlug: 'lagos' }))
+
+      const memberWhere = prisma.member.findFirst.mock.calls[0][0].where
+      expect(memberWhere.assemblyId).toBe('a1')
+      expect(memberWhere.OR).toEqual(
+        expect.arrayContaining([{ phone: '08012345678' }])
+      )
+      expect(prisma.yellowPagesListing.create.mock.calls[0][0].data.memberId).toBe('m1')
+    })
+
+    it('leaves memberId unset when no member of that assembly matches', async () => {
+      prisma.assembly.findUnique.mockResolvedValue({ id: 'a1', slug: 'lagos' })
+      prisma.member.findFirst.mockResolvedValue(null)
+      prisma.yellowPagesListing.create.mockResolvedValue({ id: 'l1', ...validBusiness })
+
+      await POST(makePostRequest({ ...validBusiness, assemblySlug: 'lagos' }))
+
+      expect(prisma.yellowPagesListing.create.mock.calls[0][0].data.memberId).toBeUndefined()
+    })
+
+    it('does not attempt a member lookup when no assembly is chosen', async () => {
+      prisma.yellowPagesListing.create.mockResolvedValue({ id: 'l1', ...validBusiness })
+
+      await POST(makePostRequest(validBusiness))
+
+      expect(prisma.member.findFirst).not.toHaveBeenCalled()
+      expect(prisma.yellowPagesListing.create.mock.calls[0][0].data.memberId).toBeUndefined()
+    })
+
+    it('ignores a client-supplied memberId and uses only the server-side lookup result', async () => {
+      prisma.assembly.findUnique.mockResolvedValue({ id: 'a1', slug: 'lagos' })
+      prisma.member.findFirst.mockResolvedValue({ id: 'real-member' })
+      prisma.yellowPagesListing.create.mockResolvedValue({ id: 'l1', ...validBusiness })
+
+      await POST(makePostRequest({ ...validBusiness, assemblySlug: 'lagos', memberId: 'attacker-supplied' }))
+
+      expect(prisma.yellowPagesListing.create.mock.calls[0][0].data.memberId).toBe('real-member')
+    })
   })
 })

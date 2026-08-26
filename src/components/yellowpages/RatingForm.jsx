@@ -18,6 +18,7 @@ export default function RatingForm({ listingId, onSubmitted }) {
   const [errors, setErrors] = useState({})
   const [status, setStatus] = useState('idle')
   const [submitError, setSubmitError] = useState('')
+  const [wasUpdate, setWasUpdate] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -42,6 +43,7 @@ export default function RatingForm({ listingId, onSubmitted }) {
       const data = await res.json()
 
       if (res.ok) {
+        setWasUpdate(Boolean(data.updated))
         setStatus('success')
         onSubmitted?.(data.rating)
       } else if (data.errors) {
@@ -59,9 +61,19 @@ export default function RatingForm({ listingId, onSubmitted }) {
 
   if (status === 'success') {
     return (
-      <p className="text-sm font-semibold" style={{ color: 'var(--yp-ink-soft)' }}>
-        Thanks for your review!
-      </p>
+      <div className="space-y-2">
+        <p className="text-sm font-semibold" style={{ color: 'var(--yp-ink-soft)' }}>
+          {wasUpdate ? 'Your review has been updated.' : 'Thanks for your review!'}
+        </p>
+        <button
+          type="button"
+          onClick={() => { setStatus('idle'); setSubmitError('') }}
+          className="text-sm font-semibold underline"
+          style={{ color: 'var(--yp-yellow-700)' }}
+        >
+          Edit your review
+        </button>
+      </div>
     )
   }
 
@@ -93,7 +105,8 @@ export default function RatingForm({ listingId, onSubmitted }) {
       </div>
       {errors.contact && <p className="flex items-center gap-1 text-red-600 text-xs -mt-2"><AlertCircle size={12} /> {errors.contact}</p>}
       <p className="text-xs -mt-2" style={{ color: 'var(--yp-ink-soft)' }}>
-        Used only to prevent duplicate reviews — never shown publicly beyond your first name.
+        Never shown publicly beyond your first name. Reviewed before? Submit again with the same
+        phone or email and we&rsquo;ll update your existing review.
       </p>
 
       <div>

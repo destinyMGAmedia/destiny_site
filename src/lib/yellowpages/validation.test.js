@@ -130,6 +130,16 @@ describe('validateListingInput', () => {
     })
     expect(data.socialLinks).toEqual({ facebook: 'fb.com/acme' })
   })
+
+  it('derives countryDialCode from the country', () => {
+    expect(validateListingInput({ ...validBusiness, country: 'Nigeria' }).data.countryDialCode).toBe('234')
+    expect(validateListingInput({ ...validBusiness, country: 'United Kingdom' }).data.countryDialCode).toBe('44')
+  })
+
+  it('leaves countryDialCode null when the country is missing or unrecognised', () => {
+    expect(validateListingInput(validBusiness).data.countryDialCode).toBeNull()
+    expect(validateListingInput({ ...validBusiness, country: 'Wakanda' }).data.countryDialCode).toBeNull()
+  })
 })
 
 describe('validateRatingInput', () => {

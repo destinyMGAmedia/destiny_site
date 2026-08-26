@@ -1,10 +1,13 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import ListingForm from './ListingForm'
 
-function mockFetch({ assemblies = [], postResponse } = {}) {
+function mockFetch({ assemblies = [], postResponse, memberLookup } = {}) {
   global.fetch = vi.fn((url, options) => {
     if (String(url).includes('/api/assemblies')) {
       return Promise.resolve({ json: () => Promise.resolve(assemblies) })
+    }
+    if (String(url).includes('/api/yellowpages/member-lookup')) {
+      return Promise.resolve(memberLookup || { ok: true, json: () => Promise.resolve({ found: false, member: null }) })
     }
     if (options?.method === 'POST' || options?.method === 'PATCH') {
       return Promise.resolve(postResponse)
@@ -60,6 +63,20 @@ describe('ListingForm — every field is available up front (both create and edi
   it('marks certifications as optional', () => {
     render(<ListingForm />)
     expect(screen.getByText('Professional Certifications/Memberships (optional)')).toBeInTheDocument()
+  })
+
+  it('offers Country as a select of known countries (so a calling code can be derived)', () => {
+    render(<ListingForm />)
+    const country = screen.getByLabelText('Country')
+    expect(country.tagName).toBe('SELECT')
+    expect(screen.getByRole('option', { name: 'Nigeria' })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'United Kingdom' })).toBeInTheDocument()
+  })
+
+  it('keeps an unrecognised pre-filled country selectable (legacy free-text data)', () => {
+    render(<ListingForm initialValues={{ country: 'Republic of Freedonia' }} />)
+    const country = screen.getByLabelText('Country')
+    expect(country.value).toBe('Republic of Freedonia')
   })
 
   it('does not require contact person name, even for a BUSINESS listing', () => {
@@ -177,5 +194,73 @@ describe('ListingForm — edit mode specifics', () => {
     expect(call[0]).toBe('/api/yellowpages/listings/l1')
     const body = JSON.parse(call[1].body)
     expect(body.ownerPhone).toBe('08012345678')
+  }, 10000)
+
+  it('never runs the membership check in edit mode', async () => {
+    mockFetch()
+    render(<ListingForm {...editProps} initialValues={{ name: 'Jane', phone: '08012345678', email: 'jane@example.com', category: 'HOME_SERVICES_TRADES', description: 'desc', assemblySlug: 'lagos' }} />)
+
+    // give any (unwanted) debounced effect time to fire
+    await new Promise((r) => setTimeout(r, 700))
+    expect(global.fetch).not.toHaveBeenCalledWith('/api/yellowpages/member-lookup', expect.anything())
+  }, 10000)
+})
+
+describe('ListingForm — membership association (create mode)', () => {
+  const ASSEMBLIES = [{ slug: 'lagos', name: 'Lagos Assembly' }]
+
+  const selectAssemblyAndContact = async () => {
+    await screen.findByRole('option', { name: 'Lagos Assembly' })
+    fireEvent.change(screen.getByLabelText('Assembly (optional)'), { target: { value: 'lagos' } })
+    fireEvent.change(screen.getByLabelText('Phone *'), { target: { value: '08012345678' } })
+  }
+
+  it('does not check membership until an assembly is chosen', async () => {
+    mockFetch({ assemblies: ASSEMBLIES })
+    render(<ListingForm />)
+    fireEvent.change(screen.getByLabelText('Phone *'), { target: { value: '08012345678' } })
+
+    await new Promise((r) => setTimeout(r, 700))
+    expect(global.fetch).not.toHaveBeenCalledWith('/api/yellowpages/member-lookup', expect.anything())
+  }, 10000)
+
+  it('confirms the linked member when the contact matches a member of that assembly', async () => {
+    mockFetch({
+      assemblies: ASSEMBLIES,
+      memberLookup: { ok: true, json: () => Promise.resolve({ found: true, member: { firstName: 'Jane', lastName: 'Doe' } }) },
+    })
+    render(<ListingForm />)
+    await selectAssemblyAndContact()
+
+    expect(await screen.findByText(/We found your membership/, {}, { timeout: 3000 })).toBeInTheDocument()
+    expect(screen.getByText('Jane Doe')).toBeInTheDocument()
+    const call = global.fetch.mock.calls.find(([u]) => String(u).includes('/api/yellowpages/member-lookup'))
+    expect(JSON.parse(call[1].body)).toMatchObject({ assemblySlug: 'lagos', phone: '08012345678' })
+  }, 10000)
+
+  it('prompts to register as a member (link to the assembly join page) when no match is found', async () => {
+    mockFetch({
+      assemblies: ASSEMBLIES,
+      memberLookup: { ok: true, json: () => Promise.resolve({ found: false, member: null }) },
+    })
+    render(<ListingForm />)
+    await selectAssemblyAndContact()
+
+    const link = await screen.findByRole('link', { name: /register as a member/i }, { timeout: 3000 })
+    expect(link).toHaveAttribute('href', '/lagos/join')
+    expect(screen.getByText(/No membership record found at Lagos Assembly/)).toBeInTheDocument()
+  }, 10000)
+
+  it('stays silent (no note) if the lookup request errors', async () => {
+    mockFetch({
+      assemblies: ASSEMBLIES,
+      memberLookup: { ok: false, json: () => Promise.resolve({ error: 'boom' }) },
+    })
+    render(<ListingForm />)
+    await selectAssemblyAndContact()
+
+    await new Promise((r) => setTimeout(r, 800))
+    expect(screen.queryByText(/We found your membership/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/No membership record found/)).not.toBeInTheDocument()
   }, 10000)
 })

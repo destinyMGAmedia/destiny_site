@@ -894,6 +894,7 @@ model YellowPagesListing {
   city              String?
   state             String?
   country           String?
+  countryDialCode   String? // E.164 calling code (digits only, e.g. "234"), derived from `country` at write time — reused for wa.me / tel: links and display
   assemblyId        String?
   assembly          Assembly?           @relation(fields: [assemblyId], references: [id], onDelete: SetNull)
   memberId          String?

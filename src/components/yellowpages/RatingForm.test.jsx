@@ -37,14 +37,31 @@ describe('RatingForm', () => {
     expect(body).toMatchObject({ stars: 4, reviewerName: 'Jane Doe', phone: '08012345678' })
   }, 10000)
 
-  it('shows the duplicate-review error returned by the API', async () => {
-    global.fetch.mockResolvedValue({ ok: false, json: () => Promise.resolve({ error: 'You have already rated this listing.' }) })
+  it('shows an "updated" confirmation when the API reports the review was updated', async () => {
+    global.fetch.mockResolvedValue({ ok: true, json: () => Promise.resolve({ rating: { id: 'r1' }, updated: true }) })
     render(<RatingForm listingId="l1" />)
 
     fillValid()
     fireEvent.click(screen.getByText('Submit Review'))
 
-    expect(await screen.findByText('You have already rated this listing.', {}, { timeout: 3000 })).toBeInTheDocument()
+    expect(await screen.findByText('Your review has been updated.', {}, { timeout: 3000 })).toBeInTheDocument()
+    expect(screen.queryByText('Thanks for your review!')).not.toBeInTheDocument()
+  }, 10000)
+
+  it('lets the reviewer reopen the form to edit again after submitting', async () => {
+    global.fetch.mockResolvedValue({ ok: true, json: () => Promise.resolve({ rating: { id: 'r1' } }) })
+    render(<RatingForm listingId="l1" />)
+
+    fillValid()
+    fireEvent.click(screen.getByText('Submit Review'))
+
+    await waitFor(() => expect(screen.getByText('Thanks for your review!')).toBeInTheDocument(), { timeout: 3000 })
+    fireEvent.click(screen.getByText('Edit your review'))
+
+    // form is back, and the previously entered values are retained
+    expect(screen.getByText('Submit Review')).toBeInTheDocument()
+    expect(screen.getByLabelText('Your Name *')).toHaveValue('Jane Doe')
+    expect(screen.getByLabelText('Phone')).toHaveValue('08012345678')
   }, 10000)
 
   it('surfaces server-side field errors returned from the API', async () => {
