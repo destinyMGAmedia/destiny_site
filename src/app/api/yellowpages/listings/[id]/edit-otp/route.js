@@ -13,11 +13,9 @@ import {
 import { OTP_RATE_LIMIT_PER_HOUR, OTP_TTL_MINUTES } from '@/lib/yellowpages/constants'
 
 // POST /api/yellowpages/listings/[id]/edit-otp — start the loginless owner-edit verification.
-// Body: { to } (phone or email) — the contact must already be on file for the listing (its
-// public phone/email unless `editStrict`, plus any `editContacts`).
-//   • email  → a 6-digit code is emailed; respond { sent: true }
-//   • phone  → no SMS provider yet, respond { sent: false, fallback: 'PHONE_MATCH' } so the
-//              client switches to the "enter the number exactly as on file" interim check
+// Body: { to } — an EMAIL that is on file for the listing (its public email unless `editStrict`,
+// plus any email in `editContacts`). Portfolio editing is verified by email only; phone/SMS
+// verification is not offered. A 6-digit code is emailed; respond { sent: true }.
 export async function POST(req, { params }) {
   const { id } = await params
 
@@ -35,13 +33,16 @@ export async function POST(req, { params }) {
 
   const rawTo = (body.to || '').trim()
   const norm = normalizeContact(rawTo)
-  if (!norm) {
-    return NextResponse.json({ error: 'Enter a valid phone number or email address.' }, { status: 400 })
+  if (!norm || norm.channel !== 'EMAIL') {
+    return NextResponse.json(
+      { error: 'Enter the email address on file for this listing — editing is verified by email.' },
+      { status: 400 },
+    )
   }
 
   if (!isAuthorizedEditContact(listing, rawTo)) {
     return NextResponse.json(
-      { error: "That phone number or email isn't on file for this listing." },
+      { error: "That email address isn't on file for this listing." },
       { status: 403 },
     )
   }
@@ -58,11 +59,6 @@ export async function POST(req, { params }) {
       { error: 'Too many code requests. Please wait a while and try again.' },
       { status: 429 },
     )
-  }
-
-  // Phone: SMS isn't wired — tell the client to use the interim "number on file" check.
-  if (norm.channel === 'SMS') {
-    return NextResponse.json({ sent: false, fallback: 'PHONE_MATCH', channel: 'SMS' })
   }
 
   const code = generateOtpCode()

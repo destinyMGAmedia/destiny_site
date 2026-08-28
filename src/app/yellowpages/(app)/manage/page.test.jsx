@@ -1,21 +1,16 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { useSearchParams } from 'next/navigation'
 import ManagePage from './page'
 import YellowPagesChrome from '@/components/yellowpages/shared/YellowPagesChrome'
 
 vi.mock('next/navigation', () => ({
   usePathname: vi.fn(() => '/yellowpages/manage'),
   useRouter: vi.fn(() => ({ replace: vi.fn() })),
-  useSearchParams: vi.fn(() => new URLSearchParams()),
+  useSearchParams: vi.fn(() => new URLSearchParams('listingId=l1')),
 }))
 vi.mock('@/components/yellowpages/ListingForm', () => ({
-  default: ({ onSuccess, mode, listingId, ownerContact, editToken }) => (
-    <div
-      data-testid="listing-form"
-      data-mode={mode}
-      data-listing-id={listingId}
-      data-owner-contact={JSON.stringify(ownerContact ?? null)}
-      data-edit-token={editToken ?? ''}
-    >
+  default: ({ onSuccess, mode, listingId, editToken }) => (
+    <div data-testid="listing-form" data-mode={mode} data-listing-id={listingId} data-edit-token={editToken ?? ''}>
       <button onClick={() => onSuccess({ id: listingId })}>fake-save</button>
     </div>
   ),
@@ -26,104 +21,80 @@ const listing = {
   listingType: 'BUSINESS', phone: '08012345678', email: 'jane@acme.com', description: 'desc', socialLinks: {},
 }
 
-// URL-aware fetch mock for the multi-step verify flow.
-function mockFlow({ lookup = [listing], editOtp, verify, editable = listing } = {}) {
+function mockFlow({ listingGet = listing, editOtp, verify, editable = listing } = {}) {
   global.fetch = vi.fn((url) => {
     const u = String(url)
-    if (u.includes('/lookup')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ listings: lookup }) })
     if (u.endsWith('/edit-otp')) return Promise.resolve({ ok: true, json: () => Promise.resolve(editOtp || { sent: true, channel: 'EMAIL', maskedTo: 'j•••@acme.com' }) })
     if (u.includes('/edit-otp/verify')) return Promise.resolve({ ok: true, json: () => Promise.resolve(verify || { editToken: 'tok-123' }) })
     if (u.includes('/editable')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ listing: editable }) })
-    if (u.match(/\/listings\/[^/]+$/)) return Promise.resolve({ ok: true, json: () => Promise.resolve({ listing: editable }) })
+    if (u.match(/\/listings\/[^/]+$/)) return Promise.resolve({ ok: Boolean(listingGet), json: () => Promise.resolve({ listing: listingGet }) })
     return Promise.resolve({ ok: true, json: () => Promise.resolve({}) })
   })
 }
 
-function renderManage() {
-  return render(
+const renderManage = () =>
+  render(
     <YellowPagesChrome base="/yellowpages">
       <ManagePage />
     </YellowPagesChrome>
   )
-}
 
 describe('ManagePage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    global.fetch = vi.fn()
+    useSearchParams.mockReturnValue(new URLSearchParams('listingId=l1'))
+    global.fetch = vi.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve({}) }))
     try { window.localStorage.clear() } catch { /* ignore */ }
   })
 
-  it('shows a validation error when neither phone nor email is entered', async () => {
+  it('directs the user to the portfolio Edit button when there is no listingId', async () => {
+    useSearchParams.mockReturnValue(new URLSearchParams())
     renderManage()
-    fireEvent.click(screen.getByText('Find My Listing'))
-    expect(await screen.findByText('Please enter your phone number or email.')).toBeInTheDocument()
-    expect(global.fetch).not.toHaveBeenCalled()
+    expect(screen.getByText(/Open your portfolio to edit it/)).toBeInTheDocument()
+    expect(screen.queryByLabelText('Email on the listing')).not.toBeInTheDocument()
   })
 
-  it('shows "no listing found" when the lookup returns nothing', async () => {
-    mockFlow({ lookup: [] })
-    renderManage()
-    fireEvent.change(screen.getByLabelText('Phone Number'), { target: { value: '08012345678' } })
-    fireEvent.click(screen.getByText('Find My Listing'))
-    expect(await screen.findByText('No listing found with that phone number or email.')).toBeInTheDocument()
-  })
-
-  it('requires OTP verification before opening the edit form (email channel)', async () => {
+  it('verifies by email OTP, then opens the edit form with the editToken', async () => {
     mockFlow()
     renderManage()
-    fireEvent.change(screen.getByLabelText('Email Address'), { target: { value: 'jane@acme.com' } })
-    fireEvent.click(screen.getByText('Find My Listing'))
 
-    // LIST step
     await waitFor(() => expect(screen.getByText('Acme Travels')).toBeInTheDocument())
-    fireEvent.click(screen.getByText('Acme Travels'))
+    // no phone option anywhere
+    expect(screen.queryByText(/Phone/)).not.toBeInTheDocument()
 
-    // VERIFY step — not the form yet
-    expect(await screen.findByText(/Verify it.s you/)).toBeInTheDocument()
-    expect(screen.queryByTestId('listing-form')).not.toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('Email on the listing'), { target: { value: 'jane@acme.com' } })
     fireEvent.click(screen.getByText('Send code'))
 
-    // OTP modal
-    const codeInput = await screen.findByLabelText('Verification code')
-    fireEvent.change(codeInput, { target: { value: '654321' } })
+    fireEvent.change(await screen.findByLabelText('Verification code'), { target: { value: '654321' } })
     fireEvent.click(screen.getByText('Verify'))
 
-    // EDIT step with the editToken carried through
     const form = await screen.findByTestId('listing-form')
     expect(form).toHaveAttribute('data-mode', 'edit')
     expect(form).toHaveAttribute('data-listing-id', 'l1')
     expect(form).toHaveAttribute('data-edit-token', 'tok-123')
   })
 
-  it('falls back to phone-number confirmation when SMS is unavailable', async () => {
-    mockFlow({ editOtp: { sent: false, fallback: 'PHONE_MATCH', channel: 'SMS' } })
+  it('surfaces an error when the code request is rejected', async () => {
+    mockFlow({ editOtp: { error: "That email address isn't on file for this listing." } })
+    global.fetch = vi.fn((url) => {
+      const u = String(url)
+      if (u.endsWith('/edit-otp')) return Promise.resolve({ ok: false, json: () => Promise.resolve({ error: "That email address isn't on file for this listing." }) })
+      if (u.match(/\/listings\/[^/]+$/)) return Promise.resolve({ ok: true, json: () => Promise.resolve({ listing }) })
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) })
+    })
     renderManage()
-    fireEvent.change(screen.getByLabelText('Phone Number'), { target: { value: '08012345678' } })
-    fireEvent.click(screen.getByText('Find My Listing'))
-
     await waitFor(() => expect(screen.getByText('Acme Travels')).toBeInTheDocument())
-    fireEvent.click(screen.getByText('Acme Travels'))
-
-    // channel pre-selected as PHONE from the lookup; submit
-    fireEvent.click(await screen.findByText('Continue'))
-
-    const phoneInput = await screen.findByLabelText('Phone number on the listing')
-    fireEvent.change(phoneInput, { target: { value: '08012345678' } })
-    fireEvent.click(screen.getByText('Continue'))
-
-    const form = await screen.findByTestId('listing-form')
-    expect(JSON.parse(form.getAttribute('data-owner-contact'))).toEqual({ phone: '08012345678' })
+    fireEvent.change(screen.getByLabelText('Email on the listing'), { target: { value: 'nope@acme.com' } })
+    fireEvent.click(screen.getByText('Send code'))
+    expect(await screen.findByText("That email address isn't on file for this listing.")).toBeInTheDocument()
   })
 
   it('shows the saved confirmation after ListingForm calls onSuccess', async () => {
     mockFlow()
     renderManage()
-    fireEvent.change(screen.getByLabelText('Email Address'), { target: { value: 'jane@acme.com' } })
-    fireEvent.click(screen.getByText('Find My Listing'))
-    await waitFor(() => screen.getByText('Acme Travels'))
-    fireEvent.click(screen.getByText('Acme Travels'))
-    fireEvent.click(await screen.findByText('Send code'))
+    await waitFor(() => expect(screen.getByText('Acme Travels')).toBeInTheDocument())
+    fireEvent.change(screen.getByLabelText('Email on the listing'), { target: { value: 'jane@acme.com' } })
+    fireEvent.click(screen.getByText('Send code'))
     fireEvent.change(await screen.findByLabelText('Verification code'), { target: { value: '654321' } })
     fireEvent.click(screen.getByText('Verify'))
 
@@ -133,16 +104,150 @@ describe('ManagePage', () => {
     expect(screen.getByText('View Your Listing')).toHaveAttribute('href', '/yellowpages/listing/l1')
   })
 
-  it('truncates a long listing name and keeps the edit icon from shrinking in the list step', async () => {
-    const longListing = { ...listing, name: 'Extremely Long Business Name That Should Not Wrap The Row Layout Ltd' }
-    mockFlow({ lookup: [longListing] })
+  it('marks the listing as edited-in-this-browser (localStorage) once a save succeeds', async () => {
+    mockFlow()
     renderManage()
-    fireEvent.change(screen.getByLabelText('Phone Number'), { target: { value: '08012345678' } })
-    fireEvent.click(screen.getByText('Find My Listing'))
+    await waitFor(() => expect(screen.getByText('Acme Travels')).toBeInTheDocument())
+    fireEvent.change(screen.getByLabelText('Email on the listing'), { target: { value: 'jane@acme.com' } })
+    fireEvent.click(screen.getByText('Send code'))
+    fireEvent.change(await screen.findByLabelText('Verification code'), { target: { value: '654321' } })
+    fireEvent.click(screen.getByText('Verify'))
 
-    const nameEl = await screen.findByText(longListing.name)
-    expect(nameEl).toHaveClass('truncate')
-    expect(nameEl.parentElement).toHaveClass('min-w-0')
-    expect(nameEl.closest('button').querySelector('svg')).toHaveClass('shrink-0')
+    expect(window.localStorage.getItem('yp:edited:l1')).toBeNull()
+    fireEvent.click(await screen.findByText('fake-save'))
+    expect(window.localStorage.getItem('yp:edited:l1')).toBe('1')
+  })
+
+  it('passes the OTP-issued editToken through to the edit-mode ListingForm', async () => {
+    mockFlow({ verify: { editToken: 'tok-abc-999' } })
+    renderManage()
+    await waitFor(() => expect(screen.getByText('Acme Travels')).toBeInTheDocument())
+    fireEvent.change(screen.getByLabelText('Email on the listing'), { target: { value: 'jane@acme.com' } })
+    fireEvent.click(screen.getByText('Send code'))
+    fireEvent.change(await screen.findByLabelText('Verification code'), { target: { value: '654321' } })
+    fireEvent.click(screen.getByText('Verify'))
+
+    const form = await screen.findByTestId('listing-form')
+    expect(form).toHaveAttribute('data-edit-token', 'tok-abc-999')
+    expect(form).toHaveAttribute('data-mode', 'edit')
+  })
+
+  it('shows a not-found message when the listing GET fails', async () => {
+    mockFlow({ listingGet: null })
+    renderManage()
+    expect(await screen.findByText('Portfolio not found')).toBeInTheDocument()
+  })
+
+  it('validates the email field client-side before hitting the API', async () => {
+    mockFlow()
+    renderManage()
+    await waitFor(() => expect(screen.getByText('Acme Travels')).toBeInTheDocument())
+    global.fetch.mockClear()
+
+    fireEvent.click(screen.getByText('Send code'))
+
+    expect(await screen.findByText('Enter the email address on file for this listing.')).toBeInTheDocument()
+    expect(global.fetch).not.toHaveBeenCalledWith(
+      expect.stringContaining('/edit-otp'),
+      expect.anything(),
+    )
+  })
+
+  it('clears the inline error as soon as the user edits the email field', async () => {
+    mockFlow()
+    renderManage()
+    await waitFor(() => expect(screen.getByText('Acme Travels')).toBeInTheDocument())
+    fireEvent.click(screen.getByText('Send code'))
+    expect(await screen.findByText('Enter the email address on file for this listing.')).toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText('Email on the listing'), { target: { value: 'j' } })
+    expect(screen.queryByText('Enter the email address on file for this listing.')).not.toBeInTheDocument()
+  })
+
+  it('surfaces the server error and stays on the verify step when /editable rejects the token', async () => {
+    global.fetch = vi.fn((url) => {
+      const u = String(url)
+      if (u.endsWith('/edit-otp')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ sent: true, channel: 'EMAIL', maskedTo: 'j•••@acme.com' }) })
+      if (u.includes('/edit-otp/verify')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ editToken: 'tok-123' }) })
+      if (u.includes('/editable')) return Promise.resolve({ ok: false, json: () => Promise.resolve({ error: 'This edit link has expired.' }) })
+      if (u.match(/\/listings\/[^/]+$/)) return Promise.resolve({ ok: true, json: () => Promise.resolve({ listing }) })
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) })
+    })
+    renderManage()
+    await waitFor(() => expect(screen.getByText('Acme Travels')).toBeInTheDocument())
+    fireEvent.change(screen.getByLabelText('Email on the listing'), { target: { value: 'jane@acme.com' } })
+    fireEvent.click(screen.getByText('Send code'))
+    fireEvent.change(await screen.findByLabelText('Verification code'), { target: { value: '654321' } })
+    fireEvent.click(screen.getByText('Verify'))
+
+    expect(await screen.findByText('This edit link has expired.')).toBeInTheDocument()
+    expect(screen.queryByTestId('listing-form')).not.toBeInTheDocument()
+  })
+
+  it('keeps the OTP modal open and shows its error when the code is wrong', async () => {
+    global.fetch = vi.fn((url) => {
+      const u = String(url)
+      if (u.endsWith('/edit-otp')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ sent: true, channel: 'EMAIL', maskedTo: 'j•••@acme.com' }) })
+      if (u.includes('/edit-otp/verify')) return Promise.resolve({ ok: false, json: () => Promise.resolve({ error: 'That code did not work.' }) })
+      if (u.match(/\/listings\/[^/]+$/)) return Promise.resolve({ ok: true, json: () => Promise.resolve({ listing }) })
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) })
+    })
+    renderManage()
+    await waitFor(() => expect(screen.getByText('Acme Travels')).toBeInTheDocument())
+    fireEvent.change(screen.getByLabelText('Email on the listing'), { target: { value: 'jane@acme.com' } })
+    fireEvent.click(screen.getByText('Send code'))
+    fireEvent.change(await screen.findByLabelText('Verification code'), { target: { value: '000000' } })
+    fireEvent.click(screen.getByText('Verify'))
+
+    expect(await screen.findByText('That code did not work.')).toBeInTheDocument()
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+  })
+
+  it('re-requests a code from the OTP modal, refreshing the masked target', async () => {
+    let sendCalls = 0
+    global.fetch = vi.fn((url) => {
+      const u = String(url)
+      if (u.endsWith('/edit-otp')) {
+        sendCalls += 1
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ sent: true, channel: 'EMAIL', maskedTo: `j•••@acme.com#${sendCalls}` }) })
+      }
+      if (u.match(/\/listings\/[^/]+$/)) return Promise.resolve({ ok: true, json: () => Promise.resolve({ listing }) })
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) })
+    })
+    renderManage()
+    await waitFor(() => expect(screen.getByText('Acme Travels')).toBeInTheDocument())
+    fireEvent.change(screen.getByLabelText('Email on the listing'), { target: { value: 'jane@acme.com' } })
+    fireEvent.click(screen.getByText('Send code'))
+
+    await screen.findByRole('dialog')
+    fireEvent.click(screen.getByText('Resend code'))
+
+    expect(await screen.findByText('A new code is on its way.')).toBeInTheDocument()
+    expect(sendCalls).toBe(2)
+  })
+
+  it('shows a network error when the code request throws', async () => {
+    global.fetch = vi.fn((url) => {
+      const u = String(url)
+      if (u.endsWith('/edit-otp')) return Promise.reject(new Error('offline'))
+      if (u.match(/\/listings\/[^/]+$/)) return Promise.resolve({ ok: true, json: () => Promise.resolve({ listing }) })
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) })
+    })
+    renderManage()
+    await waitFor(() => expect(screen.getByText('Acme Travels')).toBeInTheDocument())
+    fireEvent.change(screen.getByLabelText('Email on the listing'), { target: { value: 'jane@acme.com' } })
+    fireEvent.click(screen.getByText('Send code'))
+
+    expect(await screen.findByText('We could not send a code. Please try again.')).toBeInTheDocument()
+  })
+
+  it('falls back to "your listing" when the listing GET succeeds without a name', async () => {
+    mockFlow({ listingGet: { id: 'l1' } })
+    renderManage()
+    await waitFor(() =>
+      expect(screen.getByText((_, el) => el?.tagName === 'P' && /To edit/.test(el.textContent))).toHaveTextContent(
+        'To edit your listing',
+      ),
+    )
   })
 })

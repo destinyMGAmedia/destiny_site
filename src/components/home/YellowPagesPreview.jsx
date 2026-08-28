@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowRight, Search, Users, ShieldCheck } from 'lucide-react'
+import { ArrowRight, LayoutGrid, FileCheck2, Star } from 'lucide-react'
 
 const YELLOWPAGES_URL = process.env.NEXT_PUBLIC_YELLOWPAGES_URL || '/yellowpages'
 
@@ -14,9 +14,21 @@ const YP = {
 }
 
 const FEATURES = [
-  { icon: Search, title: 'Search', body: 'Find a skill, service, or business by category and location.' },
-  { icon: Users, title: 'Connect', body: 'Reach out directly — phone, WhatsApp, or email. No middleman.' },
-  { icon: ShieldCheck, title: 'Trust', body: 'See ratings from others in the family before you reach out.' },
+  {
+    icon: LayoutGrid,
+    title: 'Portfolios',
+    body: 'Professionals and businesses build a real portfolio site — skills, projects, gallery — on one shareable link.',
+  },
+  {
+    icon: FileCheck2,
+    title: 'ATS résumés',
+    body: 'Export a résumé that passes the bots. Clean, machine-readable, built to land on a recruiter’s desk.',
+  },
+  {
+    icon: Star,
+    title: 'Reviews',
+    body: 'Star ratings and reviews on every profile — reputation people can see before they reach out.',
+  },
 ]
 
 // Full-bleed CTA band for The Yellow Pages directory. Deliberately edge-to-edge (unlike the
@@ -37,7 +49,7 @@ export default function YellowPagesPreview() {
             style={{ background: YP.yellow, color: YP.ink }}
           >
             <span className="inline-block w-3 h-3 rounded-sm" style={{ background: YP.ink }} />
-            New · Community Directory
+            New · Portfolios &amp; Directory
           </span>
 
           <h2
@@ -47,14 +59,15 @@ export default function YellowPagesPreview() {
             The Yellow Pages
           </h2>
           <p className="text-lg font-semibold mb-5" style={{ color: YP.yellow400 }}>
-            Skills &amp; businesses, right here in the family
+            Build your portfolio. Export an ATS-compliant résumé. Get discovered.
           </p>
 
           <p className="leading-relaxed mb-10 max-w-2xl" style={{ color: 'rgba(250, 248, 244, 0.72)' }}>
             A directory of members&rsquo; skills and businesses from across Destiny Mission Global
-            Assembly. Whether you need a plumber, a designer, a caterer, or a tutor — search by
-            category and location, then reach out directly. Members can list their own skill or
-            business for free.
+            Assembly — reimagined as free portfolio hosting. Professionals and artisans get a
+            personal e-portfolio and a résumé that passes any applicant tracking system;
+            businesses get a profile with services, projects, and team. Search by category and
+            location, then reach out directly.
           </p>
 
           <div className="grid sm:grid-cols-3 gap-6 mb-10">
@@ -67,13 +80,22 @@ export default function YellowPagesPreview() {
             ))}
           </div>
 
-          <Link
-            href={YELLOWPAGES_URL}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-bold transition-transform hover:-translate-y-0.5"
-            style={{ background: YP.yellow, color: YP.ink }}
-          >
-            Explore the Directory <ArrowRight size={16} />
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href={`${YELLOWPAGES_URL}/register`}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-bold transition-transform hover:-translate-y-0.5"
+              style={{ background: YP.yellow, color: YP.ink }}
+            >
+              Create your portfolio <ArrowRight size={16} />
+            </Link>
+            <Link
+              href={YELLOWPAGES_URL}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-bold border transition-transform hover:-translate-y-0.5"
+              style={{ borderColor: 'rgba(250,248,244,0.3)', color: YP.cream }}
+            >
+              Explore the Directory
+            </Link>
+          </div>
         </div>
       </div>
     </section>

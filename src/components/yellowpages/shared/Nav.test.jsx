@@ -41,7 +41,24 @@ describe('Nav', () => {
     renderWithBase('/yellowpages')
     expect(screen.getByLabelText('Home feed')).toHaveAttribute('href', '/yellowpages/browse')
     expect(screen.getByLabelText('List your skill or business')).toHaveAttribute('href', '/yellowpages/register')
-    expect(screen.getByLabelText('Manage my listing')).toHaveAttribute('href', '/yellowpages/manage')
+    expect(screen.queryByLabelText('Manage my listing')).not.toBeInTheDocument()
+  })
+
+  it('renders exactly two nav tabs — the manage/UserCog tab has been removed', () => {
+    renderWithBase('/yellowpages')
+    const tabs = within(screen.getByRole('navigation')).getAllByRole('link')
+    expect(tabs).toHaveLength(2)
+    expect(tabs.map((a) => a.getAttribute('aria-label'))).toEqual([
+      'Home feed',
+      'List your skill or business',
+    ])
+  })
+
+  it('has no link whose target is the /manage route', () => {
+    renderWithBase('/yellowpages', { pathname: '/yellowpages/manage' })
+    for (const a of screen.getAllByRole('link')) {
+      expect(a.getAttribute('href')).not.toMatch(/\/manage$/)
+    }
   })
 
   it('does not render a "Main Site" link', () => {
@@ -239,21 +256,25 @@ describe('Nav', () => {
   })
 
   it('highlights the active tab and leaves inactive tabs transparent', () => {
-    renderWithBase('/yellowpages', { pathname: '/yellowpages/manage' })
-    expect(screen.getByLabelText('Manage my listing')).toHaveStyle({ background: 'var(--yp-yellow-100)' })
+    renderWithBase('/yellowpages', { pathname: '/yellowpages/browse' })
+    expect(screen.getByLabelText('Home feed')).toHaveStyle({ background: 'var(--yp-yellow-100)' })
+  })
+
+  it('leaves an inactive tab transparent', () => {
+    renderWithBase('/yellowpages', { pathname: '/yellowpages/register' })
     expect(screen.getByLabelText('Home feed')).toHaveStyle({ background: 'transparent' })
   })
 
   it('treats a nested path under a tab as active for that tab', () => {
-    renderWithBase('/yellowpages', { pathname: '/yellowpages/manage/edit/42' })
-    expect(screen.getByLabelText('Manage my listing')).toHaveStyle({ background: 'var(--yp-yellow-100)' })
+    renderWithBase('/yellowpages', { pathname: '/yellowpages/browse/feed' })
+    expect(screen.getByLabelText('Home feed')).toHaveStyle({ background: 'var(--yp-yellow-100)' })
   })
 
   it('prefixes every tab href with an empty base unchanged (subdomain mode)', () => {
     renderWithBase('', { pathname: '/browse' })
     expect(screen.getByLabelText('Home feed')).toHaveAttribute('href', '/browse')
     expect(screen.getByLabelText('List your skill or business')).toHaveAttribute('href', '/register')
-    expect(screen.getByLabelText('Manage my listing')).toHaveAttribute('href', '/manage')
+    expect(screen.queryByLabelText('Manage my listing')).not.toBeInTheDocument()
   })
 
   it('resyncs local q and assemblySlug state when the URL search params change externally', async () => {

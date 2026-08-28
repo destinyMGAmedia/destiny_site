@@ -71,7 +71,7 @@ function RegisterForm() {
             <Sparkles size={16} /> Your profile is {completeness}% complete
           </p>
           <p className="text-sm" style={{ color: 'var(--yp-ink-soft)' }}>
-            A photo, your location, and a few other details help you get noticed and stand out from the crowd — add them now, or anytime later from &ldquo;Manage My Listing.&rdquo;
+            A photo, your location, and a few other details help you get noticed and stand out from the crowd — add them now, or anytime later with the <strong>Edit</strong> button on your portfolio page.
           </p>
         </div>
 

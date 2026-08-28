@@ -50,6 +50,16 @@ describe('RegisterPage', () => {
     expect(screen.getByText('Skip for Now, View My Listing')).toHaveAttribute('href', '/yellowpages/listing/l1')
   }, 10000)
 
+  it('points users at the on-page Edit button (not the retired "Manage My Listing" flow) for later edits', () => {
+    renderPage()
+    fireEvent.click(screen.getByText('fake-submit'))
+
+    const teaser = screen.getByText(/stand out from the crowd/)
+    expect(teaser).toHaveTextContent('Edit')
+    expect(teaser).toHaveTextContent('on your portfolio page')
+    expect(teaser.textContent).not.toMatch(/Manage My Listing/i)
+  }, 10000)
+
   it('switches to an edit-mode ListingForm, carrying the owner contact, when "Complete My Profile" is clicked', () => {
     renderPage()
     fireEvent.click(screen.getByText('fake-submit'))
@@ -60,6 +70,22 @@ describe('RegisterPage', () => {
     expect(editProps.mode).toBe('edit')
     expect(editProps.listingId).toBe('l1')
     expect(editProps.ownerContact).toEqual({ phone: '08012345678', email: undefined })
+  }, 10000)
+
+  it('seeds the complete-profile form with the freshly created listing as initialValues', () => {
+    renderPage()
+    fireEvent.click(screen.getByText('fake-submit'))
+    fireEvent.click(screen.getByText('Complete My Profile'))
+
+    const editProps = ListingForm.mock.calls[ListingForm.mock.calls.length - 1][0]
+    expect(editProps.initialValues).toMatchObject({ id: 'l1', name: 'Jane Doe', phone: '08012345678' })
+  }, 10000)
+
+  it('renders the completeness teaser as a rounded percentage from getProfileCompleteness', () => {
+    renderPage()
+    fireEvent.click(screen.getByText('fake-submit'))
+    // The fake listing has only id/name/phone set, so completeness is a low whole number.
+    expect(screen.getByText(/Your profile is \d+% complete/)).toBeInTheDocument()
   }, 10000)
 
   it('shows a saved confirmation after completing the profile', () => {

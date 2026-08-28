@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { Rss, Plus, UserCog, Search } from 'lucide-react'
+import { Rss, Plus, Search } from 'lucide-react'
 import { useYellowPagesBase } from './YellowPagesChrome'
 
 const TABS = [

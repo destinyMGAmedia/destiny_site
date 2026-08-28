@@ -11,17 +11,28 @@ function renderCover(base = '/yellowpages') {
 }
 
 describe('YellowPagesCoverPage', () => {
-  it('renders the branding heading', () => {
+  it('renders the marketing hero headline', () => {
     renderCover()
-    expect(screen.getByText('Skills & Businesses, Right Here in the Family')).toBeInTheDocument()
+    expect(screen.getByText(/one link that opens doors/i)).toBeInTheDocument()
   })
 
-  it('links both CTAs to the browse feed, prefixed with the base', () => {
+  it('captures the key features in their own sections', () => {
+    renderCover()
+    expect(screen.getByText(/in one place worth sharing/i)).toBeInTheDocument()
+    expect(screen.getByText(/ATS-compliant résumé that gets you the interview/i)).toBeInTheDocument()
+    expect(screen.getByText(/what your business can do/i)).toBeInTheDocument()
+    expect(screen.getByText(/Let your reviews do the selling/i)).toBeInTheDocument()
+  })
+
+  it('sends the "Explore the Directory" CTAs to the browse feed and "Create your portfolio" to register', () => {
     renderCover('/yellowpages')
-    const ctas = screen.getAllByText('Explore the Directory')
-    expect(ctas.length).toBeGreaterThan(0)
-    for (const cta of ctas) {
+    const explore = screen.getAllByText('Explore the Directory')
+    expect(explore.length).toBeGreaterThan(0)
+    for (const cta of explore) {
       expect(cta.closest('a')).toHaveAttribute('href', '/yellowpages/browse')
+    }
+    for (const cta of screen.getAllByText('Create your portfolio')) {
+      expect(cta.closest('a')).toHaveAttribute('href', '/yellowpages/register')
     }
   })
 

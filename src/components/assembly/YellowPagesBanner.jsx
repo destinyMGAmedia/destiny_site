@@ -37,14 +37,16 @@ export default function YellowPagesBanner({ assemblySlug, assemblyName }) {
           className="text-2xl md:text-3xl font-bold mb-3 leading-tight"
           style={{ fontFamily: 'var(--font-serif)', color: YP.cream }}
         >
-          Offer a skill or run a business? List it in the directory.
+          Turn your skill or business into a portfolio that gets you hired.
         </h2>
 
         <p className="leading-relaxed mb-8 max-w-2xl" style={{ color: 'rgba(250, 248, 244, 0.72)' }}>
-          {assemblyName ? `As part of ${assemblyName}, you` : 'You'} can add your skill or business
-          to The Yellow Pages — the church-wide directory people search to find trusted help.
-          Already registered as a member? You won&rsquo;t sign up again: list with the phone or
-          email on your member record and your listing links to your profile automatically.
+          {assemblyName ? `As part of ${assemblyName}, you` : 'You'} can build a free portfolio on
+          The Yellow Pages — the church-wide directory people search to find trusted help.
+          Professionals get an e-portfolio and an ATS-compliant résumé that passes the bots;
+          businesses get a profile with services, projects, and team. Already a registered member?
+          You won&rsquo;t sign up again — list with the phone or email on your member record and
+          your listing links to your profile automatically.
         </p>
 
         <a
