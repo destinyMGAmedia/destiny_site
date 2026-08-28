@@ -5,6 +5,7 @@ import { AlertCircle, Check, Mail, Loader2, Compass } from 'lucide-react'
 import { useYellowPagesBase } from '@/components/yellowpages/shared/YellowPagesChrome'
 import ListingForm from '@/components/yellowpages/ListingForm'
 import OtpModal from '@/components/yellowpages/OtpModal'
+import BackLink from '@/components/yellowpages/BackLink'
 
 /** Maps a full listing (from /editable) to ListingForm's initialValues shape. */
 function editInitialValues(l) {
@@ -193,6 +194,7 @@ function ManageFlow() {
   if (step === 'EDIT' && editValues) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-6">
+        <BackLink href={`${base}/listing/${listingId}`} className="mb-4" />
         <h1 className="text-2xl font-bold mb-1" style={{ color: 'var(--yp-ink)' }}>Edit Your Listing</h1>
         <p className="text-sm mb-6" style={{ color: 'var(--yp-ink-soft)' }}>{listingName}</p>
         <ListingForm
@@ -208,6 +210,7 @@ function ManageFlow() {
 
   return (
     <div className="max-w-md mx-auto px-4 py-10 sm:py-16">
+      <BackLink href={`${base}/listing/${listingId}`} className="mb-6" />
       <h1 className="text-2xl font-bold mb-1" style={{ color: 'var(--yp-ink)' }}>Verify it&rsquo;s you</h1>
       <p className="text-sm mb-6" style={{ color: 'var(--yp-ink-soft)' }}>
         To edit <strong>{listingName}</strong>, enter the email address on file and we&rsquo;ll

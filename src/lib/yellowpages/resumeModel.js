@@ -123,7 +123,7 @@ export function buildResumeModel(listing = {}, opts = {}) {
 /** ATS-critical things still missing — surfaced on the preview page as "add these" prompts. */
 export function resumeGaps(model) {
   const gaps = []
-  if (!model.summary) gaps.push({ key: 'summary', label: 'A professional summary', anchor: 'yp-resumeSummary' })
+  if (!model.summary) gaps.push({ key: 'summary', label: 'A professional summary', anchor: 'yp-description' })
   if (model.experience.length === 0) {
     gaps.push({ key: 'experience', label: 'At least one work experience entry', anchor: 'yp-experience' })
   } else {

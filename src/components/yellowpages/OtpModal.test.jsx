@@ -22,28 +22,50 @@ describe('OtpModal', () => {
     expect(input).toHaveValue('1234')
   })
 
-  it('validates the code length before calling onVerify', async () => {
+  it('does not call onVerify until the full 6-digit code is entered', () => {
     const { onVerify, input } = setup()
     fireEvent.change(input, { target: { value: '123' } })
-    fireEvent.submit(input.closest('form'))
-    expect(await screen.findByText('Enter the 6-digit code.')).toBeInTheDocument()
+    fireEvent.change(input, { target: { value: '12345' } })
     expect(onVerify).not.toHaveBeenCalled()
   })
 
-  it('calls onVerify with the 6-digit code and shows a returned error', async () => {
-    const onVerify = vi.fn().mockResolvedValue({ error: 'Incorrect code.' })
+  it('auto-verifies the moment the 6th digit is entered (no button press)', async () => {
+    const onVerify = vi.fn().mockResolvedValue({ error: null })
     const { input } = setup({ onVerify })
     fireEvent.change(input, { target: { value: '654321' } })
-    fireEvent.submit(input.closest('form'))
     await waitFor(() => expect(onVerify).toHaveBeenCalledWith('654321'))
+  })
+
+  it('shows a returned error and a "Try again" button, and re-verifies after an edit', async () => {
+    const onVerify = vi.fn()
+      .mockResolvedValueOnce({ error: 'Incorrect code.' })
+      .mockResolvedValueOnce({ error: null })
+    const { input } = setup({ onVerify })
+
+    fireEvent.change(input, { target: { value: '000000' } })
     expect(await screen.findByText('Incorrect code.')).toBeInTheDocument()
+
+    // same code again does NOT auto-fire (no loop); editing to a new full code does
+    fireEvent.change(input, { target: { value: '00000' } })
+    fireEvent.change(input, { target: { value: '123456' } })
+    await waitFor(() => expect(onVerify).toHaveBeenCalledWith('123456'))
+  })
+
+  it('the "Try again" button re-submits the same code', async () => {
+    const onVerify = vi.fn()
+      .mockResolvedValueOnce({ error: 'Incorrect code.' })
+      .mockResolvedValueOnce({ error: 'Incorrect code.' })
+    const { input } = setup({ onVerify })
+    fireEvent.change(input, { target: { value: '000000' } })
+    await screen.findByText('Incorrect code.')
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
+    await waitFor(() => expect(onVerify).toHaveBeenCalledTimes(2))
   })
 
   it('leaves the modal to the parent on a successful verify (no error shown)', async () => {
     const onVerify = vi.fn().mockResolvedValue({ error: null })
     const { input } = setup({ onVerify })
     fireEvent.change(input, { target: { value: '111111' } })
-    fireEvent.submit(input.closest('form'))
     await waitFor(() => expect(onVerify).toHaveBeenCalled())
     expect(screen.queryByText(/Incorrect/)).not.toBeInTheDocument()
   })

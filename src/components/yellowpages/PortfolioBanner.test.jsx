@@ -29,11 +29,14 @@ describe('PortfolioBanner — cover / avatar source selection', () => {
     expect(avatar.className).toContain('rounded-full')
   })
 
-  it('falls back to the photo for the cover when an individual has no banner', () => {
+  it('leaves the cover blank (no image) for an individual with no banner — the photo is NOT a stand-in', () => {
     const { container } = render(
       <PortfolioBanner listing={{ ...individual, bannerImageUrl: null }} />
     )
-    expect(container.querySelector('.yp-banner-img')).toHaveAttribute('src', 'https://cdn/face.jpg')
+    expect(container.querySelector('.yp-banner-img')).toBeNull()
+    expect(screen.queryByLabelText('Preview banner image')).not.toBeInTheDocument()
+    // the profile photo still shows as the floating avatar
+    expect(screen.getByAltText('Jane Doe')).toHaveAttribute('src', 'https://cdn/face.jpg')
   })
 
   it('uses the logo for a rounded-square avatar and never the photo (business)', () => {

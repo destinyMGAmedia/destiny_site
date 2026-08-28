@@ -1,9 +1,10 @@
 'use client'
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { Loader2, AlertCircle, Download, Sparkles, ChevronDown, ArrowLeft, Check } from 'lucide-react'
+import { Loader2, AlertCircle, Download, Sparkles, ChevronDown, Check } from 'lucide-react'
 import { useYellowPagesBase } from '@/components/yellowpages/shared/YellowPagesChrome'
 import OtpModal from '@/components/yellowpages/OtpModal'
+import BackLink from '@/components/yellowpages/BackLink'
 import ResumePreview from '@/components/yellowpages/resume/ResumePreview'
 import { buildResumeModel, RESUME_TEMPLATES } from '@/lib/yellowpages/resumeModel'
 
@@ -219,9 +220,7 @@ export default function ResumePreviewPage() {
   if (step === 'VERIFY') {
     return (
       <div className="max-w-md mx-auto px-4 py-10 sm:py-16">
-        <a href={`${base}/listing/${id}`} className="inline-flex items-center gap-1 text-sm mb-6" style={{ color: 'var(--yp-ink-soft)' }}>
-          <ArrowLeft size={14} /> Back to portfolio
-        </a>
+        <BackLink href={`${base}/listing/${id}`} className="mb-6" />
         <h1 className="text-2xl font-bold mb-1" style={{ color: 'var(--yp-ink)' }}>Preview &amp; download your résumé</h1>
         <p className="text-sm mb-6" style={{ color: 'var(--yp-ink-soft)' }}>
           Only you can export <strong>{meta.name}</strong>. Enter the email on file and we&rsquo;ll send a one-time code.
@@ -246,9 +245,7 @@ export default function ResumePreviewPage() {
   // PREVIEW
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
-      <a href={`${base}/listing/${id}`} className="inline-flex items-center gap-1 text-sm mb-4" style={{ color: 'var(--yp-ink-soft)' }}>
-        <ArrowLeft size={14} /> Back to portfolio
-      </a>
+      <BackLink href={`${base}/listing/${id}`} className="mb-4" />
 
       <div className="flex flex-wrap items-end justify-between gap-4 mb-4">
         <div>

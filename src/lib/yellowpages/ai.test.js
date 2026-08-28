@@ -200,4 +200,258 @@ describe('optimizeResume', () => {
     expect(out.experience[0].bullets).toEqual(['built things'])
     expect(out.experience[0].title).toBe('Dev')
   })
+
+  // --- provider-reply shapes that must resolve to null (the try/catch + guard branches) ---
+
+  it('returns null when the Gemini text is not valid JSON', async () => {
+    vi.stubEnv('AI_PROVIDER', 'gemini')
+    vi.stubEnv('GEMINI_API_KEY', 'k')
+    vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      text: async () => '',
+      json: async () => ({ candidates: [{ content: { parts: [{ text: 'not json at all' }] } }] }),
+    })
+    expect(await optimizeResume({ model: baseModel })).toBeNull()
+  })
+
+  it('returns null when the Gemini response carries no candidates (empty text -> JSON.parse throws)', async () => {
+    vi.stubEnv('AI_PROVIDER', 'gemini')
+    vi.stubEnv('GEMINI_API_KEY', 'k')
+    vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      text: async () => '',
+      json: async () => ({}),
+    })
+    expect(await optimizeResume({ model: baseModel })).toBeNull()
+  })
+
+  it('returns null when the model reply parses to a bare number', async () => {
+    vi.stubEnv('AI_PROVIDER', 'gemini')
+    vi.stubEnv('GEMINI_API_KEY', 'k')
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      { ok: true, text: async () => '', json: async () => ({ candidates: [{ content: { parts: [{ text: '42' }] } }] }) },
+    )
+    expect(await optimizeResume({ model: baseModel })).toBeNull()
+  })
+
+  it('logs and returns null when fetch itself rejects', async () => {
+    vi.stubEnv('AI_PROVIDER', 'gemini')
+    vi.stubEnv('GEMINI_API_KEY', 'k')
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.spyOn(global, 'fetch').mockRejectedValue(new Error('network down'))
+    expect(await optimizeResume({ model: baseModel })).toBeNull()
+    expect(errSpy).toHaveBeenCalledWith(
+      '[YELLOWPAGES:AI] optimizeResume failed:',
+      'network down',
+    )
+  })
+
+  // --- defensive shaping details ---
+
+  it('drops AI experience entries beyond the count supplied in the input', async () => {
+    vi.stubEnv('AI_PROVIDER', 'gemini')
+    vi.stubEnv('GEMINI_API_KEY', 'k')
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      geminiReply({
+        summary: 's',
+        skills: ['x'],
+        experience: [
+          { title: 'A', organization: 'A Co', bullets: ['a1'] },
+          { title: 'B', organization: 'B Co', bullets: ['b1'] },
+          { title: 'C', organization: 'C Co', bullets: ['c1'] }, // no third input role -> dropped
+        ],
+      }),
+    )
+    const out = await optimizeResume({ model: baseModel })
+    expect(out.experience).toHaveLength(2)
+    expect(out.experience.map((e) => e.title)).toEqual(['A', 'B'])
+  })
+
+  it('trims and de-blanks skills, discarding non-string members', async () => {
+    vi.stubEnv('AI_PROVIDER', 'gemini')
+    vi.stubEnv('GEMINI_API_KEY', 'k')
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      geminiReply({ summary: 's', skills: ['  React  ', '', '   ', 42, null, 'Node'], experience: [] }),
+    )
+    const out = await optimizeResume({ model: baseModel })
+    expect(out.skills).toEqual(['React', 'Node'])
+    // experience still aligns to the 2 input roles, falling back to their bullets
+    expect(out.experience.map((e) => e.title)).toEqual(['Dev', 'Intern'])
+  })
+
+  it('does not append a whitespace-only job description to the payload', async () => {
+    vi.stubEnv('AI_PROVIDER', 'gemini')
+    vi.stubEnv('GEMINI_API_KEY', 'k')
+    const fetchSpy = vi
+      .spyOn(global, 'fetch')
+      .mockResolvedValue(geminiReply({ summary: 's', skills: ['x'], experience: [] }))
+    await optimizeResume({ model: baseModel, jobDescription: '   \n\t  ' })
+    const sentText = JSON.parse(fetchSpy.mock.calls[0][1].body).contents[0].parts[0].text
+    expect(sentText).toContain('RÉSUMÉ CONTENT (JSON)')
+    expect(sentText).not.toContain('TARGET JOB DESCRIPTION')
+  })
+
+  it('defaults to American spelling in the system instruction when the model omits spelling', async () => {
+    vi.stubEnv('AI_PROVIDER', 'gemini')
+    vi.stubEnv('GEMINI_API_KEY', 'k')
+    const fetchSpy = vi
+      .spyOn(global, 'fetch')
+      .mockResolvedValue(geminiReply({ summary: 's', skills: ['x'], experience: [] }))
+    const { spelling, ...noSpelling } = baseModel
+    await optimizeResume({ model: noSpelling })
+    const sysText = JSON.parse(fetchSpy.mock.calls[0][1].body).systemInstruction.parts[0].text
+    expect(sysText).toContain('American English spelling')
+  })
+
+  it('threads the model spelling through to the system instruction', async () => {
+    vi.stubEnv('AI_PROVIDER', 'gemini')
+    vi.stubEnv('GEMINI_API_KEY', 'k')
+    const fetchSpy = vi
+      .spyOn(global, 'fetch')
+      .mockResolvedValue(geminiReply({ summary: 's', skills: ['x'], experience: [] }))
+    await optimizeResume({ model: baseModel }) // spelling: 'British'
+    const sysText = JSON.parse(fetchSpy.mock.calls[0][1].body).systemInstruction.parts[0].text
+    expect(sysText).toContain('British English spelling')
+  })
+
+  it('serialises the full résumé model (education + projects) into the Gemini payload', async () => {
+    vi.stubEnv('AI_PROVIDER', 'gemini')
+    vi.stubEnv('GEMINI_API_KEY', 'k')
+    const fetchSpy = vi
+      .spyOn(global, 'fetch')
+      .mockResolvedValue(geminiReply({ summary: 's', skills: ['x'], experience: [] }))
+    const model = {
+      ...baseModel,
+      education: [{ heading: 'BSc CS', org: 'State Uni', meta: '2016', description: 'first class' }],
+      projects: [{ heading: 'OSS lib', description: 'a widely used parser' }],
+    }
+    await optimizeResume({ model })
+    const sentText = JSON.parse(fetchSpy.mock.calls[0][1].body).contents[0].parts[0].text
+    const jsonBlock = JSON.parse(sentText.replace('RÉSUMÉ CONTENT (JSON):\n', ''))
+    expect(jsonBlock.education).toEqual([{ heading: 'BSc CS', org: 'State Uni', meta: '2016', description: 'first class' }])
+    expect(jsonBlock.projects).toEqual([{ heading: 'OSS lib', description: 'a widely used parser' }])
+    expect(jsonBlock.experience[0]).toMatchObject({ title: 'Dev', organization: 'Acme', bullets: ['built things'] })
+  })
+
+  it('sends the Gemini structured-output config (schema + JSON mime type)', async () => {
+    vi.stubEnv('AI_PROVIDER', 'gemini')
+    vi.stubEnv('GEMINI_API_KEY', 'k')
+    const fetchSpy = vi
+      .spyOn(global, 'fetch')
+      .mockResolvedValue(geminiReply({ summary: 's', skills: ['x'], experience: [] }))
+    await optimizeResume({ model: baseModel })
+    const [url, init] = fetchSpy.mock.calls[0]
+    expect(url).toContain('gemini-2.5-flash:generateContent')
+    expect(init.headers['x-goog-api-key']).toBe('k')
+    const cfg = JSON.parse(init.body).generationConfig
+    expect(cfg.responseMimeType).toBe('application/json')
+    expect(cfg.responseSchema.required).toEqual(['summary', 'skills', 'experience'])
+    expect(cfg.temperature).toBe(0.4)
+  })
+})
+
+describe('empty / minimal model handling', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+    vi.restoreAllMocks()
+  })
+
+  it('handles a model with no experience array at all', async () => {
+    vi.stubEnv('AI_PROVIDER', 'gemini')
+    vi.stubEnv('GEMINI_API_KEY', 'k')
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      geminiReply({ summary: 'Polished.', skills: ['Rust'], experience: [{ title: 'X', bullets: ['y'] }] }),
+    )
+    const out = await optimizeResume({ model: { headline: 'H', summary: 'S', skills: ['s'] } })
+    expect(out.experience).toEqual([]) // nothing in the input to align against
+    expect(out.summary).toBe('Polished.')
+    expect(out.skills).toEqual(['Rust'])
+    expect(out.languages).toBeUndefined() // strList([]) is empty -> falls back to model.languages (absent)
+    expect(out.certifications).toBe('')
+  })
+
+  it('coerces a non-array skills reply to the input skills', async () => {
+    vi.stubEnv('AI_PROVIDER', 'gemini')
+    vi.stubEnv('GEMINI_API_KEY', 'k')
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      geminiReply({ summary: 's', skills: 'React, Node', experience: [{ bullets: [] }, { bullets: [] }] }),
+    )
+    const out = await optimizeResume({ model: baseModel })
+    expect(out.skills).toEqual(['react']) // strList('React, Node') -> [] -> model.skills
+  })
+})
+
+describe('AI_PROVIDER casing + Groq reply shapes', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+    vi.restoreAllMocks()
+    vi.resetModules()
+  })
+
+  async function loadWith(provider, key = 'gk') {
+    vi.resetModules()
+    vi.stubEnv('AI_PROVIDER', provider)
+    vi.stubEnv('GROQ_API_KEY', key)
+    return import('./ai')
+  }
+
+  it('lower-cases AI_PROVIDER so "GROQ" still selects the Groq provider', async () => {
+    const mod = await loadWith('GROQ')
+    expect(mod.aiProviderLabel()).toBe('Groq')
+    expect(mod.aiConfigured()).toBe(true)
+  })
+
+  it('returns null for a Groq reply that is a JSON array', async () => {
+    const mod = await loadWith('groq')
+    vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      text: async () => '',
+      json: async () => ({ choices: [{ message: { content: '[1,2,3]' } }] }),
+    })
+    expect(await mod.optimizeResume({ model: baseModel })).toBeNull()
+  })
+
+  it('treats a Groq reply with no message content as an empty object (full fallback)', async () => {
+    const mod = await loadWith('groq')
+    vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      text: async () => '',
+      json: async () => ({ choices: [{ message: {} }] }),
+    })
+    const out = await mod.optimizeResume({ model: baseModel })
+    expect(out.summary).toBe('did stuff')
+    expect(out.skills).toEqual(['react'])
+    expect(out.experience).toHaveLength(2)
+    expect(out.experience[0].bullets).toEqual(['built things'])
+    expect(out.provider).toBe('Groq')
+  })
+
+  it('sends the Groq JSON-object response_format and default model', async () => {
+    const mod = await loadWith('groq')
+    const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      text: async () => '',
+      json: async () => ({ choices: [{ message: { content: '{"summary":"s","skills":["x"],"experience":[]}' } }] }),
+    })
+    await mod.optimizeResume({ model: baseModel })
+    const body = JSON.parse(fetchSpy.mock.calls[0][1].body)
+    expect(body.model).toBe('llama-3.3-70b-versatile')
+    expect(body.response_format).toEqual({ type: 'json_object' })
+    expect(body.temperature).toBe(0.4)
+    expect(body.messages[0].role).toBe('system')
+    expect(body.messages[0].content).toContain('Return a JSON object with keys')
+  })
+
+  it('surfaces the Groq error status text (truncated) but still resolves to null', async () => {
+    const mod = await loadWith('groq')
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: false,
+      status: 503,
+      text: async () => 'x'.repeat(500),
+    })
+    expect(await mod.optimizeResume({ model: baseModel })).toBeNull()
+    const [, msg] = errSpy.mock.calls[0]
+    expect(msg).toMatch(/^Groq 503: x{300}$/)
+  })
 })

@@ -3,6 +3,7 @@ import { Suspense, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Check, Sparkles } from 'lucide-react'
 import ListingForm from '@/components/yellowpages/ListingForm'
+import BackLink from '@/components/yellowpages/BackLink'
 import { useYellowPagesBase } from '@/components/yellowpages/shared/YellowPagesChrome'
 import { getProfileCompleteness } from '@/lib/yellowpages/profileCompleteness'
 
@@ -41,6 +42,7 @@ function RegisterForm() {
   if (created && completing) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-6 sm:py-10">
+        <BackLink href={`${base}/listing/${created.id}`} label="Back to my listing" className="mb-4" />
         <h1 className="text-2xl font-bold mb-1" style={{ color: 'var(--yp-ink)' }}>Complete Your Profile</h1>
         <p className="text-sm mb-6" style={{ color: 'var(--yp-ink-soft)' }}>{created.name}</p>
         <ListingForm

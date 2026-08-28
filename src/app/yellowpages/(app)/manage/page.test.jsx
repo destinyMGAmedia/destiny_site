@@ -66,7 +66,6 @@ describe('ManagePage', () => {
     fireEvent.click(screen.getByText('Send code'))
 
     fireEvent.change(await screen.findByLabelText('Verification code'), { target: { value: '654321' } })
-    fireEvent.click(screen.getByText('Verify'))
 
     const form = await screen.findByTestId('listing-form')
     expect(form).toHaveAttribute('data-mode', 'edit')
@@ -96,7 +95,6 @@ describe('ManagePage', () => {
     fireEvent.change(screen.getByLabelText('Email on the listing'), { target: { value: 'jane@acme.com' } })
     fireEvent.click(screen.getByText('Send code'))
     fireEvent.change(await screen.findByLabelText('Verification code'), { target: { value: '654321' } })
-    fireEvent.click(screen.getByText('Verify'))
 
     fireEvent.click(await screen.findByText('fake-save'))
 
@@ -111,7 +109,6 @@ describe('ManagePage', () => {
     fireEvent.change(screen.getByLabelText('Email on the listing'), { target: { value: 'jane@acme.com' } })
     fireEvent.click(screen.getByText('Send code'))
     fireEvent.change(await screen.findByLabelText('Verification code'), { target: { value: '654321' } })
-    fireEvent.click(screen.getByText('Verify'))
 
     expect(window.localStorage.getItem('yp:edited:l1')).toBeNull()
     fireEvent.click(await screen.findByText('fake-save'))
@@ -125,7 +122,6 @@ describe('ManagePage', () => {
     fireEvent.change(screen.getByLabelText('Email on the listing'), { target: { value: 'jane@acme.com' } })
     fireEvent.click(screen.getByText('Send code'))
     fireEvent.change(await screen.findByLabelText('Verification code'), { target: { value: '654321' } })
-    fireEvent.click(screen.getByText('Verify'))
 
     const form = await screen.findByTestId('listing-form')
     expect(form).toHaveAttribute('data-edit-token', 'tok-abc-999')
@@ -178,7 +174,6 @@ describe('ManagePage', () => {
     fireEvent.change(screen.getByLabelText('Email on the listing'), { target: { value: 'jane@acme.com' } })
     fireEvent.click(screen.getByText('Send code'))
     fireEvent.change(await screen.findByLabelText('Verification code'), { target: { value: '654321' } })
-    fireEvent.click(screen.getByText('Verify'))
 
     expect(await screen.findByText('This edit link has expired.')).toBeInTheDocument()
     expect(screen.queryByTestId('listing-form')).not.toBeInTheDocument()
@@ -197,7 +192,6 @@ describe('ManagePage', () => {
     fireEvent.change(screen.getByLabelText('Email on the listing'), { target: { value: 'jane@acme.com' } })
     fireEvent.click(screen.getByText('Send code'))
     fireEvent.change(await screen.findByLabelText('Verification code'), { target: { value: '000000' } })
-    fireEvent.click(screen.getByText('Verify'))
 
     expect(await screen.findByText('That code did not work.')).toBeInTheDocument()
     expect(screen.getByRole('dialog')).toBeInTheDocument()

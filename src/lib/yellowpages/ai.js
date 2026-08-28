@@ -152,7 +152,7 @@ export async function optimizeResume({ model, jobDescription } = {}) {
     return null
   }
 
-  if (!raw || typeof raw !== 'object') return null
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
 
   // Defensive shaping — keep experience aligned to the input by index.
   const inputExp = model.experience || []

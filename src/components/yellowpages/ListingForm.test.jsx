@@ -25,7 +25,7 @@ const fillEssentials = (isBusiness) => {
   fireEvent.change(screen.getByLabelText(isBusiness ? BUSINESS_NAME : INDIVIDUAL_NAME), { target: { value: 'Jane Doe' } })
   fireEvent.change(screen.getByLabelText('Phone *'), { target: { value: '08012345678' } })
   fireEvent.change(screen.getByLabelText('Category *'), { target: { value: 'HOME_SERVICES_TRADES' } })
-  fireEvent.change(screen.getByLabelText(isBusiness ? /^About the Business/ : /^Description/), { target: { value: 'I fix pipes and plumbing issues.' } })
+  fireEvent.change(screen.getByLabelText(isBusiness ? /^About the Business/ : /^Professional Summary/), { target: { value: 'I fix pipes and plumbing issues.' } })
 }
 
 describe('ListingForm — shared + individual fields at creation', () => {
@@ -40,8 +40,12 @@ describe('ListingForm — shared + individual fields at creation', () => {
     expect(screen.getByLabelText('WhatsApp')).toBeInTheDocument()
     expect(screen.getByLabelText('Email')).toBeInTheDocument()
     expect(screen.getByLabelText('Category *')).toBeInTheDocument()
-    expect(screen.getByLabelText('Profession')).toBeInTheDocument()
-    expect(screen.getByLabelText(/^Description/)).toBeInTheDocument()
+    // no separate "Profession" field for individuals — the Professional Headline covers it
+    expect(screen.queryByLabelText('Profession')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Sub-Sector')).not.toBeInTheDocument()
+    // the shared description field is the Professional Summary for individuals (no duplicate field)
+    expect(screen.getByLabelText(/^Professional Summary/)).toBeInTheDocument()
+    expect(screen.queryByLabelText(/^Description/)).not.toBeInTheDocument()
     expect(screen.getByLabelText('City')).toBeInTheDocument()
     expect(screen.getByLabelText('State')).toBeInTheDocument()
     expect(screen.getByLabelText('Country')).toBeInTheDocument()
@@ -70,8 +74,11 @@ describe('ListingForm — shared + individual fields at creation', () => {
     expect(screen.getByLabelText('Products / Services')).toBeInTheDocument()
     expect(screen.getByLabelText('Business Logo')).toBeInTheDocument()
     expect(screen.getByLabelText('Years in Operation')).toBeInTheDocument()
+    expect(screen.getByLabelText('Sub-Sector')).toBeInTheDocument()
+    expect(screen.getByLabelText(/^About the Business/)).toBeInTheDocument()
     expect(screen.getByText('Team')).toBeInTheDocument()
     expect(screen.queryByLabelText('Skills')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText(/^Professional Summary/)).not.toBeInTheDocument()
   })
 
   it('marks certifications as optional', () => {
@@ -161,10 +168,10 @@ describe('ListingForm — shared + individual fields at creation', () => {
     expect(await screen.findByText('Something went wrong. Please try again.', {}, { timeout: 3000 })).toBeInTheDocument()
   }, 10000)
 
-  it('shows a running character count for the description field', () => {
+  it('shows a running character count for the professional summary field', () => {
     render(<ListingForm />)
     expect(screen.getByText('(0/1200)')).toBeInTheDocument()
-    fireEvent.change(screen.getByLabelText(/^Description/), { target: { value: 'hello' } })
+    fireEvent.change(screen.getByLabelText(/^Professional Summary/), { target: { value: 'hello' } })
     expect(screen.getByText('(5/1200)')).toBeInTheDocument()
   })
 

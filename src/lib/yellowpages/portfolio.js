@@ -17,7 +17,7 @@ const SECTIONS = [
     business: true,
     filled: (l) => Boolean(l.resumeSummary || l.description),
     addLabel: 'Add a professional summary',
-    anchor: 'yp-resumeSummary',
+    anchor: 'yp-description',
   },
   {
     key: 'skills',

@@ -36,7 +36,6 @@ const verify = async () => {
   fireEvent.change(screen.getByLabelText('Email on the listing'), { target: { value: 'grace@x.com' } })
   fireEvent.click(screen.getByText('Send code'))
   fireEvent.change(await screen.findByLabelText('Verification code'), { target: { value: '123456' } })
-  fireEvent.click(screen.getByText('Verify'))
   await screen.findByText('Résumé preview')
 }
 
@@ -117,7 +116,6 @@ describe('ResumePreviewPage', () => {
     fireEvent.change(screen.getByLabelText('Email on the listing'), { target: { value: 'grace@x.com' } })
     fireEvent.click(screen.getByText('Send code'))
     fireEvent.change(await screen.findByLabelText('Verification code'), { target: { value: '123456' } })
-    fireEvent.click(screen.getByText('Verify'))
     expect(await screen.findByText('Could not load your résumé.')).toBeInTheDocument()
   })
 

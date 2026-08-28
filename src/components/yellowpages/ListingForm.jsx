@@ -235,7 +235,7 @@ export default function ListingForm({ initialValues, onSuccess, mode = 'create',
         </div>
       </div>
 
-      <div className="grid sm:grid-cols-2 gap-4">
+      <div className={isBusiness ? 'grid sm:grid-cols-2 gap-4' : ''}>
         <div>
           <label className="yp-label" htmlFor="yp-category">Category *</label>
           <select id="yp-category" className="yp-select" value={form.category} onChange={(e) => set('category')(e.target.value)}>
@@ -246,18 +246,28 @@ export default function ListingForm({ initialValues, onSuccess, mode = 'create',
           </select>
           <FieldError message={formErrors.category} />
         </div>
-        <div>
-          <label className="yp-label" htmlFor="yp-subCategory">{isBusiness ? 'Sub-Sector' : 'Profession'}</label>
-          <input id="yp-subCategory" className="yp-input" placeholder="e.g. Travel Agency, Plumbing, Architecture" value={form.subCategory} onChange={(e) => set('subCategory')(e.target.value)} />
-        </div>
+        {isBusiness && (
+          <div>
+            <label className="yp-label" htmlFor="yp-subCategory">Sub-Sector</label>
+            <input id="yp-subCategory" className="yp-input" placeholder="e.g. Travel Agency, Logistics, Architecture" value={form.subCategory} onChange={(e) => set('subCategory')(e.target.value)} />
+          </div>
+        )}
       </div>
 
       <div>
         <label className="yp-label" htmlFor="yp-description">
-          {isBusiness ? 'About the Business' : 'Description'} *{' '}
+          {isBusiness ? 'About the Business' : 'Professional Summary'} *{' '}
           <span className="font-normal text-xs" style={{ color: 'var(--yp-ink-soft)' }}>({form.description.length}/{MAX_DESCRIPTION_CHARS})</span>
         </label>
-        <textarea id="yp-description" className="yp-textarea" maxLength={MAX_DESCRIPTION_CHARS} value={form.description} onChange={(e) => set('description')(e.target.value)} />
+        <textarea
+          id="yp-description"
+          className="yp-textarea"
+          rows={isBusiness ? 3 : 4}
+          maxLength={MAX_DESCRIPTION_CHARS}
+          placeholder={isBusiness ? '' : 'A short paragraph about your experience, focus, and what you’re looking for. This is used on your portfolio and as the summary on your exported résumé.'}
+          value={form.description}
+          onChange={(e) => set('description')(e.target.value)}
+        />
         <FieldError message={formErrors.description} />
       </div>
 

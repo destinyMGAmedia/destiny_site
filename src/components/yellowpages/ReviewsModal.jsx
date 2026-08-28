@@ -2,6 +2,7 @@
 import { X } from 'lucide-react'
 import RatingStars from './RatingStars'
 import RatingForm from './RatingForm'
+import BackLink from './BackLink'
 
 /**
  * Reviews are off the main portfolio page now — this modal holds the full list plus the
@@ -14,20 +15,23 @@ export default function ReviewsModal({ listing, listingId, onClose, onSubmitted 
   return (
     <div className="yp-modal-backdrop" onClick={onClose} role="dialog" aria-modal="true" aria-label="Reviews">
       <div className="yp-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between gap-4 p-5 border-b" style={{ borderColor: 'var(--yp-border)' }}>
-          <div className="flex items-center gap-2">
-            <h2 className="font-bold text-lg" style={{ color: 'var(--yp-ink)' }}>Reviews</h2>
-            {listing.ratingCount > 0 && (
-              <span className="flex items-center gap-1.5 text-sm" style={{ color: 'var(--yp-ink-soft)' }}>
-                <RatingStars value={listing.avgRating} size={14} />
-                <span className="font-semibold">{listing.avgRating.toFixed(1)}</span>
-                ({listing.ratingCount})
-              </span>
-            )}
+        <div className="p-5 border-b" style={{ borderColor: 'var(--yp-border)' }}>
+          <BackLink onClick={onClose} className="mb-2" />
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <h2 className="font-bold text-lg" style={{ color: 'var(--yp-ink)' }}>Reviews</h2>
+              {listing.ratingCount > 0 && (
+                <span className="flex items-center gap-1.5 text-sm" style={{ color: 'var(--yp-ink-soft)' }}>
+                  <RatingStars value={listing.avgRating} size={14} />
+                  <span className="font-semibold">{listing.avgRating.toFixed(1)}</span>
+                  ({listing.ratingCount})
+                </span>
+              )}
+            </div>
+            <button type="button" onClick={onClose} aria-label="Close reviews">
+              <X size={18} />
+            </button>
           </div>
-          <button type="button" onClick={onClose} aria-label="Close reviews">
-            <X size={18} />
-          </button>
         </div>
 
         <div className="p-5">

@@ -4,7 +4,7 @@ import PortfolioImagesField from './PortfolioImagesField'
 import TagInput from './TagInput'
 import RepeatableList from './RepeatableList'
 import { TextField, TextArea } from './Field'
-import { MAX_SKILLS, MAX_LANGUAGES, MAX_EXPERIENCE, MAX_EDUCATION, MAX_PROJECTS, MAX_SUMMARY_CHARS } from '@/lib/yellowpages/constants'
+import { MAX_SKILLS, MAX_LANGUAGES, MAX_EXPERIENCE, MAX_EDUCATION, MAX_PROJECTS } from '@/lib/yellowpages/constants'
 
 const emptyExperience = () => ({ title: '', organization: '', location: '', startDate: '', endDate: '', current: false, description: '' })
 const emptyEducation = () => ({ school: '', degree: '', field: '', startYear: '', endYear: '', description: '' })
@@ -25,22 +25,11 @@ export default function IndividualFields({ form, setField, setForm, errors = {} 
       <TextField
         id="yp-headline"
         label="Professional Headline"
-        placeholder="e.g. Full-stack Developer · React & Node"
+        placeholder="e.g. Full-stack Developer building fintech products"
+        hint="One line — your role and focus. Shows under your name on your portfolio and résumé."
         value={form.headline}
         onChange={setField('headline')}
         error={errors.headline}
-      />
-
-      <TextArea
-        id="yp-resumeSummary"
-        label="Professional Summary"
-        rows={4}
-        maxLength={MAX_SUMMARY_CHARS}
-        placeholder="A short paragraph about your experience, focus, and what you're looking for."
-        value={form.resumeSummary}
-        onChange={setField('resumeSummary')}
-        error={errors.resumeSummary}
-        hint="Used on your portfolio and as the summary on your exported résumé."
       />
 
       <TagInput

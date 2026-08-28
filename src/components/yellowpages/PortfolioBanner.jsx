@@ -8,14 +8,14 @@ function initials(name = '') {
 }
 
 /**
- * Portfolio cover for the detail page. Uses `bannerImageUrl`, then (for individuals) the
- * professional `photoUrl`, then a solid yellow block. The avatar/logo floats over the bottom
- * edge; callers render the name/headline/actions below. Pass `onPreview(url)` to make the
- * cover and avatar images open in a full-screen lightbox.
+ * Portfolio cover for the detail page. Uses `bannerImageUrl` if the owner added one, otherwise
+ * a solid yellow block — the profile photo / logo is NOT used as a stand-in. The avatar/logo
+ * floats over the bottom edge; callers render the name/headline/actions below. Pass
+ * `onPreview(url)` to make the cover and avatar images open in a full-screen lightbox.
  */
 export default function PortfolioBanner({ listing, onPreview }) {
   const isIndividual = listing.listingType === 'INDIVIDUAL'
-  const cover = listing.bannerImageUrl || (isIndividual ? listing.photoUrl : null)
+  const cover = listing.bannerImageUrl || null
   const avatar = isIndividual ? listing.photoUrl : listing.logoUrl
 
   const preview = (url) => (onPreview && url ? () => onPreview(url) : undefined)
