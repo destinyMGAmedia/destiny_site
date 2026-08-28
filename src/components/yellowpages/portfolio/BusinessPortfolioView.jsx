@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { MapPin, MessageSquare, Pencil } from 'lucide-react'
 import RatingStars from '../RatingStars'
 import PortfolioBanner from '../PortfolioBanner'
+import { useImageLightbox } from '../ImageLightbox'
 import ReviewsModal from '../ReviewsModal'
 import ContactCard from './ContactCard'
 import PortfolioSection from './PortfolioSection'
@@ -24,6 +25,7 @@ export default function BusinessPortfolioView({ listing, listingId, onReload }) 
   const [showReviews, setShowReviews] = useState(false)
   const [isOwner, setIsOwner] = useState(false)
   const [showPrompt, setShowPrompt] = useState(false)
+  const lightbox = useImageLightbox()
 
   const sectionState = useMemo(() => {
     const map = {}
@@ -72,7 +74,7 @@ export default function BusinessPortfolioView({ listing, listingId, onReload }) 
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
-      <PortfolioBanner listing={listing} />
+      <PortfolioBanner listing={listing} onPreview={(url) => lightbox.open(url)} />
 
       <div className="mb-6">
         <h1 className="text-2xl sm:text-3xl font-bold break-words" style={{ fontFamily: 'var(--font-serif)', color: 'var(--yp-ink)' }}>
@@ -145,8 +147,15 @@ export default function BusinessPortfolioView({ listing, listingId, onReload }) 
               const inner = (
                 <>
                   {m.photoUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={m.photoUrl} alt="" className="w-16 h-16 rounded-full object-cover mx-auto" />
+                    <button
+                      type="button"
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); lightbox.open(m.photoUrl) }}
+                      className="yp-zoomable block mx-auto"
+                      aria-label={`Preview photo of ${m.name}`}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={m.photoUrl} alt="" className="w-16 h-16 rounded-full object-cover" />
+                    </button>
                   ) : (
                     <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center font-bold" style={{ background: 'var(--yp-yellow-100)', color: 'var(--yp-yellow-700)' }}>
                       {initials(m.name)}
@@ -170,9 +179,17 @@ export default function BusinessPortfolioView({ listing, listingId, onReload }) 
 
         <PortfolioSection id="yp-portfolio-section" title="Gallery" filled={sec('gallery')} addLabel={addLabelFor('gallery')} isOwner={isOwner} editHref={editHref}>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {(listing.portfolioImages || []).map((url) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img key={url} src={url} alt="" className="w-full aspect-square object-cover rounded-lg" />
+            {(listing.portfolioImages || []).map((url, i) => (
+              <button
+                key={url}
+                type="button"
+                onClick={() => lightbox.open(listing.portfolioImages, i)}
+                className="yp-zoomable block"
+                aria-label={`Preview gallery image ${i + 1}`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={url} alt="" className="w-full aspect-square object-cover rounded-lg" />
+              </button>
             ))}
           </div>
         </PortfolioSection>
@@ -197,6 +214,7 @@ export default function BusinessPortfolioView({ listing, listingId, onReload }) 
         />
       )}
       {showPrompt && <UpdatePromptModal missing={missing} editHref={editHref} onClose={dismissPrompt} />}
+      {lightbox.node}
     </div>
   )
 }

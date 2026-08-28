@@ -620,3 +620,59 @@ h1, h2, h3, h4 {
   margin-top: 3rem;
   margin-bottom: 3rem;
 }
+
+/* Full-screen image preview -------------------------------------------------- */
+.yp-lightbox-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  background: rgba(12, 10, 6, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+}
+.yp-lightbox-img {
+  max-width: 92vw;
+  max-height: 86vh;
+  object-fit: contain;
+  border-radius: 0.5rem;
+  cursor: default;
+}
+.yp-lightbox-close,
+.yp-lightbox-nav {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  width: 44px;
+  height: 44px;
+  transition: background 0.15s;
+}
+.yp-lightbox-close:hover,
+.yp-lightbox-nav:hover {
+  background: rgba(255, 255, 255, 0.24);
+}
+.yp-lightbox-close {
+  top: 16px;
+  right: 16px;
+}
+.yp-lightbox-nav {
+  top: 50%;
+  transform: translateY(-50%);
+}
+.yp-lightbox-count {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.yp-zoomable {
+  cursor: zoom-in;
+}

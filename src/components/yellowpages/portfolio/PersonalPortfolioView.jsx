@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { MapPin, MessageSquare, FileDown, Pencil, BriefcaseBusiness } from 'lucide-react'
 import RatingStars from '../RatingStars'
 import PortfolioBanner from '../PortfolioBanner'
+import { useImageLightbox } from '../ImageLightbox'
 import ReviewsModal from '../ReviewsModal'
 import ContactCard from './ContactCard'
 import PortfolioSection from './PortfolioSection'
@@ -23,6 +24,7 @@ export default function PersonalPortfolioView({ listing, listingId, onReload }) 
   const [showReviews, setShowReviews] = useState(false)
   const [isOwner, setIsOwner] = useState(false)
   const [showPrompt, setShowPrompt] = useState(false)
+  const lightbox = useImageLightbox()
 
   const sectionState = useMemo(() => {
     const map = {}
@@ -72,7 +74,7 @@ export default function PersonalPortfolioView({ listing, listingId, onReload }) 
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
-      <PortfolioBanner listing={listing} />
+      <PortfolioBanner listing={listing} onPreview={(url) => lightbox.open(url)} />
 
       <div className="mb-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -184,9 +186,17 @@ export default function PersonalPortfolioView({ listing, listingId, onReload }) 
 
         <PortfolioSection id="yp-portfolio-section" title="Work Samples" filled={sec('gallery')} addLabel={addLabelFor('gallery')} isOwner={isOwner} editHref={editHref}>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {(listing.portfolioImages || []).map((url) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img key={url} src={url} alt="" className="w-full aspect-square object-cover rounded-lg" />
+            {(listing.portfolioImages || []).map((url, i) => (
+              <button
+                key={url}
+                type="button"
+                onClick={() => lightbox.open(listing.portfolioImages, i)}
+                className="yp-zoomable block"
+                aria-label={`Preview work sample ${i + 1}`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={url} alt="" className="w-full aspect-square object-cover rounded-lg" />
+              </button>
             ))}
           </div>
         </PortfolioSection>
@@ -219,6 +229,7 @@ export default function PersonalPortfolioView({ listing, listingId, onReload }) 
         />
       )}
       {showPrompt && <UpdatePromptModal missing={missing} editHref={editHref} onClose={dismissPrompt} />}
+      {lightbox.node}
     </div>
   )
 }
