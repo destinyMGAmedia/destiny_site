@@ -37,20 +37,27 @@ function renderBrowser(props = {}, initialQuery = '') {
 }
 
 // The desktop sidebar and mobile chip row both render in jsdom (CSS is not processed in
-// tests, so `hidden`/`lg:*` utility classes have no effect) — scope to the first tablist
-// (the sidebar) when asserting on a specific chip.
-const sidebarTablist = () => within(screen.getAllByRole('tablist')[0])
+// tests, so `hidden`/`lg:*` utility classes have no effect) — select the category tablists by
+// their accessible names so the People/Businesses toggle tablist doesn't get in the way.
+const sidebarTablist = () => within(screen.getByRole('tablist', { name: 'Filter by category' }))
+const mobileChipRow = () => screen.getByRole('tablist', { name: 'Filter by category (mobile)' })
+const categoryTablists = () => screen.queryAllByRole('tablist', { name: /Filter by category/ })
 
 describe('ListingsBrowser', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    try {
+      window.localStorage.clear()
+    } catch {
+      /* ignore */
+    }
   })
 
   it('shows a loading state, then renders results from the API', async () => {
     mockFetch(oneListingResult)
     renderBrowser()
 
-    expect(screen.getByText('Loading listings…')).toBeInTheDocument()
+    expect(screen.getByText('Loading people…')).toBeInTheDocument()
     await waitFor(() => expect(screen.getByText('Acme Travels')).toBeInTheDocument(), WAIT)
   }, 10000)
 
@@ -67,15 +74,15 @@ describe('ListingsBrowser', () => {
     mockFetch(emptyResult)
     renderBrowser()
 
-    await waitFor(() => expect(screen.getByText(/No listings match your search yet/)).toBeInTheDocument(), WAIT)
-    expect(screen.getByText('list your skill or business')).toHaveAttribute('href', 'register')
+    await waitFor(() => expect(screen.getByText(/No people match your search yet/)).toBeInTheDocument(), WAIT)
+    expect(screen.getByText('list your skill')).toHaveAttribute('href', 'register')
   }, 10000)
 
   it('hides the category sidebar/chips and forces lockedCategory into the fetch when provided', async () => {
     mockFetch(emptyResult)
     renderBrowser({ lockedCategory: 'TECHNOLOGY_IT' })
 
-    expect(screen.queryByRole('tablist')).not.toBeInTheDocument()
+    expect(categoryTablists()).toHaveLength(0)
 
     await waitFor(() => {
       const call = global.fetch.mock.calls.find(([url]) => String(url).includes('/api/yellowpages/listings'))
@@ -86,14 +93,14 @@ describe('ListingsBrowser', () => {
   it('shows the category chip sidebar when no lockedCategory is given, with "All" selected by default', async () => {
     mockFetch(emptyResult)
     renderBrowser()
-    await waitFor(() => expect(screen.getAllByRole('tablist').length).toBeGreaterThan(0), WAIT)
+    await waitFor(() => expect(categoryTablists().length).toBeGreaterThan(0), WAIT)
     expect(sidebarTablist().getByRole('tab', { name: 'All' })).toHaveAttribute('aria-selected', 'true')
   }, 10000)
 
   it('selecting a category chip re-fetches with that category and marks it selected', async () => {
     mockFetch(emptyResult)
     renderBrowser()
-    await waitFor(() => expect(screen.getAllByRole('tablist').length).toBeGreaterThan(0), WAIT)
+    await waitFor(() => expect(categoryTablists().length).toBeGreaterThan(0), WAIT)
 
     fireEvent.click(sidebarTablist().getByRole('tab', { name: 'Technology & IT' }))
 
@@ -157,7 +164,7 @@ describe('ListingsBrowser', () => {
     it('only applies the two-column grid at the lg breakpoint (never unconditionally)', async () => {
       mockFetch(emptyResult)
       const { container } = renderBrowser()
-      await waitFor(() => expect(screen.getByText(/No listings match your search yet/)).toBeInTheDocument(), WAIT)
+      await waitFor(() => expect(screen.getByText(/No people match your search yet/)).toBeInTheDocument(), WAIT)
 
       const outer = outerLayout(container)
       expect(outer).toHaveClass('lg:grid')
@@ -171,7 +178,7 @@ describe('ListingsBrowser', () => {
     it('drops the grid layout classes entirely when a category is locked', async () => {
       mockFetch(emptyResult)
       const { container } = renderBrowser({ lockedCategory: 'TECHNOLOGY_IT' })
-      await waitFor(() => expect(screen.getByText(/No listings match your search yet/)).toBeInTheDocument(), WAIT)
+      await waitFor(() => expect(screen.getByText(/No people match your search yet/)).toBeInTheDocument(), WAIT)
 
       const outer = outerLayout(container)
       expect(outer).not.toHaveClass('lg:grid')
@@ -182,32 +189,50 @@ describe('ListingsBrowser', () => {
     it('keeps the feed column shrinkable (min-w-0) so long content cannot force overflow', async () => {
       mockFetch(emptyResult)
       renderBrowser()
-      await waitFor(() => expect(screen.getAllByRole('tablist').length).toBeGreaterThan(0), WAIT)
+      await waitFor(() => expect(categoryTablists().length).toBeGreaterThan(0), WAIT)
 
-      // The mobile chip row is the 2nd tablist (sidebar is 1st); its parent is the feed column.
-      const mobileChipRow = screen.getAllByRole('tablist')[1]
-      expect(mobileChipRow.parentElement).toHaveClass('min-w-0')
-      expect(mobileChipRow.parentElement).toHaveClass('max-w-xl')
+      // The mobile chip row lives inside the feed column.
+      expect(mobileChipRow().parentElement).toHaveClass('min-w-0')
+      expect(mobileChipRow().parentElement).toHaveClass('max-w-xl')
     }, 10000)
 
     it('keeps the mobile category chip row itself shrinkable and width-capped', async () => {
       mockFetch(emptyResult)
       renderBrowser()
-      await waitFor(() => expect(screen.getAllByRole('tablist').length).toBeGreaterThan(0), WAIT)
+      await waitFor(() => expect(categoryTablists().length).toBeGreaterThan(0), WAIT)
 
-      const mobileChipRow = screen.getAllByRole('tablist')[1]
-      expect(mobileChipRow).toHaveClass('min-w-0')
-      expect(mobileChipRow).toHaveClass('max-w-full')
-      expect(mobileChipRow).toHaveClass('overflow-x-auto')
+      const row = mobileChipRow()
+      expect(row).toHaveClass('min-w-0')
+      expect(row).toHaveClass('max-w-full')
+      expect(row).toHaveClass('overflow-x-auto')
       // Still hidden from the lg layout, which uses the sidebar instead.
-      expect(mobileChipRow).toHaveClass('lg:hidden')
+      expect(row).toHaveClass('lg:hidden')
     }, 10000)
 
-    it('does not render the mobile chip row (or sidebar) at all when a category is locked', async () => {
+    it('does not render the category chip row or sidebar when a category is locked', async () => {
       mockFetch(emptyResult)
       renderBrowser({ lockedCategory: 'TECHNOLOGY_IT' })
-      await waitFor(() => expect(screen.getByText(/No listings match your search yet/)).toBeInTheDocument(), WAIT)
-      expect(screen.queryAllByRole('tablist')).toHaveLength(0)
+      await waitFor(() => expect(screen.getByText(/No people match your search yet/)).toBeInTheDocument(), WAIT)
+      expect(categoryTablists()).toHaveLength(0)
     }, 10000)
   })
+
+  it('always sends exactly one listingType, defaulting to INDIVIDUAL', async () => {
+    mockFetch(emptyResult)
+    renderBrowser()
+    await waitFor(() => {
+      const call = global.fetch.mock.calls.find(([url]) => String(url).includes('/api/yellowpages/listings'))
+      expect(call[0]).toContain('listingType=INDIVIDUAL')
+    }, WAIT)
+  }, 10000)
+
+  it('reads the business view from ?type=BUSINESS', async () => {
+    mockFetch(emptyResult)
+    renderBrowser({}, 'type=BUSINESS')
+    await waitFor(() => {
+      const call = global.fetch.mock.calls.find(([url]) => String(url).includes('/api/yellowpages/listings'))
+      expect(call[0]).toContain('listingType=BUSINESS')
+    }, WAIT)
+    expect(screen.getByRole('tab', { name: /Businesses/ })).toHaveAttribute('aria-selected', 'true')
+  }, 10000)
 })

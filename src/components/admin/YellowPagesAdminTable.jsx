@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { Search, Loader2, Eye, EyeOff, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Search, Loader2, Eye, EyeOff, Trash2, ChevronLeft, ChevronRight, Unlock } from 'lucide-react'
 import { CATEGORIES, categoryLabel } from '@/lib/yellowpages/constants'
 
 const STATUS_OPTIONS = [
@@ -67,6 +67,25 @@ export default function YellowPagesAdminTable() {
     }
   }
 
+  const resetEditLock = async (listing) => {
+    setBusyId(listing.id)
+    try {
+      const res = await fetch(`/api/yellowpages/listings/${listing.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resetEditLock: true }),
+      })
+      if (res.ok) {
+        setResult((r) => ({
+          ...r,
+          listings: r.listings.map((l) => (l.id === listing.id ? { ...l, editStrict: false, editContacts: [] } : l)),
+        }))
+      }
+    } finally {
+      setBusyId(null)
+    }
+  }
+
   const deleteListing = async (id) => {
     setBusyId(id)
     try {
@@ -117,6 +136,7 @@ export default function YellowPagesAdminTable() {
             <thead>
               <tr className="text-left border-b text-gray-500">
                 <th className="py-2 pr-4">Listing</th>
+                <th className="py-2 pr-4">Type</th>
                 <th className="py-2 pr-4">Category</th>
                 <th className="py-2 pr-4">Location</th>
                 <th className="py-2 pr-4">Rating</th>
@@ -131,6 +151,7 @@ export default function YellowPagesAdminTable() {
                     <p className="font-semibold">{l.name}</p>
                     <p className="text-gray-500">{l.phone}{l.email ? ` · ${l.email}` : ''}</p>
                   </td>
+                  <td className="py-3 pr-4">{l.listingType === 'INDIVIDUAL' ? 'Person' : 'Business'}</td>
                   <td className="py-3 pr-4">{categoryLabel(l.category)}</td>
                   <td className="py-3 pr-4">{[l.city, l.country].filter(Boolean).join(', ') || '—'}</td>
                   <td className="py-3 pr-4">{l.ratingCount > 0 ? `${l.avgRating.toFixed(1)} (${l.ratingCount})` : '—'}</td>
@@ -150,6 +171,18 @@ export default function YellowPagesAdminTable() {
                         {l.isActive ? <EyeOff size={13} /> : <Eye size={13} />}
                         {l.isActive ? 'Deactivate' : 'Activate'}
                       </button>
+
+                      {(l.editStrict || (l.editContacts && l.editContacts.length > 0)) && (
+                        <button
+                          onClick={() => resetEditLock(l)}
+                          disabled={busyId === l.id}
+                          title="Clear editStrict + editContacts so a locked-out owner can regain access"
+                          className="flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-lg border"
+                          style={{ borderColor: 'var(--purple-800)', color: 'var(--purple-800)' }}
+                        >
+                          <Unlock size={13} /> Reset edit lock
+                        </button>
+                      )}
 
                       {confirmDeleteId === l.id ? (
                         <span className="flex items-center gap-1 text-xs">
@@ -171,7 +204,7 @@ export default function YellowPagesAdminTable() {
                 </tr>
               ))}
               {result.listings.length === 0 && (
-                <tr><td colSpan={6} className="py-8 text-center text-gray-400">No listings match these filters.</td></tr>
+                <tr><td colSpan={7} className="py-8 text-center text-gray-400">No listings match these filters.</td></tr>
               )}
             </tbody>
           </table>

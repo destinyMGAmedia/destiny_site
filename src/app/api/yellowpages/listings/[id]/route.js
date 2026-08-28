@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions, isGlobalAdmin } from '@/lib/auth'
 import prisma from '@/lib/prisma'
-import { publicReviewerName, validateListingInput, sanitizePhone } from '@/lib/yellowpages/validation'
+import { publicReviewerName, validateListingInput } from '@/lib/yellowpages/validation'
+import { checkEditAuthorization } from '@/lib/yellowpages/editAuth'
 
 // GET /api/yellowpages/listings/[id] — public listing detail. 404s for a hidden/deleted
 // listing so a deactivated listing isn't distinguishable from one that never existed.
@@ -24,9 +25,14 @@ export async function GET(_req, { params }) {
   const ratingCount = listing.ratings.length
   const avgRating = ratingCount === 0 ? null : listing.ratings.reduce((sum, r) => sum + r.stars, 0) / ratingCount
 
+  // `editContacts` are other people's raw phone/email — never expose them on the public detail
+  // endpoint. The owner-facing edit flow reads them via the contact-verified `lookup` route.
+  const { editContacts, ...publicListing } = listing
+
   return NextResponse.json({
     listing: {
-      ...listing,
+      ...publicListing,
+      hasEditRestrictions: Boolean(listing.editStrict) || (editContacts || []).length > 0,
       ratings: listing.ratings.map((r) => ({ ...r, reviewerName: publicReviewerName(r.reviewerName) })),
       avgRating,
       ratingCount,
@@ -35,11 +41,11 @@ export async function GET(_req, { params }) {
 }
 
 // PATCH /api/yellowpages/listings/[id] — two independent modes:
-//   1. Admin (isGlobalAdmin session): { isActive } only — the moderation hide/reactivate toggle.
-//   2. Owner self-edit (no login): { ownerPhone or ownerEmail, ...listing fields }. The given
-//      contact must match the listing's own phone/email on file — the same "contact you already
-//      know is proof enough" trust model this app already uses elsewhere (member lookup, etc.).
-//      See spec/theyellowpages.md's "members should be able to edit their listing" addition.
+//   1. Admin (isGlobalAdmin session): moderation only — `{ isActive }` to hide/reactivate,
+//      and/or `{ resetEditLock: true }` to clear `editStrict` + `editContacts` so a
+//      locked-out owner can regain access.
+//   2. Owner self-edit (no login): an email-OTP `editToken` or an authorised
+//      `ownerPhone`/`ownerEmail` (see src/lib/yellowpages/editAuth.js), plus the listing fields.
 export async function PATCH(req, { params }) {
   const { id } = await params
 
@@ -52,11 +58,17 @@ export async function PATCH(req, { params }) {
 
   const session = await getServerSession(authOptions)
   if (session && isGlobalAdmin(session)) {
-    if (typeof body.isActive !== 'boolean') {
-      return NextResponse.json({ error: 'isActive (boolean) is required' }, { status: 400 })
+    const data = {}
+    if (typeof body.isActive === 'boolean') data.isActive = body.isActive
+    if (body.resetEditLock === true) {
+      data.editStrict = false
+      data.editContacts = []
+    }
+    if (Object.keys(data).length === 0) {
+      return NextResponse.json({ error: 'Provide isActive (boolean) and/or resetEditLock (true).' }, { status: 400 })
     }
     try {
-      const listing = await prisma.yellowPagesListing.update({ where: { id }, data: { isActive: body.isActive } })
+      const listing = await prisma.yellowPagesListing.update({ where: { id }, data })
       return NextResponse.json({ listing })
     } catch (error) {
       if (error.code === 'P2025') {
@@ -67,23 +79,16 @@ export async function PATCH(req, { params }) {
     }
   }
 
-  // Owner self-edit path.
-  const ownerPhone = body.ownerPhone ? sanitizePhone(body.ownerPhone) : ''
-  const ownerEmail = (body.ownerEmail || '').trim().toLowerCase()
-  if (!ownerPhone && !ownerEmail) {
-    return NextResponse.json({ error: 'ownerPhone or ownerEmail is required to edit a listing.' }, { status: 400 })
-  }
-
+  // Owner self-edit path — authorised by an email-OTP `editToken` or an authorised
+  // `ownerPhone`/`ownerEmail`. See src/lib/yellowpages/editAuth.js.
   const existing = await prisma.yellowPagesListing.findUnique({ where: { id } })
   if (!existing) {
     return NextResponse.json({ error: 'Listing not found' }, { status: 404 })
   }
 
-  const matches =
-    (ownerPhone && existing.phone === ownerPhone) ||
-    (ownerEmail && existing.email && existing.email.toLowerCase() === ownerEmail)
-  if (!matches) {
-    return NextResponse.json({ error: 'The phone or email you entered does not match this listing.' }, { status: 403 })
+  const auth = await checkEditAuthorization(existing, body)
+  if (!auth.ok) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status })
   }
 
   const { errors, data } = validateListingInput(body)

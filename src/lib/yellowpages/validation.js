@@ -1,7 +1,23 @@
 // Shared validators for The Yellow Pages public forms/routes. Mirrors the validation style
 // already used in src/app/(public)/[slug]/join/page.jsx (sanitizePhone/isValidPhone/isValidEmail).
 
-import { LISTING_TYPES, PREFERRED_CONTACTS, CATEGORY_VALUES, SOCIAL_LINK_KEYS, MAX_DESCRIPTION_CHARS, MAX_PORTFOLIO_IMAGES } from './constants'
+import {
+  LISTING_TYPES,
+  PREFERRED_CONTACTS,
+  CATEGORY_VALUES,
+  SOCIAL_LINK_KEYS,
+  MAX_DESCRIPTION_CHARS,
+  MAX_PORTFOLIO_IMAGES,
+  MAX_SKILLS,
+  MAX_LANGUAGES,
+  MAX_EXPERIENCE,
+  MAX_EDUCATION,
+  MAX_PROJECTS,
+  MAX_TEAM,
+  MAX_EDIT_CONTACTS,
+  MAX_HEADLINE_CHARS,
+  MAX_SUMMARY_CHARS,
+} from './constants'
 import { resolveDialCode } from './phone'
 
 export const sanitizePhone = (value) => (value || '').replace(/[^\d+]/g, '').replace(/(?!^)\+/g, '')
@@ -9,6 +25,106 @@ export const isValidPhone = (value) => /^\+?\d{7,15}$/.test((value || '').trim()
 export const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((value || '').trim())
 // Light validation only — the field is optional and free-form; just reject obviously-not-a-URL input.
 export const isValidUrl = (value) => /^https?:\/\/.+\..+/i.test((value || '').trim())
+
+const str = (v, max = 300) => (typeof v === 'string' ? v.trim().slice(0, max) : '')
+
+/** Trimmed, de-duped, capped list of non-empty short strings (skills, languages). */
+function parseStringList(value, max, itemMax = 80) {
+  if (value === undefined || value === null) return { list: [], error: null }
+  if (!Array.isArray(value)) return { list: [], error: 'Expected a list.' }
+  const seen = new Set()
+  const list = []
+  for (const raw of value) {
+    const s = str(raw, itemMax)
+    const key = s.toLowerCase()
+    if (!s || seen.has(key)) continue
+    seen.add(key)
+    list.push(s)
+  }
+  if (list.length > max) return { list: list.slice(0, max), error: `Add up to ${max}.` }
+  return { list, error: null }
+}
+
+/** Generic array-of-objects parser: trims each field, drops rows that fail `keep`, caps count. */
+function parseObjectList(value, max, fields, keep) {
+  if (value === undefined || value === null) return { list: [], error: null }
+  if (!Array.isArray(value)) return { list: [], error: 'Expected a list.' }
+  const list = []
+  for (const raw of value) {
+    if (!raw || typeof raw !== 'object') continue
+    const row = {}
+    for (const [name, opts] of Object.entries(fields)) {
+      if (opts.type === 'bool') row[name] = Boolean(raw[name])
+      else if (opts.type === 'stringList') row[name] = parseStringList(raw[name], opts.max || 12, opts.itemMax || 400).list
+      else row[name] = str(raw[name], opts.max || 300)
+    }
+    if (keep(row)) list.push(row)
+  }
+  if (list.length > max) return { list: list.slice(0, max), error: `Add up to ${max}.` }
+  return { list, error: null }
+}
+
+const EXPERIENCE_FIELDS = {
+  title: { max: 160 },
+  organization: { max: 160 },
+  location: { max: 160 },
+  startDate: { max: 40 },
+  endDate: { max: 40 },
+  current: { type: 'bool' },
+  description: { max: 1500 },
+}
+const EDUCATION_FIELDS = {
+  school: { max: 200 },
+  degree: { max: 160 },
+  field: { max: 160 },
+  startYear: { max: 20 },
+  endYear: { max: 20 },
+  description: { max: 1000 },
+}
+const PROJECT_FIELDS = {
+  name: { max: 200 },
+  role: { max: 160 },
+  url: { max: 400 },
+  description: { max: 1500 },
+  imageUrls: { type: 'stringList', max: MAX_PORTFOLIO_IMAGES, itemMax: 400 },
+}
+const TEAM_FIELDS = {
+  name: { max: 160 },
+  role: { max: 160 },
+  photoUrl: { max: 400 },
+  linkedListingId: { max: 40 },
+}
+
+export const parseExperience = (v) => parseObjectList(v, MAX_EXPERIENCE, EXPERIENCE_FIELDS, (r) => r.title || r.organization)
+export const parseEducation = (v) => parseObjectList(v, MAX_EDUCATION, EDUCATION_FIELDS, (r) => r.school || r.degree)
+export const parseProjects = (v) => parseObjectList(v, MAX_PROJECTS, PROJECT_FIELDS, (r) => r.name)
+export const parseTeam = (v) => parseObjectList(v, MAX_TEAM, TEAM_FIELDS, (r) => r.name)
+
+/** Normalizes a list of extra editor contacts — each must be a valid phone or email. */
+export function parseEditContacts(value) {
+  if (value === undefined || value === null) return { list: [], error: null }
+  if (!Array.isArray(value)) return { list: [], error: 'Expected a list.' }
+  const seen = new Set()
+  const list = []
+  for (const raw of value) {
+    const trimmed = typeof raw === 'string' ? raw.trim() : ''
+    if (!trimmed) continue
+    let normalized = null
+    if (trimmed.includes('@')) {
+      if (!isValidEmail(trimmed)) return { list, error: `"${trimmed}" is not a valid email.` }
+      normalized = trimmed.toLowerCase()
+    } else {
+      const phone = sanitizePhone(trimmed)
+      if (!isValidPhone(phone)) return { list, error: `"${trimmed}" is not a valid phone number.` }
+      normalized = phone
+    }
+    if (seen.has(normalized)) continue
+    seen.add(normalized)
+    list.push(normalized)
+  }
+  if (list.length > MAX_EDIT_CONTACTS) return { list: list.slice(0, MAX_EDIT_CONTACTS), error: `Add up to ${MAX_EDIT_CONTACTS} editor contacts.` }
+  return { list, error: null }
+}
 
 /**
  * Validates a listing submission body. Returns { errors, data } — `data` is only populated
@@ -101,6 +217,34 @@ export function validateListingInput(body = {}) {
     }
   }
 
+  // ── Portfolio fields (individual-flavoured, but stored for both types) ────────────
+  const headline = str(body.headline, MAX_HEADLINE_CHARS)
+  const resumeSummary = str(body.resumeSummary, MAX_SUMMARY_CHARS)
+  const bannerImageUrl = str(body.bannerImageUrl, 400)
+  const availability = str(body.availability, 120)
+  const openToWork = Boolean(body.openToWork)
+
+  const skillsParsed = parseStringList(body.skills, MAX_SKILLS)
+  if (skillsParsed.error) errors.skills = skillsParsed.error
+  const languagesParsed = parseStringList(body.languages, MAX_LANGUAGES)
+  if (languagesParsed.error) errors.languages = languagesParsed.error
+
+  const experienceParsed = parseExperience(body.experience)
+  if (experienceParsed.error) errors.experience = experienceParsed.error
+  const educationParsed = parseEducation(body.education)
+  if (educationParsed.error) errors.education = educationParsed.error
+  const projectsParsed = parseProjects(body.projects)
+  if (projectsParsed.error) errors.projects = projectsParsed.error
+  const teamParsed = parseTeam(body.team)
+  if (teamParsed.error) errors.team = teamParsed.error
+
+  const editContactsParsed = parseEditContacts(body.editContacts)
+  if (editContactsParsed.error) errors.editContacts = editContactsParsed.error
+  const editStrict = Boolean(body.editStrict)
+  if (editStrict && editContactsParsed.list.length === 0) {
+    errors.editStrict = 'Add at least one editor contact before restricting edit access to them only.'
+  }
+
   if (Object.keys(errors).length > 0) {
     return { errors, data: null }
   }
@@ -134,6 +278,19 @@ export function validateListingInput(body = {}) {
       portfolioImages,
       licenseNumber: (body.licenseNumber || '').trim() || null,
       preferredContact,
+      headline: headline || null,
+      resumeSummary: resumeSummary || null,
+      bannerImageUrl: bannerImageUrl || null,
+      availability: availability || null,
+      openToWork,
+      skills: skillsParsed.list,
+      languages: languagesParsed.list,
+      experience: experienceParsed.list,
+      education: educationParsed.list,
+      projects: projectsParsed.list,
+      team: teamParsed.list,
+      editContacts: editContactsParsed.list,
+      editStrict,
     },
   }
 }

@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 import { generateUploadSignature, getUploadFolder } from '@/lib/cloudinary'
 
-const VALID_TYPES = ['logo', 'photo', 'portfolio']
+const VALID_TYPES = ['logo', 'photo', 'portfolio', 'banner']
 
-// GET /api/yellowpages/upload-signature?type=logo|photo|portfolio — public, unauthenticated
+// GET /api/yellowpages/upload-signature?type=logo|photo|portfolio|banner — public, unauthenticated
 // (same trust level as the rest of the public listing-submission flow). The folder is fixed
 // server-side (never taken from the client) so this can't be used to write into unrelated
 // Cloudinary folders — see spec/theyellowpages.md's API contract.

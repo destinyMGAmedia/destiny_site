@@ -890,7 +890,20 @@ model YellowPagesListing {
   category          YellowPagesCategory
   subCategory       String? // free-text profession/sub-sector, e.g. "Travel Agency"
   description       String // ~150 words; capped server-side regardless of client validation
-  servicesOffered   String? // main services/products, short text
+  servicesOffered   String? // BUSINESS: main services/products, short text
+  headline          String? // INDIVIDUAL: professional headline / tagline (e-resume)
+  resumeSummary     String? // INDIVIDUAL: professional summary paragraph — distinct from the public `description`
+  bannerImageUrl    String? // portfolio cover image, both types
+  availability      String? // INDIVIDUAL: e.g. "Freelance / contract", "Full-time"
+  openToWork        Boolean             @default(false) // INDIVIDUAL: availability badge
+  skills            String[]            @default([]) // INDIVIDUAL: skill tags (individual analogue of servicesOffered)
+  languages         String[]            @default([]) // INDIVIDUAL: spoken/written languages
+  experience        Json                @default("[]") // [{ title, organization, location, startDate, endDate, current, description }]
+  education         Json                @default("[]") // [{ school, degree, field, startYear, endYear, description }]
+  projects          Json                @default("[]") // [{ name, role, url, description, imageUrls: [] }] — both types
+  team              Json                @default("[]") // BUSINESS: [{ name, role, photoUrl, linkedListingId? }]
+  editContacts      String[]            @default([]) // extra emails/phones authorized to request an edit OTP
+  editStrict        Boolean             @default(false) // when true, the public phone/email do NOT grant edit access — only editContacts
   city              String?
   state             String?
   country           String?
@@ -912,10 +925,12 @@ model YellowPagesListing {
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
   ratings           YellowPagesRating[]
+  editOtps          YellowPagesEditOtp[]
 
   @@index([category])
   @@index([assemblyId])
   @@index([isActive])
+  @@index([listingType])
 }
 
 model YellowPagesRating {
@@ -929,6 +944,30 @@ model YellowPagesRating {
   createdAt    DateTime           @default(now())
 
   @@unique([listingId, contactHash])
+}
+
+// Loginless owner-edit verification. A code is sent to a contact already on file for the
+// listing (its phone/email, or an entry in `editContacts`); verifying it yields a short-lived
+// edit token (the row id) accepted by PATCH /api/yellowpages/listings/[id] within
+// EDIT_TOKEN_WINDOW_MINUTES. Raw contact / code are never persisted — only salted hashes.
+model YellowPagesEditOtp {
+  id          String             @id @default(cuid())
+  listingId   String
+  listing     YellowPagesListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  channel     OtpChannel
+  contactHash String // hashContact(normalized target phone/email)
+  codeHash    String // salted sha256 of the 6-digit code
+  expiresAt   DateTime
+  consumedAt  DateTime? // set on successful verify; presence + recency = a valid edit token
+  attempts    Int                @default(0)
+  createdAt   DateTime           @default(now())
+
+  @@index([listingId, contactHash])
+}
+
+enum OtpChannel {
+  EMAIL
+  SMS
 }
 
 enum ListingType {

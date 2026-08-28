@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { validateListingInput } from '@/lib/yellowpages/validation'
-import { CATEGORY_VALUES, LISTINGS_PAGE_SIZE } from '@/lib/yellowpages/constants'
+import { CATEGORY_VALUES, LISTINGS_PAGE_SIZE, LISTING_TYPES } from '@/lib/yellowpages/constants'
 
 function withRatingSummary(listing) {
   const { ratings, ...rest } = listing
@@ -16,6 +16,7 @@ export async function GET(req) {
   const { searchParams } = new URL(req.url)
   const q = searchParams.get('q')?.trim()
   const category = searchParams.get('category')?.trim()
+  const listingType = searchParams.get('listingType')?.trim() || searchParams.get('type')?.trim()
   const assemblySlug = searchParams.get('assemblySlug')?.trim()
   const city = searchParams.get('city')?.trim()
   const country = searchParams.get('country')?.trim()
@@ -25,9 +26,13 @@ export async function GET(req) {
   if (category && !CATEGORY_VALUES.includes(category)) {
     return NextResponse.json({ error: 'Invalid category' }, { status: 400 })
   }
+  if (listingType && !LISTING_TYPES.includes(listingType)) {
+    return NextResponse.json({ error: 'Invalid listing type' }, { status: 400 })
+  }
 
   const where = { isActive: true }
   if (category) where.category = category
+  if (listingType) where.listingType = listingType
   if (city) where.city = { contains: city, mode: 'insensitive' }
   if (country) where.country = { contains: country, mode: 'insensitive' }
   if (q) {
@@ -36,6 +41,8 @@ export async function GET(req) {
       { description: { contains: q, mode: 'insensitive' } },
       { servicesOffered: { contains: q, mode: 'insensitive' } },
       { subCategory: { contains: q, mode: 'insensitive' } },
+      { headline: { contains: q, mode: 'insensitive' } },
+      { skills: { has: q } },
     ]
   }
 

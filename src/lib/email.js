@@ -1,6 +1,9 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// The `resend` client throws from its constructor when given a falsy key, which would break
+// merely importing this module in environments without email configured (tests, local dev).
+// Every send function below still no-ops unless RESEND_API_KEY is actually set.
+const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder_no_key_configured')
 
 function credentialEmailHtml({ name, username, password, role, assemblyName, isRegenerated }) {
   const roleLabel = {
@@ -179,6 +182,70 @@ export async function sendPledgeNotificationEmail({ donorName, donorEmail, donor
     })
   } catch (err) {
     console.error('[EMAIL] Failed to send pledge notification:', err.message)
+  }
+}
+
+// ─────────────────────────────────────────────
+// THE YELLOW PAGES — OWNER-EDIT OTP
+// ─────────────────────────────────────────────
+
+function editOtpEmailHtml({ code, listingName }) {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Your edit code</title></head>
+<body style="margin:0;padding:0;background:#faf8f4;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#faf8f4;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="100%" style="max-width:480px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(33,29,22,0.08);">
+        <tr>
+          <td style="background:#8b6818;padding:28px 40px;text-align:center;">
+            <p style="margin:0;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.6);">The Yellow Pages</p>
+            <h1 style="margin:10px 0 0;font-size:20px;font-weight:700;color:#ffffff;">Verify it&rsquo;s you</h1>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:32px 40px;">
+            <p style="margin:0 0 20px;font-size:14px;color:#5c5443;line-height:1.6;">
+              Use this code to edit <strong>${listingName || 'your listing'}</strong>. It expires in 10 minutes.
+            </p>
+            <div style="text-align:center;background:#f7f1e3;border:1px solid #e4ddc9;border-radius:12px;padding:20px;margin-bottom:20px;">
+              <span style="font-size:32px;font-weight:700;letter-spacing:8px;color:#211d16;font-family:monospace;">${code}</span>
+            </div>
+            <p style="margin:0;font-size:12px;color:#9c9384;line-height:1.6;">
+              If you didn&rsquo;t request this, you can ignore this email — no changes can be made without the code.
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`
+}
+
+/**
+ * Sends a one-time edit code for a Yellow Pages listing. Silently skips if Resend isn't
+ * configured (the OTP route treats that as a delivery failure and surfaces it to the user).
+ */
+export async function sendEditOtpEmail({ to, code, listingName }) {
+  if (!to || !process.env.RESEND_API_KEY) {
+    if (!process.env.RESEND_API_KEY && process.env.NODE_ENV !== 'production') {
+      console.info(`[EMAIL:dev] Yellow Pages edit code for ${to}: ${code}`)
+    }
+    return
+  }
+  const fromName = process.env.RESEND_FROM_NAME || 'The Yellow Pages'
+  const fromEmail = process.env.RESEND_FROM_EMAIL || 'noreply@destinymissionglobal.org'
+  try {
+    await resend.emails.send({
+      from: `${fromName} <${fromEmail}>`,
+      to,
+      subject: `Your edit code: ${code}`,
+      html: editOtpEmailHtml({ code, listingName }),
+    })
+  } catch (err) {
+    console.error('[EMAIL] Failed to send edit OTP email:', err.message)
+    throw err
   }
 }
 

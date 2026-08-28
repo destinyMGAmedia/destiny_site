@@ -62,11 +62,24 @@ describe('GET /api/yellowpages/listings', () => {
     expect(where.category).toBe('TECHNOLOGY_IT')
   })
 
-  it('applies a text search across name/description/servicesOffered/subCategory', async () => {
+  it('applies a text search across name/description/servicesOffered/subCategory/headline/skills', async () => {
     await GET(makeGetRequest('?q=plumb'))
     const where = prisma.yellowPagesListing.findMany.mock.calls[0][0].where
-    expect(where.OR).toHaveLength(4)
+    expect(where.OR).toHaveLength(6)
     expect(where.OR[0]).toEqual({ name: { contains: 'plumb', mode: 'insensitive' } })
+    expect(where.OR).toContainEqual({ headline: { contains: 'plumb', mode: 'insensitive' } })
+    expect(where.OR).toContainEqual({ skills: { has: 'plumb' } })
+  })
+
+  it('filters by listingType when provided', async () => {
+    await GET(makeGetRequest('?listingType=INDIVIDUAL'))
+    const where = prisma.yellowPagesListing.findMany.mock.calls[0][0].where
+    expect(where.listingType).toBe('INDIVIDUAL')
+  })
+
+  it('rejects an invalid listingType', async () => {
+    const res = await GET(makeGetRequest('?listingType=ROBOT'))
+    expect(res.status).toBe(400)
   })
 
   it('returns an empty page (not an error) when assemblySlug does not match any assembly', async () => {

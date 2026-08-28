@@ -39,3 +39,51 @@ export const LISTINGS_PAGE_SIZE = 12
 
 // Work/personal photos shown in the timeline feed — images only, no video.
 export const MAX_PORTFOLIO_IMAGES = 6
+
+// Portfolio structured-section caps (stored as JSON columns on YellowPagesListing).
+export const MAX_SKILLS = 30
+export const MAX_LANGUAGES = 15
+export const MAX_EXPERIENCE = 20
+export const MAX_EDUCATION = 15
+export const MAX_PROJECTS = 20
+export const MAX_TEAM = 30
+export const MAX_EDIT_CONTACTS = 10
+export const MAX_HEADLINE_CHARS = 160
+export const MAX_SUMMARY_CHARS = 2000
+
+// Owner-edit OTP flow.
+export const OTP_TTL_MINUTES = 10
+export const OTP_MAX_ATTEMPTS = 5
+export const OTP_CODE_LENGTH = 6
+// How long a verified OTP (its row id, used as an opaque edit token) stays usable for PATCHes.
+export const EDIT_TOKEN_WINDOW_MINUTES = 30
+// Max unconsumed OTPs per (listing, contact) within the trailing hour before we 429.
+export const OTP_RATE_LIMIT_PER_HOUR = 5
+
+// Per-listing-type UI label overrides for fields that mean different things to a person vs a business.
+export const FIELD_LABELS = {
+  INDIVIDUAL: {
+    name: 'Your Name',
+    photoUrl: 'Profile Photo',
+    logoUrl: null, // hidden for individuals
+    servicesOffered: 'Skills',
+    description: 'Bio',
+    portfolioImages: 'Work Samples',
+    yearsInOperation: 'Years of Experience',
+  },
+  BUSINESS: {
+    name: 'Business / Organization Name',
+    photoUrl: 'Professional Photo',
+    logoUrl: 'Business Logo',
+    servicesOffered: 'Products / Services',
+    description: 'About the Business',
+    portfolioImages: 'Portfolio / Gallery',
+    yearsInOperation: 'Years in Operation',
+  },
+}
+
+export function fieldLabel(listingType, field, fallback) {
+  const forType = FIELD_LABELS[listingType] || FIELD_LABELS.BUSINESS
+  const value = forType[field]
+  return value === undefined ? fallback : value
+}

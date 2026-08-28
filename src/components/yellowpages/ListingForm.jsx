@@ -1,17 +1,18 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { AlertCircle, CheckCircle2, X, Loader2, ImagePlus } from 'lucide-react'
-import { CATEGORIES, PREFERRED_CONTACTS, MAX_DESCRIPTION_CHARS, MAX_PORTFOLIO_IMAGES } from '@/lib/yellowpages/constants'
+import { AlertCircle, CheckCircle2, Loader2, ShieldCheck } from 'lucide-react'
+import { CATEGORIES, PREFERRED_CONTACTS, MAX_DESCRIPTION_CHARS, MAX_EDIT_CONTACTS, fieldLabel } from '@/lib/yellowpages/constants'
 import { isValidPhone, isValidEmail } from '@/lib/yellowpages/validation'
 import { COUNTRY_NAMES } from '@/lib/yellowpages/phone'
-import { useYellowPagesUpload } from '@/lib/yellowpages/useYellowPagesUpload'
+import ProfileCompleteness from './ProfileCompleteness'
+import IndividualFields from './forms/IndividualFields'
+import BusinessFields from './forms/BusinessFields'
+import TagInput from './forms/TagInput'
+import { FieldError } from './forms/Field'
 
 // Absolute base for links back to the main site (member registration lives there, not on the
-// Yellow Pages subdomain). Mirrors src/components/assembly/JoinUsQR.jsx. Empty in dev / on the
-// main domain, where a root-relative path already resolves correctly.
+// Yellow Pages subdomain). Mirrors src/components/assembly/JoinUsQR.jsx.
 const MAIN_SITE = process.env.NEXT_PUBLIC_APP_URL || ''
-import ImageUploadField from './ImageUploadField'
-import ProfileCompleteness from './ProfileCompleteness'
 
 const PREFERRED_CONTACT_LABELS = { PHONE: 'Phone Call', WHATSAPP: 'WhatsApp', EMAIL: 'Email' }
 const SOCIAL_FIELDS = ['facebook', 'instagram', 'linkedin', 'tiktok']
@@ -28,6 +29,19 @@ const EMPTY_FORM = {
   subCategory: '',
   description: '',
   servicesOffered: '',
+  headline: '',
+  resumeSummary: '',
+  bannerImageUrl: '',
+  availability: '',
+  openToWork: false,
+  skills: [],
+  languages: [],
+  experience: [],
+  education: [],
+  projects: [],
+  team: [],
+  editContacts: [],
+  editStrict: false,
   city: '',
   state: '',
   country: '',
@@ -45,85 +59,18 @@ const EMPTY_FORM = {
 
 const sanitizePhone = (value) => (value || '').replace(/[^\d+]/g, '').replace(/(?!^)\+/g, '')
 
-// Hoisted out of ListingForm (not declared inline in render) — takes `errors` as a prop
-// instead of closing over form state, per react-hooks/static-components.
-function FieldError({ errors, field }) {
-  return errors[field] ? (
-    <p className="flex items-center gap-1 text-red-600 text-xs mt-1">
-      <AlertCircle size={12} /> {errors[field]}
-    </p>
-  ) : null
-}
-
-// Multi-photo uploader for the "work/personal photos" gallery — images only, no video.
-function PortfolioImagesField({ images, onChange }) {
-  const { upload, uploading, error } = useYellowPagesUpload()
-
-  const handleFiles = async (files) => {
-    const remaining = MAX_PORTFOLIO_IMAGES - images.length
-    const toUpload = Array.from(files || []).slice(0, remaining)
-    for (const file of toUpload) {
-      try {
-        const result = await upload(file, 'portfolio')
-        onChange((prev) => [...prev, result.secure_url])
-      } catch {
-        // per-file error already surfaced via the hook's `error` state
-      }
-    }
-  }
-
-  return (
-    <div>
-      <span className="yp-label">
-        Work / Personal Photos <span className="font-normal text-xs" style={{ color: 'var(--yp-ink-soft)' }}>({images.length}/{MAX_PORTFOLIO_IMAGES}, images only)</span>
-      </span>
-      <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-        {images.map((url, i) => (
-          <div key={url} className="relative aspect-square rounded-lg overflow-hidden">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={url} alt="" className="w-full h-full object-cover" />
-            <button
-              type="button"
-              onClick={() => onChange((prev) => prev.filter((_, idx) => idx !== i))}
-              className="absolute top-1 right-1 p-1 rounded-full"
-              style={{ background: 'rgba(255,255,255,0.9)' }}
-              aria-label={`Remove photo ${i + 1}`}
-            >
-              <X size={12} />
-            </button>
-          </div>
-        ))}
-        {images.length < MAX_PORTFOLIO_IMAGES && (
-          <label
-            className="aspect-square rounded-lg border-2 border-dashed flex flex-col items-center justify-center cursor-pointer text-xs gap-1"
-            style={{ borderColor: 'var(--yp-border)', color: 'var(--yp-ink-soft)' }}
-          >
-            <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => handleFiles(e.target.files)} aria-label="Add photo" />
-            {uploading ? <Loader2 size={18} className="animate-spin" /> : <ImagePlus size={18} />}
-            {uploading ? 'Uploading…' : 'Add photo'}
-          </label>
-        )}
-      </div>
-      {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
-    </div>
-  )
-}
-
 /**
- * The full listing registration form, used by /yellowpages/register. Client-validates only
- * the bare minimum (required fields) for quick feedback; the server's field-level `errors`
- * response is the source of truth and is merged into formErrors on submit.
+ * Full listing form for /yellowpages/register (create) and /yellowpages/manage (edit). Shared
+ * fields live here; the type-specific portfolio fields are delegated to IndividualFields /
+ * BusinessFields. Client-validates only the required minimum — the server's field-level
+ * `errors` response is the source of truth and is merged into formErrors on submit.
  */
-export default function ListingForm({ initialValues, onSuccess, mode = 'create', listingId, ownerContact }) {
+export default function ListingForm({ initialValues, onSuccess, mode = 'create', listingId, ownerContact, editToken }) {
   const [form, setForm] = useState({ ...EMPTY_FORM, ...initialValues })
   const [formErrors, setFormErrors] = useState({})
   const [assemblies, setAssemblies] = useState([])
   const [status, setStatus] = useState('idle')
   const [submitError, setSubmitError] = useState('')
-  // Membership association: when an assembly is picked and a valid phone/email is entered, check
-  // whether that contact already belongs to a member of that assembly, so the person doesn't
-  // have to register again and the listing links to their member profile. Create mode only —
-  // editing an existing listing never touches this.
   const [memberCheck, setMemberCheck] = useState({ status: 'idle', member: null })
 
   useEffect(() => {
@@ -140,10 +87,7 @@ export default function ListingForm({ initialValues, onSuccess, mode = 'create',
     mode !== 'edit' && !!form.assemblySlug && (isValidPhone(trimmedPhone) || isValidEmail(trimmedEmail))
 
   useEffect(() => {
-    // Nothing to check yet — the render guard (canCheckMembership) hides any stale note, so no
-    // synchronous state reset is needed here.
     if (!canCheckMembership) return
-
     let cancelled = false
     const timeout = setTimeout(async () => {
       if (cancelled) return
@@ -184,6 +128,9 @@ export default function ListingForm({ initialValues, onSuccess, mode = 'create',
     if (!form.phone.trim()) errors.phone = 'Phone number is required.'
     if (!form.category) errors.category = 'Please choose a category.'
     if (!form.description.trim()) errors.description = 'A short description is required.'
+    if (form.editStrict && (form.editContacts || []).length === 0) {
+      errors.editStrict = 'Add at least one editor contact, or turn this off.'
+    }
     return errors
   }
 
@@ -201,7 +148,9 @@ export default function ListingForm({ initialValues, onSuccess, mode = 'create',
     const payload = {
       ...form,
       yearsInOperation: form.yearsInOperation === '' ? null : Number(form.yearsInOperation),
-      ...(mode === 'edit' ? { ownerPhone: ownerContact?.phone, ownerEmail: ownerContact?.email } : {}),
+      ...(mode === 'edit'
+        ? { editToken, ownerPhone: ownerContact?.phone, ownerEmail: ownerContact?.email }
+        : {}),
     }
     const url = mode === 'edit' ? `/api/yellowpages/listings/${listingId}` : '/api/yellowpages/listings'
     const method = mode === 'edit' ? 'PATCH' : 'POST'
@@ -243,60 +192,46 @@ export default function ListingForm({ initialValues, onSuccess, mode = 'create',
             type="button"
             aria-pressed={!isBusiness}
             onClick={() => set('listingType')('INDIVIDUAL')}
-            className="yp-card p-3 text-sm font-semibold text-center break-words"
+            disabled={mode === 'edit'}
+            className="yp-card p-3 text-sm font-semibold text-center break-words disabled:opacity-60"
             style={!isBusiness ? { borderColor: 'var(--yp-yellow-600)', background: 'var(--yp-yellow-100)' } : undefined}
           >
-            A skill or service I offer
+            A professional / skill I offer
           </button>
           <button
             type="button"
             aria-pressed={isBusiness}
             onClick={() => set('listingType')('BUSINESS')}
-            className="yp-card p-3 text-sm font-semibold text-center break-words"
+            disabled={mode === 'edit'}
+            className="yp-card p-3 text-sm font-semibold text-center break-words disabled:opacity-60"
             style={isBusiness ? { borderColor: 'var(--yp-yellow-600)', background: 'var(--yp-yellow-100)' } : undefined}
           >
-            A business/organization
+            A business / organization
           </button>
         </div>
       </div>
 
-      <div className="grid sm:grid-cols-2 gap-4">
-        <div>
-          <label className="yp-label" htmlFor="yp-name">{isBusiness ? 'Business/Organization Name *' : 'Your Name *'}</label>
-          <input id="yp-name" className="yp-input" value={form.name} onChange={(e) => set('name')(e.target.value)} />
-          <FieldError errors={formErrors} field="name" />
-        </div>
-        {isBusiness && (
-          <div>
-            <label className="yp-label" htmlFor="yp-contactPersonName">Contact Person</label>
-            <input id="yp-contactPersonName" className="yp-input" value={form.contactPersonName} onChange={(e) => set('contactPersonName')(e.target.value)} />
-            <FieldError errors={formErrors} field="contactPersonName" />
-          </div>
-        )}
+      <div>
+        <label className="yp-label" htmlFor="yp-name">{fieldLabel(form.listingType, 'name', 'Name')} *</label>
+        <input id="yp-name" className="yp-input" value={form.name} onChange={(e) => set('name')(e.target.value)} />
+        <FieldError message={formErrors.name} />
       </div>
-
-      {isBusiness && (
-        <div>
-          <label className="yp-label" htmlFor="yp-position">Position/Designation</label>
-          <input id="yp-position" className="yp-input" placeholder="e.g. Founder, CEO, Manager" value={form.position} onChange={(e) => set('position')(e.target.value)} />
-        </div>
-      )}
 
       <div className="grid sm:grid-cols-3 gap-4">
         <div>
           <label className="yp-label" htmlFor="yp-phone">Phone *</label>
           <input id="yp-phone" className="yp-input" type="tel" value={form.phone} onChange={(e) => set('phone')(sanitizePhone(e.target.value))} />
-          <FieldError errors={formErrors} field="phone" />
+          <FieldError message={formErrors.phone} />
         </div>
         <div>
           <label className="yp-label" htmlFor="yp-whatsapp">WhatsApp</label>
           <input id="yp-whatsapp" className="yp-input" type="tel" placeholder="If different from phone" value={form.whatsapp} onChange={(e) => set('whatsapp')(sanitizePhone(e.target.value))} />
-          <FieldError errors={formErrors} field="whatsapp" />
+          <FieldError message={formErrors.whatsapp} />
         </div>
         <div>
           <label className="yp-label" htmlFor="yp-email">Email</label>
           <input id="yp-email" className="yp-input" type="email" value={form.email} onChange={(e) => set('email')(e.target.value)} />
-          <FieldError errors={formErrors} field="email" />
+          <FieldError message={formErrors.email} />
         </div>
       </div>
 
@@ -309,25 +244,21 @@ export default function ListingForm({ initialValues, onSuccess, mode = 'create',
               <option key={c.value} value={c.value}>{c.label}</option>
             ))}
           </select>
-          <FieldError errors={formErrors} field="category" />
+          <FieldError message={formErrors.category} />
         </div>
         <div>
-          <label className="yp-label" htmlFor="yp-subCategory">Sub-Sector / Profession</label>
+          <label className="yp-label" htmlFor="yp-subCategory">{isBusiness ? 'Sub-Sector' : 'Profession'}</label>
           <input id="yp-subCategory" className="yp-input" placeholder="e.g. Travel Agency, Plumbing, Architecture" value={form.subCategory} onChange={(e) => set('subCategory')(e.target.value)} />
         </div>
       </div>
 
       <div>
         <label className="yp-label" htmlFor="yp-description">
-          Description * <span className="font-normal text-xs" style={{ color: 'var(--yp-ink-soft)' }}>({form.description.length}/{MAX_DESCRIPTION_CHARS})</span>
+          {isBusiness ? 'About the Business' : 'Description'} *{' '}
+          <span className="font-normal text-xs" style={{ color: 'var(--yp-ink-soft)' }}>({form.description.length}/{MAX_DESCRIPTION_CHARS})</span>
         </label>
         <textarea id="yp-description" className="yp-textarea" maxLength={MAX_DESCRIPTION_CHARS} value={form.description} onChange={(e) => set('description')(e.target.value)} />
-        <FieldError errors={formErrors} field="description" />
-      </div>
-
-      <div>
-        <label className="yp-label" htmlFor="yp-servicesOffered">Products/Services Offered</label>
-        <textarea id="yp-servicesOffered" className="yp-textarea" placeholder="Main services or products offered" value={form.servicesOffered} onChange={(e) => set('servicesOffered')(e.target.value)} />
+        <FieldError message={formErrors.description} />
       </div>
 
       <div className="grid sm:grid-cols-3 gap-4">
@@ -350,9 +281,6 @@ export default function ListingForm({ initialValues, onSuccess, mode = 'create',
               <option key={c} value={c}>{c}</option>
             ))}
           </select>
-          <p className="mt-1 text-xs" style={{ color: 'var(--yp-ink-soft)' }}>
-            Used to format your phone/WhatsApp number for people contacting you from abroad.
-          </p>
         </div>
       </div>
 
@@ -379,7 +307,7 @@ export default function ListingForm({ initialValues, onSuccess, mode = 'create',
                   {memberCheck.member
                     ? <>We found your membership — <strong>{memberCheck.member.firstName} {memberCheck.member.lastName}</strong>. </>
                     : <>We found your membership record. </>}
-                  This listing will be linked to your member profile — no need to register again.
+                  This listing will be linked to your member profile.
                 </span>
               </p>
             )}
@@ -406,19 +334,14 @@ export default function ListingForm({ initialValues, onSuccess, mode = 'create',
         )}
       </div>
 
-      <div id="yp-photo-section" className="grid sm:grid-cols-2 gap-4">
-        <ImageUploadField label="Business Logo" type="logo" value={form.logoUrl} onChange={set('logoUrl')} />
-        <ImageUploadField label="Professional Photo" type="photo" value={form.photoUrl} onChange={set('photoUrl')} />
-      </div>
-
-      <div id="yp-portfolio-section">
-        <PortfolioImagesField images={form.portfolioImages} onChange={(updater) => setForm((f) => ({ ...f, portfolioImages: updater(f.portfolioImages) }))} />
-      </div>
+      {isBusiness
+        ? <BusinessFields form={form} setField={set} setForm={setForm} errors={formErrors} />
+        : <IndividualFields form={form} setField={set} setForm={setForm} errors={formErrors} />}
 
       <div>
         <label className="yp-label" htmlFor="yp-website">Website</label>
         <input id="yp-website" className="yp-input" placeholder="https://…" value={form.website} onChange={(e) => set('website')(e.target.value)} />
-        <FieldError errors={formErrors} field="website" />
+        <FieldError message={formErrors.website} />
       </div>
 
       <div>
@@ -437,21 +360,28 @@ export default function ListingForm({ initialValues, onSuccess, mode = 'create',
         </div>
       </div>
 
-      <div className="grid sm:grid-cols-2 gap-4">
-        <div>
-          <label className="yp-label" htmlFor="yp-yearsInOperation">Years in Operation</label>
-          <input id="yp-yearsInOperation" className="yp-input" type="number" min="0" max="150" value={form.yearsInOperation} onChange={(e) => set('yearsInOperation')(e.target.value)} />
-          <FieldError errors={formErrors} field="yearsInOperation" />
-        </div>
-        <div>
-          <label className="yp-label" htmlFor="yp-licenseNumber">Registration/License Number</label>
-          <input id="yp-licenseNumber" className="yp-input" value={form.licenseNumber} onChange={(e) => set('licenseNumber')(e.target.value)} />
-        </div>
-      </div>
-
-      <div>
-        <label className="yp-label" htmlFor="yp-certifications">Professional Certifications/Memberships (optional)</label>
-        <input id="yp-certifications" className="yp-input" placeholder="e.g. IATA, NANTA, CAC" value={form.certifications} onChange={(e) => set('certifications')(e.target.value)} />
+      <div className="yp-card p-4 space-y-3">
+        <p className="flex items-center gap-2 text-sm font-semibold" style={{ color: 'var(--yp-ink)' }}>
+          <ShieldCheck size={16} style={{ color: 'var(--yp-yellow-600)' }} /> Who can edit this listing
+        </p>
+        <p className="text-xs" style={{ color: 'var(--yp-ink-soft)' }}>
+          By default the phone number and email above can request an edit code. Add extra emails or
+          phone numbers here if other people {isBusiness ? '(e.g. teammates) ' : ''}should be able to edit too.
+        </p>
+        <TagInput
+          id="yp-editContacts"
+          label={isBusiness ? 'Additional editors' : 'Designated editor (optional)'}
+          values={form.editContacts || []}
+          onChange={set('editContacts')}
+          max={MAX_EDIT_CONTACTS}
+          error={formErrors.editContacts}
+          placeholder="email@example.com or a phone number"
+        />
+        <label className="flex items-start gap-2 text-sm" style={{ color: 'var(--yp-ink-soft)' }}>
+          <input type="checkbox" className="mt-0.5" checked={Boolean(form.editStrict)} onChange={(e) => set('editStrict')(e.target.checked)} />
+          <span>Only the people above can edit — my public phone/email will <strong>not</strong> grant edit access.</span>
+        </label>
+        <FieldError message={formErrors.editStrict} />
       </div>
 
       <div>
@@ -470,7 +400,7 @@ export default function ListingForm({ initialValues, onSuccess, mode = 'create',
       )}
 
       <button type="submit" disabled={status === 'loading'} className="yp-btn-primary w-full justify-center">
-        {status === 'loading' ? 'Saving…' : mode === 'edit' ? 'Save Changes' : 'List My Skill or Business'}
+        {status === 'loading' ? 'Saving…' : mode === 'edit' ? 'Save Changes' : isBusiness ? 'List My Business' : 'Create My Portfolio'}
       </button>
     </form>
   )

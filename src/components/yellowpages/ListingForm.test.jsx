@@ -16,53 +16,67 @@ function mockFetch({ assemblies = [], postResponse, memberLookup } = {}) {
   })
 }
 
+const INDIVIDUAL_NAME = 'Your Name *'
+const BUSINESS_NAME = 'Business / Organization Name *'
+const SUBMIT_INDIVIDUAL = 'Create My Portfolio'
+const SUBMIT_BUSINESS = 'List My Business'
+
 const fillEssentials = (isBusiness) => {
-  fireEvent.change(screen.getByLabelText(isBusiness ? 'Business/Organization Name *' : 'Your Name *'), { target: { value: 'Jane Doe' } })
+  fireEvent.change(screen.getByLabelText(isBusiness ? BUSINESS_NAME : INDIVIDUAL_NAME), { target: { value: 'Jane Doe' } })
   fireEvent.change(screen.getByLabelText('Phone *'), { target: { value: '08012345678' } })
   fireEvent.change(screen.getByLabelText('Category *'), { target: { value: 'HOME_SERVICES_TRADES' } })
-  fireEvent.change(screen.getByLabelText(/^Description/), { target: { value: 'I fix pipes and plumbing issues.' } })
+  fireEvent.change(screen.getByLabelText(isBusiness ? /^About the Business/ : /^Description/), { target: { value: 'I fix pipes and plumbing issues.' } })
 }
 
-describe('ListingForm — every field is available up front (both create and edit)', () => {
+describe('ListingForm — shared + individual fields at creation', () => {
   beforeEach(() => {
     mockFetch()
   })
 
-  it('renders the full field set at creation, including contact and location details', () => {
+  it('renders the shared + individual field set at creation', () => {
     render(<ListingForm />)
-    expect(screen.getByLabelText('Your Name *')).toBeInTheDocument()
+    expect(screen.getByLabelText(INDIVIDUAL_NAME)).toBeInTheDocument()
     expect(screen.getByLabelText('Phone *')).toBeInTheDocument()
     expect(screen.getByLabelText('WhatsApp')).toBeInTheDocument()
     expect(screen.getByLabelText('Email')).toBeInTheDocument()
     expect(screen.getByLabelText('Category *')).toBeInTheDocument()
-    expect(screen.getByLabelText('Sub-Sector / Profession')).toBeInTheDocument()
+    expect(screen.getByLabelText('Profession')).toBeInTheDocument()
     expect(screen.getByLabelText(/^Description/)).toBeInTheDocument()
-    expect(screen.getByLabelText('Products/Services Offered')).toBeInTheDocument()
     expect(screen.getByLabelText('City')).toBeInTheDocument()
     expect(screen.getByLabelText('State')).toBeInTheDocument()
     expect(screen.getByLabelText('Country')).toBeInTheDocument()
     expect(screen.getByLabelText('Assembly (optional)')).toBeInTheDocument()
-    expect(screen.getByLabelText('Business Logo')).toBeInTheDocument()
-    expect(screen.getByLabelText('Professional Photo')).toBeInTheDocument()
-    expect(screen.getByText('Work / Personal Photos', { exact: false })).toBeInTheDocument()
+    // individual-flavoured fields
+    expect(screen.getByLabelText('Profile Photo')).toBeInTheDocument()
+    expect(screen.getByLabelText('Professional Headline')).toBeInTheDocument()
+    expect(screen.getByLabelText(/^Skills/)).toBeInTheDocument()
+    expect(screen.getByText('Work Experience')).toBeInTheDocument()
+    expect(screen.getByText('Education')).toBeInTheDocument()
+    expect(screen.getByText('Work Samples', { exact: false })).toBeInTheDocument()
     expect(screen.getByLabelText('Website')).toBeInTheDocument()
     expect(screen.getByText('Social Media')).toBeInTheDocument()
-    expect(screen.getByLabelText('Years in Operation')).toBeInTheDocument()
-    expect(screen.getByLabelText('Registration/License Number')).toBeInTheDocument()
-    expect(screen.getByLabelText(/Professional Certifications\/Memberships/)).toBeInTheDocument()
+    expect(screen.getByText('Who can edit this listing')).toBeInTheDocument()
     expect(screen.getByLabelText('Preferred Contact Method')).toBeInTheDocument()
+    // business-only fields are hidden while INDIVIDUAL is selected
+    expect(screen.queryByLabelText('Products / Services')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Business Logo')).not.toBeInTheDocument()
   })
 
-  it('shows business-only fields (contact person, position) once BUSINESS is selected, even at creation', () => {
+  it('swaps to the business field set once BUSINESS is selected', () => {
     render(<ListingForm />)
-    fireEvent.click(screen.getByText('A business/organization'))
+    fireEvent.click(screen.getByText('A business / organization'))
     expect(screen.getByLabelText('Contact Person')).toBeInTheDocument()
-    expect(screen.getByLabelText('Position/Designation')).toBeInTheDocument()
+    expect(screen.getByLabelText('Position / Designation')).toBeInTheDocument()
+    expect(screen.getByLabelText('Products / Services')).toBeInTheDocument()
+    expect(screen.getByLabelText('Business Logo')).toBeInTheDocument()
+    expect(screen.getByLabelText('Years in Operation')).toBeInTheDocument()
+    expect(screen.getByText('Team')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Skills')).not.toBeInTheDocument()
   })
 
   it('marks certifications as optional', () => {
     render(<ListingForm />)
-    expect(screen.getByText('Professional Certifications/Memberships (optional)')).toBeInTheDocument()
+    expect(screen.getByText('Certifications / Licenses (optional)')).toBeInTheDocument()
   })
 
   it('offers Country as a select of known countries (so a calling code can be derived)', () => {
@@ -81,28 +95,28 @@ describe('ListingForm — every field is available up front (both create and edi
 
   it('does not require contact person name, even for a BUSINESS listing', () => {
     render(<ListingForm />)
-    fireEvent.click(screen.getByText('A business/organization'))
-    fireEvent.change(screen.getByLabelText('Business/Organization Name *'), { target: { value: 'Acme' } })
+    fireEvent.click(screen.getByText('A business / organization'))
+    fireEvent.change(screen.getByLabelText(BUSINESS_NAME), { target: { value: 'Acme' } })
     fireEvent.change(screen.getByLabelText('Phone *'), { target: { value: '08012345678' } })
     fireEvent.change(screen.getByLabelText('Category *'), { target: { value: 'HOME_SERVICES_TRADES' } })
-    fireEvent.change(screen.getByLabelText(/^Description/), { target: { value: 'desc' } })
-    fireEvent.click(screen.getByText('List My Skill or Business'))
+    fireEvent.change(screen.getByLabelText(/^About the Business/), { target: { value: 'desc' } })
+    fireEvent.click(screen.getByText(SUBMIT_BUSINESS))
 
     expect(screen.queryByText('Contact person name is required.')).not.toBeInTheDocument()
   })
 
-  it('shows a live profile-strength meter that updates as fields are filled', () => {
+  it('shows a live portfolio-strength meter that updates as fields are filled', () => {
     render(<ListingForm />)
-    expect(screen.getByText('Profile strength')).toBeInTheDocument()
+    expect(screen.getByText('Portfolio strength')).toBeInTheDocument()
     const before = screen.getByText(/^\d+%$/).textContent
-    fireEvent.change(screen.getByLabelText('City'), { target: { value: 'Lagos' } })
+    fireEvent.change(screen.getByLabelText('Website'), { target: { value: 'https://jane.dev' } })
     const after = screen.getByText(/^\d+%$/).textContent
     expect(after).not.toBe(before)
   })
 
   it('shows required-field errors on submit without hitting the network', () => {
     render(<ListingForm />)
-    fireEvent.click(screen.getByText('List My Skill or Business'))
+    fireEvent.click(screen.getByText(SUBMIT_INDIVIDUAL))
 
     expect(screen.getByText('Your name is required.')).toBeInTheDocument()
     expect(screen.getByText('Phone number is required.')).toBeInTheDocument()
@@ -117,7 +131,7 @@ describe('ListingForm — every field is available up front (both create and edi
     render(<ListingForm onSuccess={onSuccess} />)
 
     fillEssentials(false)
-    fireEvent.click(screen.getByText('List My Skill or Business'))
+    fireEvent.click(screen.getByText(SUBMIT_INDIVIDUAL))
 
     await waitFor(() => expect(onSuccess).toHaveBeenCalledWith({ id: 'l1', name: 'Jane Doe' }), { timeout: 3000 })
     const call = global.fetch.mock.calls.find(([, o]) => o?.method === 'POST')
@@ -129,7 +143,7 @@ describe('ListingForm — every field is available up front (both create and edi
     render(<ListingForm />)
 
     fillEssentials(false)
-    fireEvent.click(screen.getByText('List My Skill or Business'))
+    fireEvent.click(screen.getByText(SUBMIT_INDIVIDUAL))
 
     expect(await screen.findByText('Enter a valid phone number (digits only, 7–15 digits).', {}, { timeout: 3000 })).toBeInTheDocument()
   }, 10000)
@@ -142,7 +156,7 @@ describe('ListingForm — every field is available up front (both create and edi
     render(<ListingForm />)
 
     fillEssentials(false)
-    fireEvent.click(screen.getByText('List My Skill or Business'))
+    fireEvent.click(screen.getByText(SUBMIT_INDIVIDUAL))
 
     expect(await screen.findByText('Something went wrong. Please try again.', {}, { timeout: 3000 })).toBeInTheDocument()
   }, 10000)
@@ -156,8 +170,8 @@ describe('ListingForm — every field is available up front (both create and edi
 
   it('stacks the listing-type buttons on mobile and lets their labels wrap', () => {
     render(<ListingForm />)
-    const individualBtn = screen.getByText('A skill or service I offer')
-    const businessBtn = screen.getByText('A business/organization')
+    const individualBtn = screen.getByText('A professional / skill I offer')
+    const businessBtn = screen.getByText('A business / organization')
 
     expect(individualBtn).toHaveClass('text-center')
     expect(individualBtn).toHaveClass('break-words')

@@ -12,6 +12,9 @@ vi.mock('@/lib/prisma', () => ({
       update: vi.fn(),
       delete: vi.fn(),
     },
+    yellowPagesEditOtp: {
+      findUnique: vi.fn(),
+    },
     assembly: {
       findUnique: vi.fn(),
     },
@@ -105,6 +108,21 @@ describe('PATCH /api/yellowpages/listings/[id] — admin mode', () => {
     expect(body.listing.isActive).toBe(false)
     expect(prisma.yellowPagesListing.update).toHaveBeenCalledWith({ where: { id: 'l1' }, data: { isActive: false } })
   })
+
+  it('clears editStrict + editContacts on resetEditLock', async () => {
+    prisma.yellowPagesListing.update.mockResolvedValue({ id: 'l1', editStrict: false, editContacts: [] })
+    const res = await PATCH(makePatchRequest({ resetEditLock: true }), makeParams('l1'))
+    expect(res.status).toBe(200)
+    expect(prisma.yellowPagesListing.update).toHaveBeenCalledWith({
+      where: { id: 'l1' },
+      data: { editStrict: false, editContacts: [] },
+    })
+  })
+
+  it('returns 400 when an admin PATCH has neither isActive nor resetEditLock', async () => {
+    const res = await PATCH(makePatchRequest({ foo: 1 }), makeParams('l1'))
+    expect(res.status).toBe(400)
+  })
 })
 
 describe('PATCH /api/yellowpages/listings/[id] — owner self-edit mode (no admin session)', () => {
@@ -114,10 +132,11 @@ describe('PATCH /api/yellowpages/listings/[id] — owner self-edit mode (no admi
     isGlobalAdmin.mockReturnValue(false)
   })
 
-  it('returns 400 when neither ownerPhone nor ownerEmail is provided', async () => {
+  it('returns 400 when no editToken and no ownerPhone/ownerEmail is provided', async () => {
+    prisma.yellowPagesListing.findUnique.mockResolvedValue({ id: 'l1', phone: '08000000000', email: null })
     const res = await PATCH(makePatchRequest(validBusinessBody), makeParams('l1'))
     expect(res.status).toBe(400)
-    expect(prisma.yellowPagesListing.findUnique).not.toHaveBeenCalled()
+    expect(prisma.yellowPagesListing.update).not.toHaveBeenCalled()
   })
 
   it('returns 404 when the listing does not exist', async () => {
@@ -178,6 +197,46 @@ describe('PATCH /api/yellowpages/listings/[id] — owner self-edit mode (no admi
 
     const updateArgs = prisma.yellowPagesListing.update.mock.calls[0][0]
     expect(updateArgs.data.assemblyId).toBe('a1')
+  })
+
+  it('accepts an editContacts phone even when it is not the public phone', async () => {
+    prisma.yellowPagesListing.findUnique.mockResolvedValue({
+      id: 'l1', phone: '08099999999', email: null, assemblyId: null, editStrict: false, editContacts: ['08012345678'],
+    })
+    prisma.yellowPagesListing.update.mockResolvedValue({ id: 'l1', ...validBusinessBody })
+    const res = await PATCH(makePatchRequest({ ...validBusinessBody, ownerPhone: '08012345678' }), makeParams('l1'))
+    expect(res.status).toBe(200)
+  })
+
+  it('rejects the public phone when editStrict is on and it is not in editContacts', async () => {
+    prisma.yellowPagesListing.findUnique.mockResolvedValue({
+      id: 'l1', phone: '08012345678', email: null, assemblyId: null, editStrict: true, editContacts: ['owner@acme.com'],
+    })
+    const res = await PATCH(makePatchRequest({ ...validBusinessBody, ownerPhone: '08012345678' }), makeParams('l1'))
+    expect(res.status).toBe(403)
+    expect(prisma.yellowPagesListing.update).not.toHaveBeenCalled()
+  })
+
+  it('authorizes via a fresh editToken (consumed OTP row) for this listing', async () => {
+    prisma.yellowPagesListing.findUnique.mockResolvedValue({ id: 'l1', phone: '08099999999', email: null, assemblyId: null })
+    prisma.yellowPagesEditOtp.findUnique.mockResolvedValue({ id: 'otp1', listingId: 'l1', consumedAt: new Date() })
+    prisma.yellowPagesListing.update.mockResolvedValue({ id: 'l1', ...validBusinessBody })
+    const res = await PATCH(makePatchRequest({ ...validBusinessBody, editToken: 'otp1' }), makeParams('l1'))
+    expect(res.status).toBe(200)
+  })
+
+  it('rejects an editToken for a different listing', async () => {
+    prisma.yellowPagesListing.findUnique.mockResolvedValue({ id: 'l1', phone: '08099999999', email: null, assemblyId: null })
+    prisma.yellowPagesEditOtp.findUnique.mockResolvedValue({ id: 'otp1', listingId: 'other', consumedAt: new Date() })
+    const res = await PATCH(makePatchRequest({ ...validBusinessBody, editToken: 'otp1' }), makeParams('l1'))
+    expect(res.status).toBe(403)
+  })
+
+  it('rejects an unconsumed or stale editToken', async () => {
+    prisma.yellowPagesListing.findUnique.mockResolvedValue({ id: 'l1', phone: '08099999999', email: null, assemblyId: null })
+    prisma.yellowPagesEditOtp.findUnique.mockResolvedValue({ id: 'otp1', listingId: 'l1', consumedAt: null })
+    const res = await PATCH(makePatchRequest({ ...validBusinessBody, editToken: 'otp1' }), makeParams('l1'))
+    expect(res.status).toBe(403)
   })
 })
 
