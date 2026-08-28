@@ -904,6 +904,10 @@ model YellowPagesListing {
   team              Json                @default("[]") // BUSINESS: [{ name, role, photoUrl, linkedListingId? }]
   editContacts      String[]            @default([]) // extra emails/phones authorized to request an edit OTP
   editStrict        Boolean             @default(false) // when true, the public phone/email do NOT grant edit access — only editContacts
+  resumeTemplate    String?             // INDIVIDUAL résumé export: CLASSIC | COMPACT | MODERN (all ATS-safe)
+  resumeLocale      String?             // US | UK — drives spelling/date/word ("Résumé" vs "CV") conventions
+  resumeUseAi       Boolean             @default(false) // whether preview/download use the AI-optimized content below
+  resumeAiContent   Json                @default("{}") // last AI-optimized résumé { headline, summary, experience:[{...bullets}], skills, ... }
   city              String?
   state             String?
   country           String?

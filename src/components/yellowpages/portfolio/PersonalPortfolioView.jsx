@@ -112,8 +112,8 @@ export default function PersonalPortfolioView({ listing, listingId, onReload }) 
               'Reviews'
             )}
           </button>
-          <a href={`/api/yellowpages/listings/${listingId}/resume`} className="yp-btn-outline !py-2 !px-4">
-            <FileDown size={15} /> Download Résumé
+          <a href={`${base}/listing/${listingId}/resume`} className="yp-btn-outline !py-2 !px-4">
+            <FileDown size={15} /> Résumé / CV
           </a>
           <a href={editHref} className="yp-btn-outline !py-2 !px-4">
             <Pencil size={15} /> Edit

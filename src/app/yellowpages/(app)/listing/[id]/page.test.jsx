@@ -84,7 +84,7 @@ describe('ListingDetailPage', () => {
     await waitFor(() => expect(screen.getByText('Grace Coder')).toBeInTheDocument(), { timeout: 3000 })
     expect(screen.getByText('Backend Engineer')).toBeInTheDocument()
     expect(screen.getByText('Go')).toBeInTheDocument()
-    expect(screen.getByText('Download Résumé').closest('a')).toHaveAttribute('href', '/api/yellowpages/listings/l1/resume')
+    expect(screen.getByText('Résumé / CV').closest('a')).toHaveAttribute('href', '/yellowpages/listing/l1/resume')
   }, 10000)
 
   it('keeps reviews behind a button, opening them in a modal', async () => {

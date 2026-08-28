@@ -1,4 +1,5 @@
 import { ResumeDocument, renderResumePdf } from './resumeDocument'
+import { buildResumeModel } from './resumeModel'
 
 // renderResumePdf runs the REAL @react-pdf/renderer in-process (no network, no external
 // service) and returns a PDF Buffer, so we exercise it end to end.
@@ -50,11 +51,23 @@ describe('renderResumePdf', () => {
     const buf = await renderResumePdf({ name: 'Odd', skills: 'not-an-array', experience: null, education: undefined })
     expect(buf.subarray(0, 5).toString('latin1')).toBe('%PDF-')
   })
+
+  it('renders every template', async () => {
+    for (const template of ['CLASSIC', 'COMPACT', 'MODERN']) {
+      const buf = await renderResumePdf(fullListing, { template })
+      expect(buf.subarray(0, 5).toString('latin1')).toBe('%PDF-')
+    }
+  })
+
+  it('renders the UK ("CV") locale', async () => {
+    const buf = await renderResumePdf(fullListing, { locale: 'UK' })
+    expect(buf.subarray(0, 5).toString('latin1')).toBe('%PDF-')
+  })
 })
 
 describe('ResumeDocument', () => {
-  it('is a React element that renderResumePdf can consume', async () => {
-    const el = ResumeDocument({ listing: fullListing })
+  it('is a React element that renderResumePdf can consume', () => {
+    const el = ResumeDocument({ model: buildResumeModel(fullListing, {}) })
     expect(el).toBeTruthy()
     expect(el.type).toBeDefined()
   })
