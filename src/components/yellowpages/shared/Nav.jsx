@@ -8,7 +8,6 @@ import { useYellowPagesBase } from './YellowPagesChrome'
 const TABS = [
   { path: '/browse', icon: Rss, label: 'Home feed' },
   { path: '/register', icon: Plus, label: 'List your skill or business', accent: true },
-  { path: '/manage', icon: UserCog, label: 'Manage my listing' },
 ]
 
 export default function Nav() {
