@@ -1,11 +1,12 @@
 'use client'
 import { useState } from 'react'
-import { Plus, Pencil, Trash2, Check, X, Users, MapPin, Calendar, Clock, History } from 'lucide-react'
+import { Plus, Pencil, Trash2, Check, X, Users, MapPin, Calendar, Clock, History, Phone } from 'lucide-react'
 
 function ArkCenterForm({ center = {}, members = [], onSave, onCancel }) {
   const [form, setForm] = useState({
     name: center.name || '',
     location: center.location || '',
+    phone: center.phone || '',
     meetingDay: center.meetingDay || 'Thursday',
     meetingTime: center.meetingTime || '17:00',
     leaderId: center.leaderId || '',
@@ -24,6 +25,10 @@ function ArkCenterForm({ center = {}, members = [], onSave, onCancel }) {
         <div className="sm:col-span-2">
           <label className="form-label">Location / Address</label>
           <input className="form-input" value={form.location} onChange={set('location')} placeholder="e.g. 123 Street Name, City" />
+        </div>
+        <div className="sm:col-span-2">
+          <label className="form-label">Phone Number</label>
+          <input className="form-input" type="tel" value={form.phone} onChange={set('phone')} placeholder="e.g. +234 801 234 5678" />
         </div>
         <div>
           <label className="form-label">Meeting Day</label>
@@ -77,6 +82,7 @@ function AttendanceForm({ center, onSave, onCancel }) {
   const [form, setForm] = useState({
     serviceDate: new Date().toISOString().split('T')[0],
     attendance: '',
+    offering: '',
     testimony: '',
     notes: '',
   })
@@ -85,7 +91,7 @@ function AttendanceForm({ center, onSave, onCancel }) {
 
   return (
     <div className="border rounded-xl p-5 space-y-4" style={{ borderColor: 'var(--border)', background: 'white' }}>
-      <h3 className="font-bold text-lg">Record Attendance for {center.name}</h3>
+      <h3 className="font-bold text-lg">Record Service for {center.name}</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="form-label">Service Date *</label>
@@ -94,6 +100,10 @@ function AttendanceForm({ center, onSave, onCancel }) {
         <div>
           <label className="form-label">Total Attendance *</label>
           <input className="form-input" type="number" min={0} value={form.attendance} onChange={set('attendance')} required placeholder="0" />
+        </div>
+        <div>
+          <label className="form-label">Offering (optional)</label>
+          <input className="form-input" type="number" min={0} step="0.01" value={form.offering} onChange={set('offering')} placeholder="0.00" />
         </div>
         <div className="sm:col-span-2">
           <label className="form-label">Testimony (optional)</label>
@@ -212,7 +222,7 @@ export default function ArkCentersEditor({ assembly, initialCenters, members }) 
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-bold" style={{ color: 'var(--purple-900)' }}>House Fellowships (Ark Centers)</h2>
-          <p className="text-xs text-gray-500">Usually meets every other Thursday. Alternates with midweek service at the assembly building.</p>
+          <p className="text-xs text-gray-500">Usually meets every other Thursday. Record attendance and offering for each service.</p>
         </div>
         {editingId !== 'new' && (
           <button onClick={() => setEditingId('new')} className="btn-primary btn-sm">
@@ -247,6 +257,7 @@ export default function ArkCentersEditor({ assembly, initialCenters, members }) 
                   <tr className="text-left border-b">
                     <th className="py-2">Date</th>
                     <th className="py-2 text-center">Attendance</th>
+                    <th className="py-2 text-right">Offering</th>
                     <th className="py-2">Testimony / Notes</th>
                   </tr>
                 </thead>
@@ -255,6 +266,7 @@ export default function ArkCentersEditor({ assembly, initialCenters, members }) 
                     <tr key={h.id}>
                       <td className="py-2">{new Date(h.serviceDate).toLocaleDateString()}</td>
                       <td className="py-2 text-center font-bold">{h.attendance}</td>
+                      <td className="py-2 text-right text-sm">{h.offering != null ? `₦${Number(h.offering).toLocaleString()}` : '—'}</td>
                       <td className="py-2 text-gray-500">
                         {h.testimony && <p className="italic">"{h.testimony}"</p>}
                         {h.notes && <p className="text-xs">{h.notes}</p>}
@@ -295,6 +307,9 @@ export default function ArkCentersEditor({ assembly, initialCenters, members }) 
                   {c.location && (
                     <p className="flex items-center gap-2"><MapPin size={14} className="shrink-0" /> {c.location}</p>
                   )}
+                  {c.phone && (
+                    <p className="flex items-center gap-2"><Phone size={14} className="shrink-0" /> {c.phone}</p>
+                  )}
                   <p className="flex items-center gap-2">
                     <Calendar size={14} className="shrink-0" /> {c.meetingDay}s 
                     <Clock size={14} className="ml-2 shrink-0" /> {c.meetingTime || 'TBD'}
@@ -316,7 +331,7 @@ export default function ArkCentersEditor({ assembly, initialCenters, members }) 
                     onClick={() => setAttendanceId(c.id)} 
                     className="btn-outline btn-xs flex items-center gap-1"
                    >
-                     <Plus size={12} /> Record Attendance
+                     <Plus size={12} /> Record Service
                    </button>
                 </div>
               </div>

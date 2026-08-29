@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth'
-import { 
-  authOptions, isGlobalAdmin, isAssemblyAdmin, 
-  isAppAdmin, isCustomer, isMember, isAgent 
+import {
+  authOptions, isGlobalAdmin, isAssemblyAdmin, isAppAdmin,
+  isSiteContentAdmin, isCustomer, isMember, isAgent
 } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import prisma from '@/lib/prisma'
@@ -18,15 +18,48 @@ export const metadata = { title: 'Dashboard' }
 // Force dynamic rendering for admin dashboard with authentication
 export const dynamic = 'force-dynamic'
 
+function getCurrentWeekRange() {
+  const now = new Date()
+  const day = now.getDay()
+  const diff = day === 0 ? -6 : 1 - day
+  const monday = new Date(now)
+  monday.setDate(now.getDate() + diff)
+  monday.setHours(0, 0, 0, 0)
+  const sunday = new Date(monday)
+  sunday.setDate(monday.getDate() + 6)
+  sunday.setHours(23, 59, 59, 999)
+  return { monday, sunday }
+}
+
 async function getAdminStats() {
-  const [assemblies, admins, events, devotionals, arkCenters] = await Promise.all([
-    prisma.assembly.count({ where: { isActive: true } }),
-    prisma.user.count({ where: { isActive: true } }),
+  // Execute queries sequentially to prevent connection exhaustion
+  let assemblies = 0;
+  let admins = 0;
+
+  try {
+    assemblies = await prisma.assembly.count({ where: { isActive: true } });
+  } catch (error) {
+    console.error('Failed to count assemblies:', error);
+    assemblies = await prisma.assembly.count({ where: { isActive: true } });
+  }
+
+  try {
+    admins = await prisma.user.count({ where: { isActive: true } });
+  } catch (error) {
+    console.error('Failed to count admins:', error);
+    admins = await prisma.user.count({ where: { isActive: true } });
+  }
+
+  const { monday, sunday } = getCurrentWeekRange()
+  const [events, devotionals, arkCenters, weekSubmitted, weekDrafts] = await Promise.all([
     prisma.event.count({ where: { startDate: { gte: new Date() } } }),
     prisma.devotional.count({ where: { scheduledDate: { gte: new Date() } } }),
     prisma.arkCenter.count({ where: { isActive: true } }),
+    prisma.weeklyReport.count({ where: { weekStart: { gte: monday, lte: sunday }, status: 'SUBMITTED' } }),
+    prisma.weeklyReport.count({ where: { weekStart: { gte: monday, lte: sunday }, status: 'DRAFT' } }),
   ])
-  return { assemblies, admins, events, devotionals, arkCenters }
+
+  return { assemblies, admins, events, devotionals, arkCenters, weekSubmitted, weekDrafts }
 }
 
 async function getAssemblies() {
@@ -73,7 +106,10 @@ export default async function DashboardPage() {
 
   const role = session.user.role
 
-  // ASSEMBLY_ADMIN and APP_ADMIN should go to their specific assembly dashboards
+  // Non-global admins go to their specific landing pages
+  if (isSiteContentAdmin(session)) {
+    redirect('/admin/site-content')
+  }
   if (isAssemblyAdmin(session) && !isGlobalAdmin(session)) {
     redirect(`/admin/assemblies/${session.user.assemblySlug}`)
   }
@@ -139,7 +175,9 @@ export default async function DashboardPage() {
   // ─────────────────────────────────────────────
   // GLOBAL_ADMIN / SUPER_ADMIN DASHBOARD
   // ─────────────────────────────────────────────
-  const [stats, assemblies] = await Promise.all([getAdminStats(), getAssemblies()])
+  // Execute sequentially to prevent database connection exhaustion
+  const stats = await getAdminStats()
+  const assemblies = await getAssemblies()
 
   const statCards = [
     { label: 'Active Assemblies', value: stats.assemblies, icon: MdOutlineChurch, color: 'var(--purple-800)', bg: 'var(--purple-50)' },
@@ -149,12 +187,12 @@ export default async function DashboardPage() {
   ]
 
   const quickLinks = [
-    { href: '/admin/assemblies/new', icon: Plus,      label: 'New Assembly' },
-    { href: '/admin/admins',         icon: Users,     label: 'Manage Admins' },
-    { href: '/admin/devotionals',    icon: BookOpen,  label: 'Schedule Devotional' },
-    { href: '/admin/games',          icon: Grid3x3,   label: 'Manage Games' },
-    { href: '/admin/hero-slides',    icon: ImageIcon, label: 'Hero Slides' },
-    { href: '/admin/channels',       icon: Video,   label: 'YouTube Channels' },
+    { href: '/admin/reports',        icon: ClipboardList, label: 'Weekly Reports' },
+    { href: '/admin/assemblies/new', icon: Plus,          label: 'New Assembly' },
+    { href: '/admin/admins',         icon: Users,         label: 'Manage Admins' },
+    { href: '/admin/devotionals',    icon: BookOpen,      label: 'Schedule Devotional' },
+    { href: '/admin/games',          icon: Grid3x3,       label: 'Manage Games' },
+    { href: '/admin/channels',       icon: Video,         label: 'YouTube Channels' },
   ]
 
   return (
@@ -212,6 +250,32 @@ export default async function DashboardPage() {
               </Link>
             )
           })}
+        </div>
+      </div>
+
+      {/* This Week's Report Status */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+            This Week&apos;s Reports
+          </h2>
+          <Link href="/admin/reports" className="text-xs font-semibold flex items-center gap-1" style={{ color: 'var(--purple-700)' }}>
+            View all <ArrowRight size={12} />
+          </Link>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          <div className="card p-4 text-center border-l-4 border-green-400">
+            <p className="text-2xl font-bold text-green-700">{stats.weekSubmitted}</p>
+            <p className="text-xs text-gray-500 mt-1">Submitted</p>
+          </div>
+          <div className="card p-4 text-center border-l-4 border-amber-400">
+            <p className="text-2xl font-bold text-amber-600">{stats.weekDrafts}</p>
+            <p className="text-xs text-gray-500 mt-1">Drafts</p>
+          </div>
+          <div className="card p-4 text-center border-l-4 border-gray-300">
+            <p className="text-2xl font-bold text-gray-500">{Math.max(0, stats.assemblies - stats.weekSubmitted - stats.weekDrafts)}</p>
+            <p className="text-xs text-gray-500 mt-1">Not Submitted</p>
+          </div>
         </div>
       </div>
 

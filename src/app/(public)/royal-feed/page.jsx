@@ -1,13 +1,14 @@
 import prisma from '@/lib/prisma'
 import { BookOpen, Calendar } from 'lucide-react'
 import BackButton from '@/components/ui/BackButton'
+import NationBanner from '@/components/assembly/NationBanner'
 
 export const metadata = {
   title: 'Royal Feed — Daily Devotionals',
   description: 'Daily devotionals and the Word of God from Destiny Mission Global Assembly.',
 }
 
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
 
 export default async function RoyalFeedPage() {
   const devotionals = await prisma.devotional.findMany({
@@ -25,7 +26,7 @@ export default async function RoyalFeedPage() {
 
       {/* Header */}
       <div
-        className="relative py-24 px-6 text-white text-center"
+        className="relative py-24 px-6 text-white text-center overflow-hidden"
         style={{ background: 'linear-gradient(135deg, var(--purple-900), var(--purple-700))' }}
       >
         <BackButton className="absolute top-8 left-8 z-20" />
@@ -37,7 +38,7 @@ export default async function RoyalFeedPage() {
           <h1 className="text-4xl md:text-6xl font-extrabold mb-2 uppercase tracking-tighter leading-tight" style={{ fontFamily: 'var(--font-serif)' }}>
             ROYAL FEED
           </h1>
-          <p className="text-gold-500 font-black mb-4 tracking-[0.2em] text-lg md:text-2xl uppercase max-w-2xl mx-auto leading-tight">
+          <p className="text-gold-500 font-black mb-4 tracking-wide sm:tracking-[0.2em] text-base sm:text-lg md:text-2xl uppercase max-w-2xl mx-auto leading-tight">
             DAILY DEVOTIONAL BY ARCHBISHOP CLETUS BASSEY
           </p>
           <div className="flex items-center justify-center gap-2 text-white/60 text-sm">
@@ -46,6 +47,8 @@ export default async function RoyalFeedPage() {
           </div>
         </div>
       </div>
+
+      <NationBanner />
 
       <div className="section-container max-w-4xl">
         {devotionals.length > 0 ? (

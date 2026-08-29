@@ -5,7 +5,8 @@ import { X } from 'lucide-react'
 // Dynamic QR code using a free service — generates from URL
 export default function AttendanceQR({ assemblySlug, assemblyName }) {
   const [show, setShow] = useState(false)
-  const attendanceUrl = `${process.env.NEXT_PUBLIC_APP_URL || ''}/${assemblySlug}/attendance`
+  const base = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '')
+  const attendanceUrl = `${base}/${assemblySlug}/attendance`
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(attendanceUrl)}`
 
   return (

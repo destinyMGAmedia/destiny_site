@@ -6,7 +6,8 @@ import { X } from 'lucide-react'
 // Dynamic QR code using a free service — generates from URL
 export default function JoinUsQR({ assemblySlug, assemblyName }) {
   const [show, setShow] = useState(false)
-  const joinUrl = `${process.env.NEXT_PUBLIC_APP_URL || ''}/${assemblySlug}/join`
+  const base = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '')
+  const joinUrl = `${base}/${assemblySlug}/join`
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(joinUrl)}`
 
   return (

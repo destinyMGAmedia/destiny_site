@@ -6,7 +6,7 @@ import Link from 'next/link'
 import {
   LayoutDashboard, Users, Calendar, DollarSign,
   ClipboardList, Settings, ArrowRight, Eye,
-  MessageSquare, Star, UserCheck, Home
+  MessageSquare, Star, UserCheck, Home, TrendingUp
 } from 'lucide-react'
 
 // Force dynamic rendering for admin assembly page with authentication
@@ -130,11 +130,12 @@ export default async function AssemblyAdminPage({ params }) {
   const mgmtLinks = [
     { href: 'content',     icon: LayoutDashboard, label: 'Content Sections', desc: 'Update page content' },
     { href: 'members',     icon: UserCheck,       label: 'Members',          desc: `${stats.members} active members` },
+    { href: 'growth',      icon: TrendingUp,      label: 'Growth Track',     desc: 'Manage member progression' },
     { href: 'attendance',  icon: Calendar,        label: 'Attendance',       desc: `${stats.headcountThisMonth} total headcount this month` },
     { href: 'ark-centers', icon: Home,            label: 'Ark Centers',      desc: `${stats.arkCenters} centers, ${stats.arkAttendanceThisMonth} attending` },
     { href: 'finance',     icon: DollarSign,      label: 'Finance',          desc: 'Offerings & expenditure' },
     { href: 'schedule',    icon: Calendar,        label: 'Schedule',         desc: 'Service schedule' },
-    { href: 'reports',     icon: ClipboardList,   label: 'Reports',          desc: 'Monthly & annual reports' },
+    { href: 'reports',     icon: ClipboardList,   label: 'Reports',          desc: 'Weekly reports & submissions' },
     { href: 'settings',    icon: Settings,        label: 'Settings',         desc: 'Assembly settings' },
   ]
 

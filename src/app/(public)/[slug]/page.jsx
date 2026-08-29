@@ -15,81 +15,70 @@ import ContactSection from '@/components/assembly/ContactSection'
 import CustomSection from '@/components/assembly/CustomSection'
 import JoinUsQR from '@/components/assembly/JoinUsQR'
 import TeamSection from '@/components/assembly/TeamSection'
+import NationBanner from '@/components/assembly/NationBanner'
+import YellowPagesBanner from '@/components/assembly/YellowPagesBanner'
 
 // Force dynamic rendering for database-dependent content
 export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ params }) {
-  try {
-    const { slug } = await params
-    const assembly = await prisma.assembly.findUnique({
-      where: { slug, isActive: true },
-      select: { name: true, tagline: true, city: true },
-    })
-    if (!assembly) return { title: 'Assembly Not Found' }
-    return {
-      title: assembly.name,
-      description: assembly.tagline || `${assembly.name} — Destiny Mission Global Assembly, ${assembly.city}`,
-    }
-  } catch (error) {
-    console.error('Error generating metadata:', error)
-    return {
-      title: 'Assembly',
-      description: 'Destiny Mission Global Assembly'
-    }
+  const { slug } = await params
+  if (slug.includes('.')) return { title: 'Not Found' }
+  const assembly = await prisma.assembly.findUnique({
+    where: { slug, isActive: true },
+    select: { name: true, tagline: true, city: true },
+  })
+  if (!assembly) return { title: 'Assembly Not Found' }
+  return {
+    title: assembly.name,
+    description: assembly.tagline || `${assembly.name} — Destiny Mission Global Assembly, ${assembly.city}`,
   }
 }
 
 export default async function AssemblyPage({ params }) {
-  let assembly
-  
-  try {
-    const { slug } = await params
-    assembly = await prisma.assembly.findUnique({
-      where: { slug, isActive: true },
-      include: {
-        sections: {
-          where: { isVisible: true },
-          orderBy: { position: 'asc' },
-        },
-        teamMembers: { orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }] },
-        events: {
-          where: { startDate: { gte: new Date() } },
-          orderBy: { startDate: 'asc' },
-          take: 6,
-        },
-        givingDetails: true,
-        testimonies: {
-          where: { isApproved: true },
-          orderBy: { createdAt: 'desc' },
-          take: 8,
-        },
-        mediaItems: {
-          orderBy: { createdAt: 'desc' },
-          take: 9,
-        },
-        audioContent: {
-          orderBy: { publishedAt: 'desc' },
-          take: 4,
-        },
-        arkCenters: {
-          where: { isActive: true },
-          include: {
-            leader: {
-              select: { firstName: true, lastName: true, photo: true }
-            }
-          },
-          orderBy: { name: 'asc' }
-        }
-      },
-    })
+  const { slug } = await params
+  if (slug.includes('.')) notFound()
 
-    if (!assembly) {
-      console.warn(`Assembly not found for slug: ${slug}`)
-      notFound()
-    }
-  } catch (error) {
-    console.error('Error loading assembly:', error)
+  const assembly = await prisma.assembly.findUnique({
+    where: { slug, isActive: true },
+    include: {
+      sections: {
+        where: { isVisible: true },
+        orderBy: { position: 'asc' },
+      },
+      teamMembers: { orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }] },
+      events: {
+        where: { startDate: { gte: new Date() } },
+        orderBy: { startDate: 'asc' },
+        take: 6,
+      },
+      givingDetails: true,
+      testimonies: {
+        where: { isApproved: true },
+        orderBy: { createdAt: 'desc' },
+        take: 8,
+      },
+      mediaItems: {
+        orderBy: { createdAt: 'desc' },
+        take: 9,
+      },
+      audioContent: {
+        orderBy: { publishedAt: 'desc' },
+        take: 4,
+      },
+      arkCenters: {
+        where: { isActive: true },
+        include: {
+          leader: {
+            select: { firstName: true, lastName: true, photo: true }
+          }
+        },
+        orderBy: { name: 'asc' }
+      }
+    },
+  })
+
+  if (!assembly) {
     notFound()
   }
 
@@ -183,6 +172,9 @@ export default async function AssemblyPage({ params }) {
       {/* Hero */}
       <AssemblyHero assembly={assembly} heroSection={heroSection} />
 
+      {/* Destiny Nation — global promotional banner, always on */}
+      <NationBanner />
+
       {/* Sticky Anchor Nav */}
       <AssemblyAnchorNav sections={anchorSections} />
 
@@ -198,6 +190,9 @@ export default async function AssemblyPage({ params }) {
       {assembly.sections
         .filter((s) => s.type !== 'HERO')
         .map((section) => renderSection(section))}
+
+      {/* The Yellow Pages — directory CTA, member-aware (links listing to member profile) */}
+      <YellowPagesBanner assemblySlug={assembly.slug} assemblyName={assembly.name} />
     </>
   )
 }

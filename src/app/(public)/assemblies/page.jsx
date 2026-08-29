@@ -4,13 +4,14 @@ import Image from 'next/image'
 import SectionHeader from '@/components/ui/SectionHeader'
 import { MapPin, ArrowRight, Home, Users, Calendar, Clock } from 'lucide-react'
 import BackButton from '@/components/ui/BackButton'
+import NationBanner from '@/components/assembly/NationBanner'
 
 export const metadata = {
   title: 'Our Assemblies',
   description: 'Find a Destiny Mission Global Assembly near you.',
 }
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export default async function AssembliesPage() {
   let assemblies = []
@@ -28,7 +29,7 @@ export default async function AssembliesPage() {
     <div className="section-ivory min-h-screen">
       {/* Header */}
       <div
-        className="relative py-24 px-6 text-white text-center"
+        className="relative py-24 px-6 text-white text-center overflow-hidden"
         style={{ background: 'linear-gradient(135deg, var(--purple-900), var(--purple-700))' }}
       >
         <BackButton className="absolute top-8 left-8 z-20" />
@@ -41,6 +42,8 @@ export default async function AssembliesPage() {
           <p className="text-white/60">A global family committed to Igniting Faith, Transforming Lives, and Reaching Nations.</p>
         </div>
       </div>
+
+      <NationBanner />
 
       <div className="section-container mt-16">
 

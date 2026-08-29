@@ -61,6 +61,33 @@ export async function POST(req) {
       return NextResponse.json({ success: true })
     }
 
+    if (action === 'EDIT_CONTENT') {
+      const content = await prisma.growthContent.update({
+        where: { id: data.id },
+        data: {
+          title: data.title,
+          type: data.type,
+          url: data.url,
+          body: data.body,
+          order: data.order ?? 0
+        }
+      })
+      return NextResponse.json(content)
+    }
+
+    if (action === 'EDIT_QUESTION') {
+      const question = await prisma.growthQuestion.update({
+        where: { id: data.id },
+        data: {
+          question: data.question,
+          type: data.type,
+          options: data.options,
+          correctAnswer: data.correctAnswer
+        }
+      })
+      return NextResponse.json(question)
+    }
+
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
   } catch (error) {
     console.error('Growth Track API error:', error)

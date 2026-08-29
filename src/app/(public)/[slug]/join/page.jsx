@@ -1,45 +1,195 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Check, UserPlus, Users } from 'lucide-react'
+import { Check, UserPlus, Users, Search, AlertCircle, Store, ChevronDown, ChevronUp } from 'lucide-react'
 import BackButton from '@/components/ui/BackButton'
+import { CATEGORIES } from '@/lib/yellowpages/constants'
 
 export default function JoinPage() {
   const { slug } = useParams()
   const router = useRouter()
+  // step: 'TYPE' → 'CHECK' → 'FOUND' | 'FORM'
+  const [step, setStep] = useState('TYPE')
   const [type, setType] = useState(null) // 'VISITOR' or 'MEMBER'
   const [arkCenters, setArkCenters] = useState([])
+  const [checkPhone, setCheckPhone] = useState('')
+  const [checkEmail, setCheckEmail] = useState('')
+  const [checking, setChecking] = useState(false)
+  const [checkError, setCheckError] = useState('')
+  const [existingRecord, setExistingRecord] = useState(null)
   const [form, setForm] = useState({
     firstName: '', lastName: '', middleName: '', email: '', phone: '',
     gender: 'MALE', dateOfBirth: '', address: '', city: '', state: '', country: 'Nigeria',
-    fellowship: 'DESTINY_TREASURES', department: 'NONE', arkCenterId: '',
+    fellowship: 'DESTINY_TREASURES', departments: [], arkCenterId: '',
     notes: ''
   })
+  const [formErrors, setFormErrors] = useState({})
   const [status, setStatus] = useState('idle')
+  // Optional "list your skill/business" section — off by default, only shown/validated for
+  // MEMBER registrations. See spec/theyellowpages.md's join-page integration.
+  const [showYellowPages, setShowYellowPages] = useState(false)
+  const [ypForm, setYpForm] = useState({ listingType: 'INDIVIDUAL', name: '', category: '', description: '' })
 
   useEffect(() => {
     if (slug) {
-      fetch(`/api/sections?slug=${slug}`)
+      fetch(`/api/admin/ark-centers?slug=${slug}`)
         .then(res => res.json())
-        .then(data => {
-            // Find assembly ID from sections if possible, or just use slug in API
-        })
-      
-      // Fetch ark centers for this assembly
-      fetch(`/api/admin/ark-centers?slug=${slug}`) // I might need to adjust this API
-        .then(res => res.json())
-        .then(data => setArkCenters(data))
+        .then(data => Array.isArray(data) ? setArkCenters(data) : setArkCenters([]))
+        .catch(() => setArkCenters([]))
     }
   }, [slug])
 
+  // --- Validators ---
+  const sanitizePhone = (value) => value.replace(/[^\d+]/g, '').replace(/(?!^)\+/g, '')
+  const isValidPhone = (value) => /^\+?\d{7,15}$/.test(value.trim())
+  const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
+  const isValidName = (value) => /^[a-zA-Z\s'\-]{2,}$/.test(value.trim())
+  const isValidLocation = (value) => /^[a-zA-Z\s'\-,.]{2,}$/.test(value.trim())
+
+  const validateForm = () => {
+    const errors = {}
+
+    if (!form.firstName.trim()) {
+      errors.firstName = 'First name is required.'
+    } else if (!isValidName(form.firstName)) {
+      errors.firstName = 'First name should contain letters only (min. 2 characters).'
+    }
+
+    if (!form.lastName.trim()) {
+      errors.lastName = 'Last name is required.'
+    } else if (!isValidName(form.lastName)) {
+      errors.lastName = 'Last name should contain letters only (min. 2 characters).'
+    }
+
+    if (!form.phone?.trim() && !form.email?.trim()) {
+      errors.contact = 'Please provide at least a phone number or email address.'
+    }
+    if (form.phone?.trim() && !isValidPhone(form.phone)) {
+      errors.phone = 'Enter a valid phone number (digits only, 7–15 digits).'
+    }
+    if (form.email?.trim() && !isValidEmail(form.email)) {
+      errors.email = 'Enter a valid email address (e.g. name@example.com).'
+    }
+
+    if (type === 'MEMBER') {
+      if (form.dateOfBirth) {
+        const dob = new Date(form.dateOfBirth)
+        const now = new Date()
+        const ageYears = (now - dob) / (1000 * 60 * 60 * 24 * 365.25)
+        if (dob >= now) errors.dateOfBirth = 'Date of birth must be in the past.'
+        else if (ageYears < 1 || ageYears > 120) errors.dateOfBirth = 'Please enter a valid date of birth.'
+      }
+      if (form.city.trim() && !isValidLocation(form.city)) {
+        errors.city = 'City should contain letters only.'
+      }
+      if (form.state.trim() && !isValidLocation(form.state)) {
+        errors.state = 'State should contain letters only.'
+      }
+      if (form.country.trim() && !isValidLocation(form.country)) {
+        errors.country = 'Country should contain letters only.'
+      }
+
+      if (showYellowPages) {
+        if (!ypForm.name.trim()) errors.ypName = 'Please enter a name for your listing.'
+        if (!ypForm.category) errors.ypCategory = 'Please choose a category.'
+        if (!ypForm.description.trim()) errors.ypDescription = 'Please add a short description.'
+      }
+    }
+
+    return errors
+  }
+
+  // Clear a specific field error when the user edits that field
+  const clearError = (field) => {
+    if (formErrors[field]) setFormErrors(prev => { const next = { ...prev }; delete next[field]; return next })
+  }
+
+  const FieldError = ({ field }) =>
+    formErrors[field]
+      ? <p className="flex items-center gap-1 text-red-500 text-xs mt-1"><AlertCircle size={12} />{formErrors[field]}</p>
+      : null
+
+  // --- Handlers ---
+  const handleTypeSelect = (selectedType) => {
+    setType(selectedType)
+    setStep('CHECK')
+    setCheckError('')
+    setExistingRecord(null)
+  }
+
+  const handleCheck = async (e) => {
+    e.preventDefault()
+    if (!checkPhone.trim() && !checkEmail.trim()) {
+      setCheckError('Please enter at least your phone number or email.')
+      return
+    }
+    if (checkPhone.trim() && !isValidPhone(checkPhone)) {
+      setCheckError('Enter a valid phone number (digits only, 7–15 digits).')
+      return
+    }
+    if (checkEmail.trim() && !isValidEmail(checkEmail)) {
+      setCheckError('Enter a valid email address (e.g. name@example.com).')
+      return
+    }
+    setChecking(true)
+    setCheckError('')
+    const lookupPayload = {}
+    if (checkPhone.trim()) lookupPayload.phone = checkPhone.trim()
+    if (checkEmail.trim()) lookupPayload.email = checkEmail.trim()
+    try {
+      const res = await fetch('/api/member/lookup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(lookupPayload)
+      })
+      const data = await res.json()
+
+      if (data.exists) {
+        if (data.type === 'FIRST_TIMER' && type === 'MEMBER' && !data.data.convertedToMember) {
+          setForm(f => ({ ...f, phone: checkPhone, email: checkEmail }))
+          setStep('FORM')
+        } else {
+          setExistingRecord(data)
+          setStep('FOUND')
+        }
+      } else {
+        setForm(f => ({ ...f, phone: checkPhone, email: checkEmail }))
+        setStep('FORM')
+      }
+    } catch {
+      setCheckError('Could not check your details. Please try again.')
+    } finally {
+      setChecking(false)
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
+    const errors = validateForm()
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors)
+      return
+    }
+    setFormErrors({})
     setStatus('loading')
 
     const res = await fetch(`/api/assemblies/${slug}/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...form, type }),
+      body: JSON.stringify({
+        ...form,
+        type,
+        ...(type === 'MEMBER' && showYellowPages
+          ? {
+              yellowPages: {
+                listingType: ypForm.listingType,
+                name: ypForm.name.trim(),
+                category: ypForm.category,
+                description: ypForm.description.trim(),
+              },
+            }
+          : {}),
+      }),
     })
 
     if (res.ok) {
@@ -60,7 +210,7 @@ export default function JoinPage() {
             Registration Successful!
           </h1>
           <p className="text-gray-500 text-sm">
-            {type === 'VISITOR' 
+            {type === 'VISITOR'
               ? "Welcome! We're so glad you joined us today. We'll be in touch soon."
               : "Welcome to the family! We're excited to have you as a member of this assembly."}
           </p>
@@ -72,7 +222,8 @@ export default function JoinPage() {
     )
   }
 
-  if (!type) {
+  // Step: TYPE selection
+  if (step === 'TYPE') {
     return (
       <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'var(--ivory)' }}>
         <BackButton className="fixed top-8 left-8 z-50" variant="outline" />
@@ -83,23 +234,15 @@ export default function JoinPage() {
             </h1>
             <p className="text-gray-600">Please choose how you'd like to register today</p>
           </div>
-
           <div className="grid md:grid-cols-2 gap-6">
-            <button
-              onClick={() => setType('VISITOR')}
-              className="card p-8 text-left hover:border-purple-500 transition-colors group"
-            >
+            <button onClick={() => handleTypeSelect('VISITOR')} className="card p-8 text-left hover:border-purple-500 transition-colors group">
               <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center mb-6 group-hover:bg-purple-600 group-hover:text-white transition-colors">
                 <UserPlus size={24} />
               </div>
               <h3 className="text-xl font-bold mb-2">First Timer / Visitor</h3>
               <p className="text-sm text-gray-500">I'm visiting for the first time or just checking things out. I'd like to be followed up with.</p>
             </button>
-
-            <button
-              onClick={() => setType('MEMBER')}
-              className="card p-8 text-left hover:border-gold-500 transition-colors group"
-            >
+            <button onClick={() => handleTypeSelect('MEMBER')} className="card p-8 text-left hover:border-gold-500 transition-colors group">
               <div className="w-12 h-12 rounded-xl bg-gold-100 flex items-center justify-center mb-6 group-hover:bg-gold-500 group-hover:text-white transition-colors">
                 <Users size={24} />
               </div>
@@ -112,9 +255,133 @@ export default function JoinPage() {
     )
   }
 
+  // Step: CHECK — phone/email pre-check
+  if (step === 'CHECK') {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'var(--ivory)' }}>
+        <BackButton onClick={() => setStep('TYPE')} className="fixed top-8 left-8 z-50" variant="outline" />
+        <div className="card p-10 max-w-md w-full">
+          <div className="text-center mb-8">
+            <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: 'var(--purple-100)' }}>
+              <Search size={26} style={{ color: 'var(--purple-700)' }} />
+            </div>
+            <h2 className="text-2xl font-bold mb-2" style={{ fontFamily: 'var(--font-serif)', color: 'var(--purple-900)' }}>
+              Quick Check
+            </h2>
+            <p className="text-sm text-gray-500">
+              Enter your contact details so we can check if you're already in our system.
+              You may fill one or both fields.
+            </p>
+          </div>
+          <form onSubmit={handleCheck} className="space-y-4">
+            <div>
+              <label className="form-label">Phone Number</label>
+              <input
+                className="form-input"
+                type="tel"
+                placeholder="e.g. 08012345678"
+                value={checkPhone}
+                onChange={e => { setCheckError(''); setCheckPhone(sanitizePhone(e.target.value)) }}
+              />
+            </div>
+            <div>
+              <label className="form-label">Email Address</label>
+              <input
+                className="form-input"
+                type="email"
+                placeholder="e.g. john@example.com"
+                value={checkEmail}
+                onChange={e => { setCheckError(''); setCheckEmail(e.target.value) }}
+              />
+            </div>
+            {checkError && (
+              <div className="flex items-center gap-2 text-red-500 text-sm">
+                <AlertCircle size={16} /> {checkError}
+              </div>
+            )}
+            <button type="submit" disabled={checking} className="btn-primary w-full justify-center">
+              {checking ? 'Checking...' : 'Continue'}
+            </button>
+          </form>
+        </div>
+      </div>
+    )
+  }
+
+  // Step: FOUND — existing record
+  if (step === 'FOUND' && existingRecord) {
+    const isMember = existingRecord.type === 'MEMBER'
+    const isFirstTimer = existingRecord.type === 'FIRST_TIMER'
+    const choosingMember = type === 'MEMBER'
+
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'var(--ivory)' }}>
+        <BackButton onClick={() => setStep('CHECK')} className="fixed top-8 left-8 z-50" variant="outline" />
+        <div className="card p-10 max-w-md w-full text-center">
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+               style={{ background: isMember ? 'var(--gold-100)' : 'var(--purple-100)' }}>
+            {isMember ? <Users size={28} style={{ color: 'var(--gold-600)' }} /> : <UserPlus size={28} style={{ color: 'var(--purple-700)' }} />}
+          </div>
+          <h2 className="text-2xl font-bold mb-2" style={{ fontFamily: 'var(--font-serif)', color: 'var(--purple-900)' }}>
+            Welcome back, {existingRecord.data.name}!
+          </h2>
+
+          {isMember && (
+            <>
+              <p className="text-sm text-gray-500 mb-6">
+                You're already registered as a member. Visit My Journey to track your growth and access training materials.
+              </p>
+              <button onClick={() => router.push('/member/register')} className="btn-primary w-full justify-center mb-3">
+                View My Journey & Growth Track
+              </button>
+              <button onClick={() => router.push(`/${slug}`)} className="btn-outline w-full justify-center">
+                Back to Assembly
+              </button>
+            </>
+          )}
+
+          {isFirstTimer && (
+            <>
+              {existingRecord.data.convertedToMember ? (
+                <>
+                  <p className="text-sm text-gray-500 mb-6">You've already completed member registration.</p>
+                  <button onClick={() => router.push('/member/register')} className="btn-primary w-full justify-center">
+                    View My Journey & Growth Track
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-gray-500 mb-2">
+                    You're registered as a first-time visitor (registered {new Date(existingRecord.data.registeredAt).toLocaleDateString()}).
+                  </p>
+                  {choosingMember ? (
+                    <p className="text-sm text-gray-500 mb-6">Complete the form below to become a full member.</p>
+                  ) : (
+                    <p className="text-sm text-gray-500 mb-6">We'll continue following up with you. No further action needed.</p>
+                  )}
+                  {choosingMember ? (
+                    <button onClick={() => { setForm(f => ({ ...f, phone: checkPhone, email: checkEmail })); setStep('FORM') }}
+                            className="btn-primary w-full justify-center mb-3">
+                      Complete Member Registration
+                    </button>
+                  ) : (
+                    <button onClick={() => router.push(`/${slug}`)} className="btn-outline w-full justify-center">
+                      Back to Assembly
+                    </button>
+                  )}
+                </>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // Step: FORM — full registration form
   return (
     <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'var(--ivory)' }}>
-      <BackButton onClick={() => setType(null)} className="fixed top-8 left-8 z-50" variant="outline" />
+      <BackButton onClick={() => setStep('CHECK')} className="fixed top-8 left-8 z-50" variant="outline" />
       <div className="card p-8 max-w-2xl w-full">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-serif)', color: 'var(--purple-900)' }}>
@@ -128,45 +395,55 @@ export default function JoinPage() {
             <div>
               <label className="form-label">First Name *</label>
               <input
-                className="form-input"
+                className={`form-input ${formErrors.firstName ? 'border-red-400' : ''}`}
                 value={form.firstName}
-                onChange={(e) => setForm(f => ({ ...f, firstName: e.target.value }))}
-                required
+                onChange={(e) => { clearError('firstName'); setForm(f => ({ ...f, firstName: e.target.value })) }}
               />
+              <FieldError field="firstName" />
             </div>
             <div>
               <label className="form-label">Last Name *</label>
               <input
-                className="form-input"
+                className={`form-input ${formErrors.lastName ? 'border-red-400' : ''}`}
                 value={form.lastName}
-                onChange={(e) => setForm(f => ({ ...f, lastName: e.target.value }))}
-                required
+                onChange={(e) => { clearError('lastName'); setForm(f => ({ ...f, lastName: e.target.value })) }}
               />
+              <FieldError field="lastName" />
             </div>
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="form-label">Email</label>
+              <label className="form-label">Phone {!form.email?.trim() ? '*' : ''}</label>
               <input
-                className="form-input"
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))}
-                required={type === 'VISITOR'}
+                className={`form-input ${formErrors.phone || formErrors.contact ? 'border-red-400' : ''}`}
+                type="tel"
+                placeholder="e.g. 08012345678"
+                value={form.phone}
+                onChange={(e) => { clearError('phone'); clearError('contact'); setForm(f => ({ ...f, phone: sanitizePhone(e.target.value) })) }}
               />
+              <FieldError field="phone" />
             </div>
             <div>
-              <label className="form-label">Phone *</label>
+              <label className="form-label">Email {!form.phone?.trim() ? '*' : ''}</label>
               <input
-                className="form-input"
-                type="tel"
-                value={form.phone}
-                onChange={(e) => setForm(f => ({ ...f, phone: e.target.value }))}
-                required
+                className={`form-input ${formErrors.email || formErrors.contact ? 'border-red-400' : ''}`}
+                type="email"
+                placeholder="e.g. john@example.com"
+                value={form.email}
+                onChange={(e) => { clearError('email'); clearError('contact'); setForm(f => ({ ...f, email: e.target.value })) }}
               />
+              <FieldError field="email" />
             </div>
           </div>
+          {formErrors.contact && (
+            <p className="flex items-center gap-1 text-red-500 text-xs -mt-4">
+              <AlertCircle size={12} />{formErrors.contact}
+            </p>
+          )}
+          {!formErrors.contact && (
+            <p className="text-xs text-gray-400 -mt-2">Provide at least one: phone number or email address.</p>
+          )}
 
           {type === 'MEMBER' && (
             <>
@@ -185,11 +462,12 @@ export default function JoinPage() {
                 <div>
                   <label className="form-label">Date of Birth</label>
                   <input
-                    className="form-input"
+                    className={`form-input ${formErrors.dateOfBirth ? 'border-red-400' : ''}`}
                     type="date"
                     value={form.dateOfBirth}
-                    onChange={(e) => setForm(f => ({ ...f, dateOfBirth: e.target.value }))}
+                    onChange={(e) => { clearError('dateOfBirth'); setForm(f => ({ ...f, dateOfBirth: e.target.value })) }}
                   />
+                  <FieldError field="dateOfBirth" />
                 </div>
               </div>
 
@@ -197,26 +475,29 @@ export default function JoinPage() {
                 <div>
                   <label className="form-label">City</label>
                   <input
-                    className="form-input"
+                    className={`form-input ${formErrors.city ? 'border-red-400' : ''}`}
                     value={form.city}
-                    onChange={(e) => setForm(f => ({ ...f, city: e.target.value }))}
+                    onChange={(e) => { clearError('city'); setForm(f => ({ ...f, city: e.target.value })) }}
                   />
+                  <FieldError field="city" />
                 </div>
                 <div>
                   <label className="form-label">State</label>
                   <input
-                    className="form-input"
+                    className={`form-input ${formErrors.state ? 'border-red-400' : ''}`}
                     value={form.state}
-                    onChange={(e) => setForm(f => ({ ...f, state: e.target.value }))}
+                    onChange={(e) => { clearError('state'); setForm(f => ({ ...f, state: e.target.value })) }}
                   />
+                  <FieldError field="state" />
                 </div>
                 <div>
                   <label className="form-label">Country</label>
                   <input
-                    className="form-input"
+                    className={`form-input ${formErrors.country ? 'border-red-400' : ''}`}
                     value={form.country}
-                    onChange={(e) => setForm(f => ({ ...f, country: e.target.value }))}
+                    onChange={(e) => { clearError('country'); setForm(f => ({ ...f, country: e.target.value })) }}
                   />
+                  <FieldError field="country" />
                 </div>
               </div>
 
@@ -235,23 +516,35 @@ export default function JoinPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="form-label">Department *</label>
-                  <select
-                    className="form-select"
-                    value={form.department}
-                    onChange={(e) => setForm(f => ({ ...f, department: e.target.value }))}
-                  >
-                    <option value="NONE">None (Show Interest)</option>
-                    <option value="PASTORS">Pastors</option>
-                    <option value="CHOIR">Choir</option>
-                    <option value="SANCTUARY_KEEPERS">Sanctuary Keepers</option>
-                    <option value="PROTOCOL">Protocol</option>
-                    <option value="MEDIA_TECHNICAL">Media & Technical</option>
-                    <option value="CREATIVE_ARTS">Creative Arts</option>
-                    <option value="FACILITY">Facility</option>
-                    <option value="EVANGELISM">Evangelism</option>
-                    <option value="PRAYER">Prayer</option>
-                  </select>
+                  <label className="form-label">Department(s)</label>
+                  <div className="grid grid-cols-2 gap-2 mt-1">
+                    {[
+                      { value: 'PASTORS', label: 'Pastors' },
+                      { value: 'CHOIR', label: 'Choir' },
+                      { value: 'SANCTUARY_KEEPERS', label: 'Sanctuary Keepers' },
+                      { value: 'PROTOCOL', label: 'Protocol' },
+                      { value: 'MEDIA_TECHNICAL', label: 'Media & Technical' },
+                      { value: 'CREATIVE_ARTS', label: 'Creative Arts' },
+                      { value: 'FACILITY', label: 'Facility' },
+                      { value: 'EVANGELISM', label: 'Evangelism' },
+                      { value: 'PRAYER', label: 'Prayer' },
+                    ].map(dept => (
+                      <label key={dept.value} className="flex items-center gap-2 cursor-pointer text-sm">
+                        <input
+                          type="checkbox"
+                          checked={form.departments.includes(dept.value)}
+                          onChange={() => setForm(f => ({
+                            ...f,
+                            departments: f.departments.includes(dept.value)
+                              ? f.departments.filter(d => d !== dept.value)
+                              : [...f.departments, dept.value]
+                          }))}
+                          className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                        />
+                        {dept.label}
+                      </label>
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -267,6 +560,95 @@ export default function JoinPage() {
                     <option key={center.id} value={center.id}>{center.name}</option>
                   ))}
                 </select>
+              </div>
+
+              <div className="rounded-xl border p-4" style={{ borderColor: 'var(--border)', background: 'var(--gray-100)' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowYellowPages(v => !v)}
+                  className="flex items-center justify-between w-full text-left"
+                  aria-expanded={showYellowPages}
+                >
+                  <span className="flex items-center gap-2 font-semibold text-sm text-gray-800">
+                    <Store size={16} className="text-purple-700" />
+                    Also list a skill or business in The Yellow Pages (optional)
+                  </span>
+                  {showYellowPages ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                </button>
+                <p className="text-xs text-gray-500 mt-1">
+                  Get discovered by others in the church searching for skills and businesses like yours.
+                  Free, and public &mdash; visible to anyone browsing the directory.
+                </p>
+
+                {showYellowPages && (
+                  <div className="mt-4 space-y-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        aria-pressed={ypForm.listingType === 'INDIVIDUAL'}
+                        onClick={() => setYpForm(f => ({ ...f, listingType: 'INDIVIDUAL' }))}
+                        className="card p-2 text-xs font-semibold"
+                        style={ypForm.listingType === 'INDIVIDUAL' ? { borderColor: 'var(--purple-700)', background: 'var(--purple-50)' } : undefined}
+                      >
+                        A skill I offer
+                      </button>
+                      <button
+                        type="button"
+                        aria-pressed={ypForm.listingType === 'BUSINESS'}
+                        onClick={() => setYpForm(f => ({ ...f, listingType: 'BUSINESS' }))}
+                        className="card p-2 text-xs font-semibold"
+                        style={ypForm.listingType === 'BUSINESS' ? { borderColor: 'var(--purple-700)', background: 'var(--purple-50)' } : undefined}
+                      >
+                        A business/organization
+                      </button>
+                    </div>
+
+                    <div>
+                      <label className="form-label" htmlFor="yp-join-name">
+                        {ypForm.listingType === 'BUSINESS' ? 'Business/Organization Name *' : 'What skill/service? *'}
+                      </label>
+                      <input
+                        id="yp-join-name"
+                        className={`form-input ${formErrors.ypName ? 'border-red-400' : ''}`}
+                        value={ypForm.name}
+                        onChange={(e) => { setYpForm(f => ({ ...f, name: e.target.value })); clearError('ypName') }}
+                      />
+                      <FieldError field="ypName" />
+                    </div>
+
+                    <div>
+                      <label className="form-label" htmlFor="yp-join-category">Category *</label>
+                      <select
+                        id="yp-join-category"
+                        className="form-select"
+                        value={ypForm.category}
+                        onChange={(e) => { setYpForm(f => ({ ...f, category: e.target.value })); clearError('ypCategory') }}
+                      >
+                        <option value="">Choose a category</option>
+                        {CATEGORIES.map((c) => (
+                          <option key={c.value} value={c.value}>{c.label}</option>
+                        ))}
+                      </select>
+                      <FieldError field="ypCategory" />
+                    </div>
+
+                    <div>
+                      <label className="form-label" htmlFor="yp-join-description">Description *</label>
+                      <textarea
+                        id="yp-join-description"
+                        className="form-input"
+                        rows={3}
+                        value={ypForm.description}
+                        onChange={(e) => { setYpForm(f => ({ ...f, description: e.target.value })); clearError('ypDescription') }}
+                      />
+                      <FieldError field="ypDescription" />
+                    </div>
+
+                    <p className="text-xs text-gray-400">
+                      Uses the phone, email, and location above. Add a logo, website, and more later at theyellowpages.destinymissionglobal.org.
+                    </p>
+                  </div>
+                )}
               </div>
             </>
           )}
@@ -284,7 +666,9 @@ export default function JoinPage() {
           </div>
 
           {status === 'error' && (
-            <p className="text-red-500 text-sm">Something went wrong. Please try again.</p>
+            <div className="flex items-center gap-2 text-red-500 text-sm">
+              <AlertCircle size={16} /> Something went wrong. Please try again.
+            </div>
           )}
 
           <button

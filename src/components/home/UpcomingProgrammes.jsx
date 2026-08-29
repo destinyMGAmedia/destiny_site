@@ -1,7 +1,9 @@
+'use client'
 import Link from 'next/link'
 import Image from 'next/image'
 import SectionHeader from '@/components/ui/SectionHeader'
-import { ArrowRight, Calendar, MapPin, Clock } from 'lucide-react'
+import { ArrowRight, Calendar, MapPin, Clock, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
 
 function EventCard({ event }) {
   const date = new Date(event.startDate)
@@ -79,6 +81,31 @@ function EventCard({ event }) {
 }
 
 export default function UpcomingProgrammes({ events }) {
+  const [currentSlide, setCurrentSlide] = useState(0)
+  const carouselRef = useRef(null)
+  
+  const visibleEvents = events.slice(0, 6) // Show max 6 events
+  const totalSlides = Math.ceil(visibleEvents.length / 3)
+  
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % totalSlides)
+  }
+  
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides)
+  }
+
+  // Auto-scroll carousel
+  useEffect(() => {
+    if (visibleEvents.length <= 3) return // No need to auto-scroll if all fit
+    
+    const interval = setInterval(() => {
+      nextSlide()
+    }, 5000) // Auto-scroll every 5 seconds
+
+    return () => clearInterval(interval)
+  }, [totalSlides, visibleEvents.length])
+
   return (
     <section className="section-lavender">
       <div className="section-container">
@@ -88,16 +115,86 @@ export default function UpcomingProgrammes({ events }) {
             title="Upcoming Events"
             subtitle="Don't miss what God is doing"
           />
-          <Link href="/assemblies" className="btn-outline btn-sm hidden sm:inline-flex">
-            View All <ArrowRight size={13} />
+          <Link href="/events" className="btn-outline btn-sm hidden sm:inline-flex">
+            View All Events <ArrowRight size={13} />
           </Link>
         </div>
 
-        {events.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {events.map((e) => (
-              <EventCard key={e.id} event={e} />
-            ))}
+        {visibleEvents.length > 0 ? (
+          <div className="relative">
+            {/* Carousel Container */}
+            <div className="overflow-hidden" ref={carouselRef}>
+              <div 
+                className="flex transition-transform duration-500 ease-in-out"
+                style={{ 
+                  transform: `translateX(-${currentSlide * 100}%)`,
+                  width: `${totalSlides * 100}%`
+                }}
+              >
+                {Array.from({ length: totalSlides }, (_, slideIndex) => (
+                  <div 
+                    key={slideIndex}
+                    className="flex gap-6"
+                    style={{ width: `${100 / totalSlides}%` }}
+                  >
+                    {visibleEvents
+                      .slice(slideIndex * 3, (slideIndex + 1) * 3)
+                      .map((event) => (
+                        <div key={event.id} className="flex-1 min-w-0">
+                          <EventCard event={event} />
+                        </div>
+                      ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Navigation Arrows - only show if more than 3 events */}
+            {totalSlides > 1 && (
+              <>
+                <button
+                  onClick={prevSlide}
+                  className="absolute left-[-20px] top-1/2 -translate-y-1/2 bg-white shadow-lg rounded-full p-3 hover:bg-gray-50 transition-colors z-10"
+                  style={{ boxShadow: '0 10px 25px rgba(74,20,140,0.15)' }}
+                >
+                  <ChevronLeft size={20} style={{ color: 'var(--purple-900)' }} />
+                </button>
+                <button
+                  onClick={nextSlide}
+                  className="absolute right-[-20px] top-1/2 -translate-y-1/2 bg-white shadow-lg rounded-full p-3 hover:bg-gray-50 transition-colors z-10"
+                  style={{ boxShadow: '0 10px 25px rgba(74,20,140,0.15)' }}
+                >
+                  <ChevronRight size={20} style={{ color: 'var(--purple-900)' }} />
+                </button>
+
+                {/* Slide Indicators */}
+                <div className="flex justify-center gap-2 mt-8">
+                  {Array.from({ length: totalSlides }, (_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentSlide(index)}
+                      className={`w-2 h-2 rounded-full transition-all ${
+                        index === currentSlide 
+                          ? 'w-8' 
+                          : 'hover:bg-opacity-60'
+                      }`}
+                      style={{ 
+                        backgroundColor: index === currentSlide ? 'var(--purple-600)' : 'var(--purple-200)'
+                      }}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+
+            {/* Show View All button if there are more than 6 events */}
+            {events.length > 6 && (
+              <div className="text-center mt-8">
+                <Link href="/events" className="btn-outline">
+                  View All {events.length} Events <ArrowRight size={16} />
+                </Link>
+              </div>
+            )}
           </div>
         ) : (
           <div
@@ -119,7 +216,7 @@ export default function UpcomingProgrammes({ events }) {
 
         {/* Mobile CTA */}
         <div className="mt-8 flex justify-center sm:hidden">
-          <Link href="/assemblies" className="btn-outline btn-sm">
+          <Link href="/events" className="btn-outline btn-sm">
             View All Events <ArrowRight size={13} />
           </Link>
         </div>

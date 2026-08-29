@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { Pencil, Check, X, ChevronUp } from 'lucide-react'
+import { Pencil, Check, X, ChevronUp, Plus, Trash2 } from 'lucide-react'
 
 const DEFAULT_DEPARTMENTS = [
   { key: 'CHOIR',             label: 'Choir & Worship',        tagline: "Leading the Church into God's Presence",       icon: '🎵', description: 'The DMGA Choir leads the congregation into Spirit-filled worship every service. More than a music team, we are worshippers who understand that praise is a weapon and worship is a lifestyle. Through rigorous rehearsal and spiritual development, the choir creates an atmosphere where God moves.', activities: ['Sunday Worship Leading', 'Special Ministrations', 'Choir Practice', 'Music Recordings'] },
@@ -13,7 +13,15 @@ const DEFAULT_DEPARTMENTS = [
   { key: 'FACILITY',          label: 'Facility',               tagline: 'Keeping the House in Order',                    icon: '🔧', description: 'The Facility team handles the physical maintenance and infrastructure of the church premises. From electrical repairs to plumbing, landscaping to furniture arrangement — they ensure the building is always safe, functional, and presentable. Their work behind the scenes enables every other ministry to thrive.', activities: ['Building Maintenance', 'Electrical & Plumbing', 'Grounds & Landscaping', 'Equipment Management'] },
 ]
 
-function DepartmentRow({ dept, onSave }) {
+const DEFAULT_KEYS = new Set(DEFAULT_DEPARTMENTS.map(d => d.key))
+
+const EMPTY_FORM = { label: '', tagline: '', description: '', activities: '', icon: '✨' }
+
+function toKey(label) {
+  return label.toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_|_$/g, '') || `DEPT_${Date.now()}`
+}
+
+function DepartmentRow({ dept, isCustom, onSave, onDelete }) {
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({
     label: dept.label,
@@ -44,13 +52,25 @@ function DepartmentRow({ dept, onSave }) {
           <p className="font-semibold text-sm" style={{ color: 'var(--charcoal)' }}>{dept.label}</p>
           <p className="text-xs text-gray-400">{dept.tagline}</p>
         </div>
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); setEditing(v => !v) }}
-          className="p-1.5 rounded-lg hover:bg-purple-50 text-purple-600 shrink-0"
-        >
-          {editing ? <ChevronUp size={14} /> : <Pencil size={14} />}
-        </button>
+        <div className="flex items-center gap-1 shrink-0">
+          {isCustom && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onDelete(dept.key) }}
+              className="p-1.5 rounded-lg hover:bg-red-50 text-red-400 hover:text-red-600"
+              title="Delete department"
+            >
+              <Trash2 size={14} />
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setEditing(v => !v) }}
+            className="p-1.5 rounded-lg hover:bg-purple-50 text-purple-600"
+          >
+            {editing ? <ChevronUp size={14} /> : <Pencil size={14} />}
+          </button>
+        </div>
       </div>
 
       {editing && (
@@ -91,28 +111,112 @@ function DepartmentRow({ dept, onSave }) {
   )
 }
 
+function AddDepartmentForm({ onAdd, onCancel }) {
+  const [form, setForm] = useState(EMPTY_FORM)
+  const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }))
+
+  const handleAdd = () => {
+    if (!form.label.trim()) return
+    onAdd({
+      key: toKey(form.label),
+      ...form,
+      activities: form.activities.split(',').map(a => a.trim()).filter(Boolean),
+    })
+  }
+
+  return (
+    <div className="border-2 border-dashed rounded-xl px-4 py-4 space-y-3 bg-purple-50" style={{ borderColor: 'var(--purple, #7c3aed)' }}>
+      <p className="text-sm font-semibold" style={{ color: 'var(--charcoal)' }}>New Department</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label className="form-label">Name *</label>
+          <input className="form-input" value={form.label} onChange={set('label')} placeholder="e.g. Children's Ministry" autoFocus />
+        </div>
+        <div>
+          <label className="form-label">Tagline</label>
+          <input className="form-input" value={form.tagline} onChange={set('tagline')} placeholder="A short subtitle" />
+        </div>
+        <div>
+          <label className="form-label">Icon (emoji)</label>
+          <input className="form-input" value={form.icon} onChange={set('icon')} maxLength={4} />
+        </div>
+        <div>
+          <label className="form-label">Activities (comma-separated)</label>
+          <input className="form-input" value={form.activities} onChange={set('activities')} placeholder="Activity 1, Activity 2" />
+        </div>
+        <div className="sm:col-span-2">
+          <label className="form-label">Description</label>
+          <textarea className="form-input" rows={3} value={form.description} onChange={set('description')} placeholder="What this department does..." />
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <button type="button" onClick={handleAdd} className="btn-primary btn-sm" disabled={!form.label.trim()}>
+          <Check size={13} /> Add Department
+        </button>
+        <button type="button" onClick={onCancel} className="btn-outline btn-sm">
+          <X size={13} /> Cancel
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export default function DepartmentsEditor({ section, onContentChange }) {
+  const [adding, setAdding] = useState(false)
   const cc = section?.customContent || {}
-  const overrides = (cc.items || []).reduce((map, item) => ({ ...map, [item.key]: item }), {})
+  const items = cc.items || []
+
+  const overrides = items.reduce((map, item) => ({ ...map, [item.key]: item }), {})
+  const customItems = items.filter(i => !DEFAULT_KEYS.has(i.key))
 
   const departments = DEFAULT_DEPARTMENTS.map(d => ({ ...d, ...overrides[d.key] }))
 
   const handleSave = (key, updates) => {
-    const existingItems = cc.items || []
-    const idx = existingItems.findIndex(i => i.key === key)
+    const idx = items.findIndex(i => i.key === key)
     const newItem = { key, ...updates }
     const newItems = idx >= 0
-      ? existingItems.map((i, n) => n === idx ? newItem : i)
-      : [...existingItems, newItem]
-
+      ? items.map((i, n) => n === idx ? newItem : i)
+      : [...items, newItem]
     onContentChange({ items: newItems })
+  }
+
+  const handleAdd = (newDept) => {
+    const key = newDept.key
+    if (items.some(i => i.key === key)) {
+      // avoid collision — append timestamp suffix
+      newDept.key = `${key}_${Date.now()}`
+    }
+    onContentChange({ items: [...items, newDept] })
+    setAdding(false)
+  }
+
+  const handleDelete = (key) => {
+    onContentChange({ items: items.filter(i => i.key !== key) })
   }
 
   return (
     <div className="space-y-2">
       {departments.map(d => (
-        <DepartmentRow key={d.key} dept={d} onSave={handleSave} />
+        <DepartmentRow key={d.key} dept={d} isCustom={false} onSave={handleSave} onDelete={handleDelete} />
       ))}
+
+      {customItems.map(d => (
+        <DepartmentRow key={d.key} dept={{ ...d, activities: d.activities || [] }} isCustom={true} onSave={handleSave} onDelete={handleDelete} />
+      ))}
+
+      {adding
+        ? <AddDepartmentForm onAdd={handleAdd} onCancel={() => setAdding(false)} />
+        : (
+          <button
+            type="button"
+            onClick={() => setAdding(true)}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed text-sm font-medium text-purple-600 hover:bg-purple-50 transition-colors"
+            style={{ borderColor: 'var(--border)' }}
+          >
+            <Plus size={16} /> Add Department
+          </button>
+        )
+      }
     </div>
   )
 }

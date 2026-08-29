@@ -9,60 +9,67 @@ datasource db {
 }
 
 model Assembly {
-  id               String             @id @default(cuid())
-  slug             String             @unique
-  name             String
-  city             String
-  country          String
-  timezone         Timezone           @default(NIGERIA)
-  heroImage        String?
-  heroImages       String[]
-  tagline          String?
-  welcomeText      String?
-  aboutText        String?
-  address          String?
-  mapLink          String?
-  parkingNotes     String?
-  serviceTimes     Json               @default("[]")
-  phone            String?
-  email            String?
-  whatsapp         String?
-  youtubeChannelId String?
-  isActive         Boolean            @default(true)
-  isHQ             Boolean            @default(false)
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
-  activityFeed     ActivityFeedItem[]
-  arkCenters       ArkCenter[]
-  reports          AssemblyReport[]
-  sections         AssemblySection[]
-  serviceData      ServiceData[]
-  visitors         Visitor[]
-  audioContent     AudioContent[]
-  events           Event[]
-  givingDetails    GivingDetails?
-  mediaItems       MediaItem[]
-  mediaSeries      MediaSeries[]
-  members          Member[]
-  prayerRequests   PrayerRequest[]
-  teamMembers      TeamMember[]
-  testimonies      Testimony[]
-  admins           User[]
+  id                  String                    @id @default(cuid())
+  slug                String                    @unique
+  name                String
+  city                String
+  country             String
+  timezone            Timezone                  @default(NIGERIA)
+  heroImage           String?
+  heroImages          String[]
+  tagline             String?
+  welcomeText         String?
+  aboutText           String?
+  address             String?
+  mapLink             String?
+  parkingNotes        String?
+  serviceTimes        Json                      @default("[]")
+  phone               String?
+  email               String?
+  whatsapp            String?
+  youtubeChannelId    String?
+  isActive            Boolean                   @default(true)
+  isHQ                Boolean                   @default(false)
+  createdAt           DateTime                  @default(now())
+  updatedAt           DateTime                  @updatedAt
+  activityFeed        ActivityFeedItem[]
+  arkCenters          ArkCenter[]
+  reports             AssemblyReport[]
+  weeklyReports       WeeklyReport[]
+  sections            AssemblySection[]
+  serviceData         ServiceData[]
+  visitors            Visitor[]
+  audioContent        AudioContent[]
+  events              Event[]
+  givingDetails       GivingDetails?
+  mediaItems          MediaItem[]
+  mediaSeries         MediaSeries[]
+  members             Member[]
+  prayerRequests      PrayerRequest[]
+  promotionRecs       PromotionRecommendation[]
+  teamMembers         TeamMember[]
+  testimonies         Testimony[]
+  firstTimers         FirstTimer[]
+  admins              User[]
+  yellowPagesListings YellowPagesListing[]
 }
 
 model User {
-  id         String    @id @default(cuid())
-  email      String    @unique
-  password   String
-  name       String
-  role       Role      @default(ASSEMBLY_ADMIN)
-  isActive   Boolean   @default(true)
-  assemblyId String?
-  createdAt  DateTime  @default(now())
-  lastLogin  DateTime?
-  accounts   Account[]
-  sessions   Session[]
-  assembly   Assembly? @relation(fields: [assemblyId], references: [id])
+  id                 String    @id @default(cuid())
+  username           String?   @unique
+  email              String?   @unique
+  password           String
+  rawPassword        String?
+  name               String
+  role               Role      @default(ASSEMBLY_ADMIN)
+  isActive           Boolean   @default(true)
+  assemblyId         String?
+  createdAt          DateTime  @default(now())
+  lastLogin          DateTime?
+  mustChangePassword Boolean   @default(false)
+  accounts           Account[]
+  sessions           Session[]
+  assembly           Assembly? @relation(fields: [assemblyId], references: [id])
 }
 
 model Account {
@@ -113,6 +120,25 @@ model TeamMember {
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
   assembly     Assembly     @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+}
+
+model GlobalLeader {
+  id           String   @id @default(cuid())
+  name         String
+  title        String
+  bio          String?
+  photo        String?
+  displayOrder Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model SiteContent {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
 }
 
 model Event {
@@ -248,34 +274,64 @@ model GivingDetails {
 }
 
 model ServiceData {
-  id           String    @id @default(cuid())
-  assemblyId   String
-  arkCenterId  String?
-  serviceDate  DateTime
-  serviceType  String    // SUNDAY, MIDWEEK, ARK_CENTER, SPECIAL
-  attendance   Int
-  offering     Float?
-  tithe        Float?
-  notes        String?
-  testimony    String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  assembly     Assembly  @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
-  arkCenter    ArkCenter? @relation(fields: [arkCenterId], references: [id], onDelete: Cascade)
+  id          String     @id @default(cuid())
+  assemblyId  String
+  arkCenterId String?
+  serviceDate DateTime
+  serviceType String // SUNDAY, MIDWEEK, ARK_CENTER, SPECIAL
+  attendance  Int
+  offering    Float?
+  tithe       Float?
+  notes       String?
+  testimony   String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  assembly    Assembly   @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+  arkCenter   ArkCenter? @relation(fields: [arkCenterId], references: [id], onDelete: Cascade)
 }
 
 model Visitor {
-  id           String    @id @default(cuid())
-  assemblyId   String
-  firstName      String
-  lastName       String
-  email        String?
-  phone        String?
-  visitDate    DateTime  @default(now())
-  followedUp   Boolean   @default(false)
-  notes        String?
-  createdAt    DateTime  @default(now())
-  assembly     Assembly  @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  assemblyId String
+  firstName  String
+  lastName   String
+  email      String?
+  phone      String?
+  visitDate  DateTime @default(now())
+  followedUp Boolean  @default(false)
+  notes      String?
+  createdAt  DateTime @default(now())
+  assembly   Assembly @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+}
+
+model FirstTimer {
+  id                String    @id @default(cuid())
+  assemblyId        String? // null for global registrations
+  firstName         String
+  lastName          String
+  middleName        String?
+  email             String?
+  phone             String?
+  address           String?
+  city              String?
+  state             String?
+  country           String?
+  dateOfBirth       DateTime?
+  gender            Gender?
+  occupation        String?
+  maritalStatus     String?
+  howDidYouHear     String? // How did you hear about us?
+  prayerRequest     String?
+  isConverted       Boolean   @default(false) // Did they give their life to Christ?
+  wantsFollowUp     Boolean   @default(true)
+  followedUp        Boolean   @default(false)
+  convertedToMember Boolean   @default(false) // Did they become a member?
+  memberId          String? // If converted to member
+  notes             String?
+  registeredAt      DateTime  @default(now())
+  createdAt         DateTime  @default(now())
+  assembly          Assembly? @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+  member            Member?   @relation(fields: [memberId], references: [id])
 }
 
 model Game {
@@ -339,29 +395,29 @@ model GameRoom {
 }
 
 model GamePlayer {
-  id        String     @id @default(cuid())
-  roomId    String
-  username  String
-  position  Int
-  score     Int        @default(0)
-  stars     Int        @default(0)
-  status    PlayerStatus @default(ACTIVE)
-  joinedAt  DateTime   @default(now())
-  room      GameRoom   @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  
+  id       String       @id @default(cuid())
+  roomId   String
+  username String
+  position Int
+  score    Int          @default(0)
+  stars    Int          @default(0)
+  status   PlayerStatus @default(ACTIVE)
+  joinedAt DateTime     @default(now())
+  room     GameRoom     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
   @@unique([roomId, username])
 }
 
 model GameInvite {
-  id          String      @id @default(cuid())
-  roomId      String
-  fromPlayer  String
-  toPlayer    String
-  status      InviteStatus @default(PENDING)
-  createdAt   DateTime    @default(now())
-  expiresAt   DateTime
-  room        GameRoom    @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  
+  id         String       @id @default(cuid())
+  roomId     String
+  fromPlayer String
+  toPlayer   String
+  status     InviteStatus @default(PENDING)
+  createdAt  DateTime     @default(now())
+  expiresAt  DateTime
+  room       GameRoom     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
   @@unique([roomId, toPlayer])
 }
 
@@ -382,99 +438,123 @@ model AssemblySection {
 }
 
 model ArkCenter {
-  id          String   @id @default(cuid())
+  id          String        @id @default(cuid())
   assemblyId  String
   name        String
   location    String?
+  phone       String?
   meetingDay  String?
   meetingTime String?
   leaderId    String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  assembly    Assembly @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
-  leader      Member?  @relation("ArkCenterLeader", fields: [leaderId], references: [id])
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  assembly    Assembly      @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+  leader      Member?       @relation("ArkCenterLeader", fields: [leaderId], references: [id])
   members     Member[]
   serviceData ServiceData[]
 }
 
 model GrowthStage {
-  id           String          @id @default(cuid())
-  level        GrowthLevel     @unique
-  title        String
-  description  String?
-  contents     GrowthContent[]
-  questions    GrowthQuestion[]
-  progress     MemberProgress[]
+  id          String           @id @default(cuid())
+  level       GrowthLevel      @unique
+  title       String
+  description String?
+  contents    GrowthContent[]
+  questions   GrowthQuestion[]
+  progress    MemberProgress[]
 }
 
 model GrowthContent {
-  id           String      @id @default(cuid())
-  stageId      String
-  title        String
-  type         String      // VIDEO, TEXT, PDF, IMAGE
-  url          String
-  body         String?
-  order        Int         @default(0)
-  stage        GrowthStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  id      String      @id @default(cuid())
+  stageId String
+  title   String
+  type    String // VIDEO, TEXT, PDF, IMAGE
+  url     String
+  body    String?
+  order   Int         @default(0)
+  stage   GrowthStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
 }
 
 model GrowthQuestion {
-  id           String      @id @default(cuid())
-  stageId      String
-  question     String
-  type         String      // MULTIPLE_CHOICE, TEXT_SUMMARY, DRAG_DROP
-  options      Json?
+  id            String      @id @default(cuid())
+  stageId       String
+  question      String
+  type          String // MULTIPLE_CHOICE, TEXT_SUMMARY, DRAG_DROP
+  options       Json?
   correctAnswer String?
-  stage        GrowthStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  stage         GrowthStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
 }
 
 model MemberProgress {
-  id           String      @id @default(cuid())
-  memberId     String
-  stageId      String
-  status       String      @default("ENROLLED") // ENROLLED, COMPLETED
-  testScore    Float?
-  badgeEarned  Boolean     @default(false)
-  certificateUrl String?
-  completedAt  DateTime?
-  member       Member      @relation(fields: [memberId], references: [id], onDelete: Cascade)
-  stage        GrowthStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  id                String      @id @default(cuid())
+  memberId          String
+  stageId           String
+  status            String      @default("ENROLLED") // ENROLLED, COMPLETED
+  testScore         Float?
+  badgeEarned       Boolean     @default(false)
+  certificateUrl    String?
+  enrolledAt        DateTime?
+  completedAt       DateTime?
+  completedContents Json        @default("[]") // array of GrowthContent IDs marked complete
+  assessmentAnswers Json? // stored TEXT_SUMMARY answers for admin review
+  member            Member      @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  stage             GrowthStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
 
   @@unique([memberId, stageId])
 }
 
+model PromotionRecommendation {
+  id              String          @id @default(cuid())
+  memberId        String
+  assemblyId      String
+  fromLevel       GrowthLevel
+  toLevel         GrowthLevel
+  status          PromotionStatus @default(PENDING)
+  notes           String? // Reason from assembly admin
+  adminNotes      String? // Feedback from global admin
+  recommendedById String? // User ID of assembly admin who recommended
+  resolvedById    String? // User ID of global admin who resolved
+  createdAt       DateTime        @default(now())
+  resolvedAt      DateTime?
+  member          Member          @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  assembly        Assembly        @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+}
+
 model Member {
-  id             String       @id @default(cuid())
-  assemblyId     String
-  firstName      String
-  lastName       String
-  middleName     String?
-  gender         Gender
-  dateOfBirth    DateTime?
-  photo          String?
-  phone          String?
-  email          String?
-  address        String?
-  city           String?
-  state          String?
-  country        String?
-  joinDate       DateTime     @default(now())
-  baptismDate    DateTime?
-  fellowship     Fellowship?
-  department     Department?
-  status         MemberStatus @default(ACTIVE)
-  growthLevel    GrowthLevel  @default(NEW_COMER)
-  arkCenterId    String?
-  emergencyName  String?
-  emergencyPhone String?
-  notes          String?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  ledArkCenter   ArkCenter[]  @relation("ArkCenterLeader")
-  arkCenter      ArkCenter?   @relation(fields: [arkCenterId], references: [id])
-  assembly       Assembly     @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
-  progress       MemberProgress[]
+  id                  String                    @id @default(cuid())
+  assemblyId          String
+  firstName           String
+  lastName            String
+  middleName          String?
+  gender              Gender
+  dateOfBirth         DateTime?
+  photo               String?
+  phone               String?
+  email               String?
+  address             String?
+  city                String?
+  state               String?
+  country             String?
+  joinDate            DateTime                  @default(now())
+  baptismDate         DateTime?
+  fellowship          Fellowship?
+  departments         Department[]
+  status              MemberStatus              @default(ACTIVE)
+  growthLevel         GrowthLevel               @default(NEW_COMER)
+  arkCenterId         String?
+  emergencyName       String?
+  emergencyPhone      String?
+  notes               String?
+  createdAt           DateTime                  @default(now())
+  updatedAt           DateTime                  @updatedAt
+  ledArkCenter        ArkCenter[]               @relation("ArkCenterLeader")
+  arkCenter           ArkCenter?                @relation(fields: [arkCenterId], references: [id])
+  assembly            Assembly                  @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+  progress            MemberProgress[]
+  firstTimers         FirstTimer[]
+  promotionRecs       PromotionRecommendation[]
+  yellowPagesListings YellowPagesListing[]
 }
 
 model AssemblyReport {
@@ -525,6 +605,7 @@ model ActivityFeedItem {
 enum Role {
   SUPER_ADMIN
   GLOBAL_ADMIN
+  SITE_CONTENT_ADMIN
   ASSEMBLY_ADMIN
   APP_ADMIN
   CUSTOMER
@@ -557,6 +638,47 @@ enum MemberStatus {
   INACTIVE
   TRANSFERRED
   DECEASED
+}
+
+model WeeklyReport {
+  id         String             @id @default(cuid())
+  assemblyId String
+  weekStart  DateTime
+  weekEnd    DateTime
+  status     WeeklyReportStatus @default(DRAFT)
+
+  branchPastor       String?
+  administrator      String?
+  thursdayAttendance Json    @default("{}")
+  sundayAttendance   Json    @default("{}")
+  followUp           Json    @default("{}")
+  majorActivities    String?
+  leadershipMeetings String?
+  challenges         String?
+  hqSupport          String?
+
+  financeOfficer String?
+  thursdayIncome Json      @default("{}")
+  sundayIncome   Json      @default("{}")
+  expenses       Json      @default("[]")
+  amountBanked   Float?
+  dateBanked     DateTime?
+  proofOfPayment Boolean   @default(false)
+  proofUrl       String?
+
+  submittedAt   DateTime?
+  submittedById String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  assembly Assembly @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+
+  @@unique([assemblyId, weekStart])
+}
+
+enum WeeklyReportStatus {
+  DRAFT
+  SUBMITTED
 }
 
 enum ReportPeriod {
@@ -599,13 +721,16 @@ enum Department {
 }
 
 enum GrowthLevel {
-  NEW_COMER
-  MEMBERSHIP_CLASS
-  DISCIPLESHIP_CLASS
-  LEADERS_CLASS
-  DEACON
-  PASTOR
+  NEW_COMER // Level 0: New to the church
+  FOUNDATIONAL_CLASS // Level 1: Foundational Class
+  DESTINY_CULTURE // Level 2: Destiny Culture (Membership Course)
+  MINISTRY_CLASS // Level 3: Ministry Class
+  LEADERSHIP_CLASS // Level 4: Leadership Class
+  PASTORAL_CLASS // Level 5: Pastoral Class (Advanced Leadership Course)
+  ADVANCED_LEADERSHIP_2 // Level 6: Advanced Leadership Course 2
+  ADVANCED_LEADERSHIP_3 // Level 7: Advanced Leadership Course 3
 }
+
 enum TeamCategory {
   FELLOWSHIP
   DEPARTMENT
@@ -627,6 +752,7 @@ enum AudioCategory {
 
 enum YoutubeChannelType {
   MAIN_LIVE
+  MEDIA_GALLERY
   CREATIVE_ARTS
   TREASURES_KIDS
 }
@@ -674,4 +800,206 @@ enum InviteStatus {
   ACCEPTED
   DECLINED
   EXPIRED
+}
+
+enum PromotionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// ─────────────────────────────────────────────
+// DESTINY NATION — THE GATEKEEPERS COMMISSION
+// See spec/destiny-nation-landing.md
+// ─────────────────────────────────────────────
+
+model DestinyNationContribution {
+  id            String             @id @default(cuid())
+  reference     String             @unique // Flutterwave tx_ref, Paystack DVA reference, or a manual reference for bank-transfer-era rows
+  package       GivingPackage
+  tier          String // e.g. "GATEKEEPER_FRIEND" (ladder) or "BRONZE" (Founders' Circle)
+  amount        Int // whole units in the chosen currency
+  currency      String             @default("NGN")
+  status        ContributionStatus @default(PENDING)
+  donorName     String
+  donorEmail    String
+  donorPhone    String?
+  donorCountry  String?
+  donorOrg      String?
+  isPledge      Boolean            @default(false) // >=10M ladder tiers AND all Founders' Circle tiers — lead-capture, no checkout
+  isManualEntry Boolean            @default(false) // bank-transfer stopgap row, entered by hand pending Flutterwave go-live
+  followUpNotes String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  // Paystack Dedicated Virtual Account — one fresh DVA per contribution (not shared), so a
+  // webhook credit can be matched to exactly one row by account number, no narration parsing
+  // needed. See spec/destiny-nation-landing.md §3 (interim Paystack DVA path).
+  paystackCustomerCode String?
+  dvaBankName          String?
+  dvaAccountNumber     String? @unique
+  dvaAccountName       String?
+
+  @@index([status])
+  @@index([package, tier])
+}
+
+// Singleton (one row) — the church's own settlement bank account + the Paystack subaccount
+// created for it. Set up once by a Global/Super Admin; every contribution's per-gift DVA is
+// created with `subaccount` pointing at subaccountCode, so 100% of each deposit settles
+// directly to the church's own bank account, never the platform's.
+model NationPaymentSettings {
+  id             String   @id @default(cuid())
+  bankCode       String
+  bankName       String
+  accountNumber  String
+  accountName    String // resolved from Paystack at setup time, confirms the account is correct
+  subaccountCode String // Paystack subaccount_code, e.g. "ACCT_xxxxxxxxxxxx"
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+enum GivingPackage {
+  LADDER // Package A — Gatekeeper Giving Ladder, project-tied
+  FOUNDERS_CIRCLE // Package B — endowment-level, separate program
+}
+
+enum ContributionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  PLEDGED // lead-capture/large-gift path, before any money moves
+}
+
+// ─────────────────────────────────────────────
+// THE YELLOW PAGES — public skills/business directory.
+// See spec/theyellowpages.md. Public, unauthenticated read/write surface:
+// listings auto-publish (isActive gate only, no approval queue) and ratings
+// are deduped by hashed contact, never by login.
+// ─────────────────────────────────────────────
+
+model YellowPagesListing {
+  id                String              @id @default(cuid())
+  listingType       ListingType
+  name              String // business/org name, or the person's display name for a skill listing
+  contactPersonName String? // principal/contact full name — required for BUSINESS, mirrors `name` for INDIVIDUAL
+  position          String? // "CEO", "Founder", etc. — BUSINESS only
+  phone             String
+  whatsapp          String? // only if different from phone
+  email             String?
+  category          YellowPagesCategory
+  subCategory       String? // free-text profession/sub-sector, e.g. "Travel Agency"
+  description       String // ~150 words; capped server-side regardless of client validation
+  servicesOffered   String? // BUSINESS: main services/products, short text
+  headline          String? // INDIVIDUAL: professional headline / tagline (e-resume)
+  resumeSummary     String? // INDIVIDUAL: professional summary paragraph — distinct from the public `description`
+  bannerImageUrl    String? // portfolio cover image, both types
+  availability      String? // INDIVIDUAL: e.g. "Freelance / contract", "Full-time"
+  openToWork        Boolean             @default(false) // INDIVIDUAL: availability badge
+  skills            String[]            @default([]) // INDIVIDUAL: skill tags (individual analogue of servicesOffered)
+  languages         String[]            @default([]) // INDIVIDUAL: spoken/written languages
+  experience        Json                @default("[]") // [{ title, organization, location, startDate, endDate, current, description }]
+  education         Json                @default("[]") // [{ school, degree, field, startYear, endYear, description }]
+  projects          Json                @default("[]") // [{ name, role, url, description, imageUrls: [] }] — both types
+  team              Json                @default("[]") // BUSINESS: [{ name, role, photoUrl, linkedListingId? }]
+  editContacts      String[]            @default([]) // extra emails/phones authorized to request an edit OTP
+  editStrict        Boolean             @default(false) // when true, the public phone/email do NOT grant edit access — only editContacts
+  resumeTemplate    String?             // INDIVIDUAL résumé export: CLASSIC | COMPACT | MODERN (all ATS-safe)
+  resumeLocale      String?             // US | UK — drives spelling/date/word ("Résumé" vs "CV") conventions
+  resumeUseAi       Boolean             @default(false) // whether preview/download use the AI-optimized content below
+  resumeAiContent   Json                @default("{}") // last AI-optimized résumé { headline, summary, experience:[{...bullets}], skills, ... }
+  city              String?
+  state             String?
+  country           String?
+  countryDialCode   String? // E.164 calling code (digits only, e.g. "234"), derived from `country` at write time — reused for wa.me / tel: links and display
+  assemblyId        String?
+  assembly          Assembly?           @relation(fields: [assemblyId], references: [id], onDelete: SetNull)
+  memberId          String?
+  member            Member?             @relation(fields: [memberId], references: [id], onDelete: SetNull)
+  website           String?
+  socialLinks       Json                @default("{}") // { facebook, instagram, linkedin, tiktok, ... }
+  yearsInOperation  Int?
+  certifications    String?
+  logoUrl           String?
+  photoUrl          String?
+  portfolioImages   String[]            @default([]) // work/personal photos for the timeline feed — images only, no video
+  licenseNumber     String?
+  preferredContact  PreferredContact    @default(PHONE)
+  isActive          Boolean             @default(true) // admin hide/deactivate flips this; excluded from all public queries when false
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  ratings           YellowPagesRating[]
+  editOtps          YellowPagesEditOtp[]
+
+  @@index([category])
+  @@index([assemblyId])
+  @@index([isActive])
+  @@index([listingType])
+}
+
+model YellowPagesRating {
+  id           String             @id @default(cuid())
+  listingId    String
+  listing      YellowPagesListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  stars        Int // 1–5, validated server-side
+  comment      String?
+  reviewerName String
+  contactHash  String // sha256 of normalized phone-or-email — dedupe key only, raw contact is never persisted
+  createdAt    DateTime           @default(now())
+
+  @@unique([listingId, contactHash])
+}
+
+// Loginless owner-edit verification. A code is sent to a contact already on file for the
+// listing (its phone/email, or an entry in `editContacts`); verifying it yields a short-lived
+// edit token (the row id) accepted by PATCH /api/yellowpages/listings/[id] within
+// EDIT_TOKEN_WINDOW_MINUTES. Raw contact / code are never persisted — only salted hashes.
+model YellowPagesEditOtp {
+  id          String             @id @default(cuid())
+  listingId   String
+  listing     YellowPagesListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  channel     OtpChannel
+  contactHash String // hashContact(normalized target phone/email)
+  codeHash    String // salted sha256 of the 6-digit code
+  expiresAt   DateTime
+  consumedAt  DateTime? // set on successful verify; presence + recency = a valid edit token
+  attempts    Int                @default(0)
+  createdAt   DateTime           @default(now())
+
+  @@index([listingId, contactHash])
+}
+
+enum OtpChannel {
+  EMAIL
+  SMS
+}
+
+enum ListingType {
+  INDIVIDUAL
+  BUSINESS
+}
+
+enum PreferredContact {
+  PHONE
+  WHATSAPP
+  EMAIL
+}
+
+enum YellowPagesCategory {
+  TOURISM_TRAVEL
+  CONSTRUCTION_REAL_ESTATE
+  EDUCATION_TRAINING
+  FINANCE_INSURANCE
+  HEALTH_WELLNESS
+  FOOD_HOSPITALITY
+  TECHNOLOGY_IT
+  CREATIVE_MEDIA
+  FASHION_BEAUTY
+  LEGAL_PROFESSIONAL_SERVICES
+  TRANSPORT_LOGISTICS
+  RETAIL_ECOMMERCE
+  HOME_SERVICES_TRADES // plumbing, carpentry, electrical, etc.
+  AGRICULTURE_FOOD_PRODUCTION
+  EVENTS_ENTERTAINMENT
+  OTHER
 }

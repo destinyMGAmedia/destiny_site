@@ -16,44 +16,45 @@ export const authOptions = {
     CredentialsProvider({
       name: 'credentials',
       credentials: {
-        email: { label: 'Email', type: 'email' },
+        username: { label: 'Username', type: 'text' },
         password: { label: 'Password', type: 'password' },
       },
 
       async authorize(credentials) {
         try {
-          if (!credentials?.email || !credentials?.password) {
-            throw new Error('Email and password are required')
+          if (!credentials?.username || !credentials?.password) {
+            throw new Error('Username and password are required')
           }
 
-          const email = credentials.email.toLowerCase().trim()
+          const identifier = credentials.username.trim()
 
-          const user = await prisma.user.findUnique({
-            where: { email },
+          // Try username first, then email as fallback (for existing accounts)
+          const user = await prisma.user.findFirst({
+            where: {
+              OR: [
+                { username: identifier },
+                { email: identifier.toLowerCase() },
+              ],
+            },
             include: {
-              assembly: { 
-                select: { 
-                  id: true, 
-                  slug: true, 
-                  name: true 
-                } 
+              assembly: {
+                select: { id: true, slug: true, name: true },
               },
             },
           })
 
-          if (!user) throw new Error('No account found with this email')
+          if (!user) throw new Error('No account found with this username')
           if (!user.isActive) throw new Error('This account has been deactivated. Contact your administrator.')
 
           const isValid = await bcrypt.compare(credentials.password, user.password)
           if (!isValid) throw new Error('Incorrect password')
 
-          // Record last login
           await prisma.user.update({
             where: { id: user.id },
             data: { lastLogin: new Date() },
           })
 
-          console.log(`[AUTH] Successful login: ${email} (${user.role})`)
+          console.log(`[AUTH] Successful login: ${identifier} (${user.role})`)
 
           return {
             id: user.id,
@@ -63,10 +64,11 @@ export const authOptions = {
             assemblyId: user.assemblyId,
             assemblySlug: user.assembly?.slug ?? null,
             assemblyName: user.assembly?.name ?? null,
+            mustChangePassword: user.mustChangePassword ?? false,
           }
         } catch (error) {
           console.error('[AUTH_ERROR] Login failed:', error.message)
-          throw error // Let NextAuth handle the error message
+          throw error
         }
       },
     }),
@@ -81,6 +83,7 @@ export const authOptions = {
         token.assemblyId = user.assemblyId
         token.assemblySlug = user.assemblySlug
         token.assemblyName = user.assemblyName
+        token.mustChangePassword = user.mustChangePassword
       }
 
       // Handle session updates (e.g. role changes by admin)
@@ -89,6 +92,9 @@ export const authOptions = {
         token.assemblyId = session.assemblyId ?? token.assemblyId
         token.assemblySlug = session.assemblySlug ?? token.assemblySlug
         token.assemblyName = session.assemblyName ?? token.assemblyName
+        if (session.mustChangePassword !== undefined) {
+          token.mustChangePassword = session.mustChangePassword
+        }
       }
 
       return token
@@ -101,6 +107,7 @@ export const authOptions = {
         session.user.assemblyId = token.assemblyId
         session.user.assemblySlug = token.assemblySlug
         session.user.assemblyName = token.assemblyName
+        session.user.mustChangePassword = token.mustChangePassword ?? false
       }
       return session
     },
@@ -120,6 +127,7 @@ export const authOptions = {
 
 export const isSuperAdmin = (s) => s?.user?.role === 'SUPER_ADMIN'
 export const isGlobalAdmin = (s) => ['GLOBAL_ADMIN', 'SUPER_ADMIN'].includes(s?.user?.role)
+export const isSiteContentAdmin = (s) => s?.user?.role === 'SITE_CONTENT_ADMIN'
 export const isAssemblyAdmin = (s) => ['ASSEMBLY_ADMIN', 'GLOBAL_ADMIN', 'SUPER_ADMIN'].includes(s?.user?.role)
 export const isAppAdmin = (s) => s?.user?.role === 'APP_ADMIN'
 export const isCustomer = (s) => s?.user?.role === 'CUSTOMER'
@@ -128,7 +136,11 @@ export const isAgent = (s) => s?.user?.role === 'AGENT'
 
 // Any admin role
 export const isAnyAdmin = (s) =>
-  ['SUPER_ADMIN', 'GLOBAL_ADMIN', 'ASSEMBLY_ADMIN', 'APP_ADMIN'].includes(s?.user?.role)
+  ['SUPER_ADMIN', 'GLOBAL_ADMIN', 'SITE_CONTENT_ADMIN', 'ASSEMBLY_ADMIN', 'APP_ADMIN'].includes(s?.user?.role)
+
+// Site content editing (About page, Home page static content, etc.)
+export const canManageSiteContent = (s) =>
+  ['SUPER_ADMIN', 'GLOBAL_ADMIN', 'SITE_CONTENT_ADMIN'].includes(s?.user?.role)
 
 // Content editing permissions
 export const canUpdateContent = (s, assemblyId) => {
@@ -154,6 +166,9 @@ export const getAdminLandingRoute = (user) => {
 
   if (['SUPER_ADMIN', 'GLOBAL_ADMIN'].includes(user.role)) {
     return '/admin/dashboard'
+  }
+  if (user.role === 'SITE_CONTENT_ADMIN') {
+    return '/admin/site-content'
   }
   if (user.role === 'ASSEMBLY_ADMIN') {
     return `/admin/assemblies/${user.assemblySlug}`

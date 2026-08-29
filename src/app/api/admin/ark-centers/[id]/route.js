@@ -17,13 +17,14 @@ export async function PATCH(req, { params }) {
   }
 
   const body = await req.json()
-  const { name, location, meetingDay, meetingTime, leaderId, isActive } = body
+  const { name, location, phone, meetingDay, meetingTime, leaderId, isActive } = body
 
   const updated = await prisma.arkCenter.update({
     where: { id },
     data: {
       name,
       location,
+      phone: phone || null,
       meetingDay,
       meetingTime,
       leaderId,

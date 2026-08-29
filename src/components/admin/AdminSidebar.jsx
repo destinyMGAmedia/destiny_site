@@ -7,7 +7,7 @@ import {
   Home, Users, Settings, LogOut, ChevronRight,
   LayoutDashboard, Calendar, DollarSign, BarChart2,
   Globe, Video, BookOpen, Grid3x3, ImageIcon,
-  UserCheck, ClipboardList,
+  UserCheck, ClipboardList, TrendingUp, Crown, FileText, Landmark, Store,
 } from 'lucide-react'
 import { MdOutlineChurch } from 'react-icons/md'
 
@@ -59,7 +59,7 @@ export default function AdminSidebar({ onItemClick }) {
             </p>
           </div>
         </div>
-        {(role === 'ASSEMBLY_ADMIN') && assemblyName && (
+        {(role === 'ASSEMBLY_ADMIN' || role === 'APP_ADMIN') && assemblyName && (
           <div className="mt-3 px-2 py-1.5 rounded-lg text-xs text-white/60 bg-white/5">
             {assemblyName}
           </div>
@@ -83,13 +83,29 @@ export default function AdminSidebar({ onItemClick }) {
 
             <NavSection title="Users">
               <NavItem href="/admin/admins" icon={Users} label="Manage Admins" active={isActive('/admin/admins')} onClick={onItemClick} />
+              <NavItem href="/admin/first-timers" icon={UserCheck} label="First Timers" active={isActive('/admin/first-timers')} onClick={onItemClick} />
+              <NavItem href="/admin/members" icon={Users} label="Members" active={isActive('/admin/members')} onClick={onItemClick} />
+            </NavSection>
+
+            <NavSection title="Reporting">
+              <NavItem href="/admin/reports" icon={ClipboardList} label="Weekly Reports" active={isActive('/admin/reports')} onClick={onItemClick} />
+            </NavSection>
+
+            <NavSection title="Destiny Nation">
+              <NavItem href="/admin/nation" icon={Landmark} label="Contributions" active={isActive('/admin/nation')} onClick={onItemClick} />
+              <NavItem href="/admin/nation/payment-setup" icon={Settings} label="Payment Setup" active={isActive('/admin/nation/payment-setup')} onClick={onItemClick} />
+            </NavSection>
+
+            <NavSection title="The Yellow Pages">
+              <NavItem href="/admin/yellowpages" icon={Store} label="Listings" active={isActive('/admin/yellowpages')} onClick={onItemClick} />
             </NavSection>
 
             <NavSection title="Global Content">
+              <NavItem href="/admin/site-content" icon={FileText} label="Site Content" active={isActive('/admin/site-content')} onClick={onItemClick} />
               <NavItem href="/admin/devotionals" icon={BookOpen} label="Royal Feed" active={isActive('/admin/devotionals')} onClick={onItemClick} />
+              <NavItem href="/admin/events" icon={Calendar} label="Global Events" active={isActive('/admin/events')} onClick={onItemClick} />
               <NavItem href="/admin/growth-track" icon={UserCheck} label="Growth Track" active={isActive('/admin/growth-track')} onClick={onItemClick} />
               <NavItem href="/admin/games" icon={Grid3x3} label="Bible Games" active={isActive('/admin/games')} onClick={onItemClick} />
-              <NavItem href="/admin/hero-slides" icon={ImageIcon} label="Hero Slides" active={isActive('/admin/hero-slides')} onClick={onItemClick} />
               <NavItem href="/admin/channels" icon={Video} label="YouTube Channels" active={isActive('/admin/channels')} onClick={onItemClick} />
             </NavSection>
           </>
@@ -116,6 +132,7 @@ export default function AdminSidebar({ onItemClick }) {
 
             <NavSection title="Church Management">
               <NavItem href={`${assemblyBase}/members`} icon={UserCheck} label="Members" active={isActive(`${assemblyBase}/members`)} onClick={onItemClick} />
+              <NavItem href={`${assemblyBase}/growth`} icon={TrendingUp} label="Growth Track" active={isActive(`${assemblyBase}/growth`)} onClick={onItemClick} />
               <NavItem href={`${assemblyBase}/attendance`} icon={Calendar} label="Attendance" active={isActive(`${assemblyBase}/attendance`)} onClick={onItemClick} />
               <NavItem href={`${assemblyBase}/finance`} icon={DollarSign} label="Finance" active={isActive(`${assemblyBase}/finance`)} onClick={onItemClick} />
               <NavItem href={`${assemblyBase}/schedule`} icon={Calendar} label="Schedule" active={isActive(`${assemblyBase}/schedule`)} onClick={onItemClick} />
@@ -124,6 +141,22 @@ export default function AdminSidebar({ onItemClick }) {
 
             <NavSection title="Account">
               <NavItem href={`${assemblyBase}/settings`} icon={Settings} label="Settings" active={isActive(`${assemblyBase}/settings`)} onClick={onItemClick} />
+            </NavSection>
+          </>
+        )}
+
+        {/* SITE_CONTENT_ADMIN nav */}
+        {role === 'SITE_CONTENT_ADMIN' && (
+          <>
+            <NavSection title="Site Content">
+              <NavItem href="/admin/site-content" icon={FileText} label="Site Content" active={isActive('/admin/site-content')} onClick={onItemClick} />
+              <NavItem href="/admin/global-leaders" icon={Crown} label="Global Leaders" active={isActive('/admin/global-leaders')} onClick={onItemClick} />
+              <NavItem href="/admin/hero-slides" icon={ImageIcon} label="Hero Slides" active={isActive('/admin/hero-slides')} onClick={onItemClick} />
+              <NavItem href="/admin/channels" icon={Video} label="YouTube Channels" active={isActive('/admin/channels')} onClick={onItemClick} />
+            </NavSection>
+            <NavSection title="Editorial">
+              <NavItem href="/admin/devotionals" icon={BookOpen} label="Royal Feed" active={isActive('/admin/devotionals')} onClick={onItemClick} />
+              <NavItem href="/admin/events" icon={Calendar} label="Global Events" active={isActive('/admin/events')} onClick={onItemClick} />
             </NavSection>
           </>
         )}
