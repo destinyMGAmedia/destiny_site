@@ -9,7 +9,9 @@
 // *wording*; the ATS-safe *format* is guaranteed by the PDF templates.
 
 const PROVIDER = (process.env.AI_PROVIDER || 'gemini').toLowerCase()
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash'
+// gemini-2.5-flash was retired for new projects (Aug 2026) — 3.6-flash is the current fast tier.
+// Override with GEMINI_MODEL if Google moves the goalposts again.
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.6-flash'
 const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile'
 
 export function aiConfigured() {

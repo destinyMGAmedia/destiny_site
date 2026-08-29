@@ -341,7 +341,7 @@ describe('optimizeResume', () => {
       .mockResolvedValue(geminiReply({ summary: 's', skills: ['x'], experience: [] }))
     await optimizeResume({ model: baseModel })
     const [url, init] = fetchSpy.mock.calls[0]
-    expect(url).toContain('gemini-2.5-flash:generateContent')
+    expect(url).toContain('gemini-3.6-flash:generateContent')
     expect(init.headers['x-goog-api-key']).toBe('k')
     const cfg = JSON.parse(init.body).generationConfig
     expect(cfg.responseMimeType).toBe('application/json')

@@ -11,6 +11,14 @@ describe('next.config.js', () => {
     expect(nextConfig.outputFileTracingRoot).not.toMatch(/vercel.*vercel/)
   })
 
+  it('externalises @react-pdf/renderer and force-includes pdfkit assets for the résumé route', () => {
+    expect(nextConfig.serverExternalPackages).toContain('@react-pdf/renderer')
+    const includes = nextConfig.outputFileTracingIncludes
+    expect(includes['/api/yellowpages/listings/[id]/resume']).toEqual(
+      expect.arrayContaining(['./node_modules/pdfkit/js/**/*'])
+    )
+  })
+
   describe('images config', () => {
     it('allows SVGs and forces attachment content-disposition', () => {
       expect(nextConfig.images.dangerouslyAllowSVG).toBe(true)

@@ -16,6 +16,20 @@ const nextConfig = {
   // Pin file-tracing to this project dir so Vercel's build doesn't double the
   // path (/vercel/path0/vercel/path0) and fail to write *.nft.json trace files.
   outputFileTracingRoot: __dirname,
+
+  // @react-pdf/renderer -> pdfkit loads its standard-font metrics via a *computed*
+  // require() (`./standard-fonts/${name}.cjs`), which Next's serverless file-tracing
+  // can't follow — so the résumé PDF route crashes on Vercel with
+  // "Cannot find module '.../pdfkit/js/standard-fonts/Helvetica.cjs'".
+  // Externalise the package and force-include pdfkit/fontkit assets in the lambda.
+  serverExternalPackages: ['@react-pdf/renderer'],
+  outputFileTracingIncludes: {
+    '/api/yellowpages/listings/[id]/resume': [
+      './node_modules/pdfkit/js/**/*',
+      './node_modules/fontkit/**/*',
+    ],
+    '/api/**/*': ['./node_modules/pdfkit/js/standard-fonts/**/*'],
+  },
 }
 
 module.exports = nextConfig
