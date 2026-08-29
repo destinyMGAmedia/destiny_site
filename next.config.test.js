@@ -15,8 +15,30 @@ describe('next.config.js', () => {
     expect(nextConfig.serverExternalPackages).toContain('@react-pdf/renderer')
     const includes = nextConfig.outputFileTracingIncludes
     expect(includes['/api/yellowpages/listings/[id]/resume']).toEqual(
-      expect.arrayContaining(['./node_modules/pdfkit/js/**/*'])
+      expect.arrayContaining(['./node_modules/pdfkit/js/**/*', './node_modules/fontkit/**/*'])
     )
+  })
+
+  it('force-includes the pdfkit standard-font metrics across every api route', () => {
+    const includes = nextConfig.outputFileTracingIncludes
+    expect(includes['/api/**/*']).toEqual(
+      expect.arrayContaining(['./node_modules/pdfkit/js/standard-fonts/**/*'])
+    )
+  })
+
+  it('scopes every outputFileTracingIncludes key to an /api path and lists only node_modules globs', () => {
+    Object.entries(nextConfig.outputFileTracingIncludes).forEach(([route, globs]) => {
+      expect(route.startsWith('/api/')).toBe(true)
+      expect(Array.isArray(globs)).toBe(true)
+      expect(globs.length).toBeGreaterThan(0)
+      globs.forEach((g) => expect(g).toMatch(/^\.\/node_modules\//))
+    })
+  })
+
+  it('keeps serverExternalPackages a non-empty string array', () => {
+    expect(Array.isArray(nextConfig.serverExternalPackages)).toBe(true)
+    expect(nextConfig.serverExternalPackages.length).toBeGreaterThan(0)
+    nextConfig.serverExternalPackages.forEach((p) => expect(typeof p).toBe('string'))
   })
 
   describe('images config', () => {

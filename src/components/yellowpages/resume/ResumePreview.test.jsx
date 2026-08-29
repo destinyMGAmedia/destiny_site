@@ -51,10 +51,13 @@ describe('ResumePreview — integration with buildResumeModel', () => {
     expect(screen.getByRole('heading', { level: 2, name: 'Jane Developer' })).toBeInTheDocument()
     expect(screen.getByText('Full-stack Engineer')).toBeInTheDocument()
 
+    // primary contact line — essentials only, socials moved to their own line
     const contact = screen.getByText(/jane@example\.com/)
-    expect(contact.textContent).toBe(
-      'jane@example.com  |  08012345678  |  Lagos, Nigeria  |  https://jane.dev  |  linkedin: in/jane',
-    )
+    expect(contact.textContent).toBe('jane@example.com  |  08012345678  |  Lagos, Nigeria  |  https://jane.dev')
+    expect(contact.className).not.toContain('yp-resume-contact-2')
+    // second line — social / profile links, title-cased
+    const social = screen.getByText(/^Linkedin: in\/jane$/)
+    expect(social.className).toContain('yp-resume-contact-2')
 
     expect(screen.getByRole('heading', { name: 'Summary' })).toBeInTheDocument()
     expect(screen.getByText('A decade of shipping web apps.')).toBeInTheDocument()
@@ -166,5 +169,211 @@ describe('ResumePreview — conditional rendering', () => {
     }
     const { container } = render(<ResumePreview model={model} />)
     expect(container.querySelector('.yp-resume-contact').textContent).toBe('a@b.com  |  Abuja')
+  })
+})
+
+describe('ResumePreview — two-line contact split & social-link title-casing', () => {
+  const withContact = (contact) => ({ ...emptyModel, contact })
+
+  it('keeps essentials on line 1 and puts title-cased links on a distinct second line', () => {
+    const { container } = render(
+      <ResumePreview
+        model={withContact({
+          email: 'jane@example.com',
+          phone: '0801',
+          location: 'Lagos',
+          website: 'https://jane.dev',
+          links: [
+            { label: 'linkedin', value: 'in/jane' },
+            { label: 'github', value: 'gh/jane' },
+          ],
+        })}
+      />,
+    )
+    const lines = container.querySelectorAll('.yp-resume-contact')
+    expect(lines).toHaveLength(2)
+
+    // line 1 — the essentials, no link text, no -2 modifier class
+    expect(lines[0].textContent).toBe('jane@example.com  |  0801  |  Lagos  |  https://jane.dev')
+    expect(lines[0].className).not.toContain('yp-resume-contact-2')
+    expect(lines[0].textContent).not.toMatch(/in\/jane/)
+
+    // line 2 — every social link, title-cased, joined by three spaces
+    expect(lines[1]).toHaveClass('yp-resume-contact-2')
+    expect(lines[1].textContent).toBe('Linkedin: in/jane   Github: gh/jane')
+  })
+
+  it('renders the social line on its own when no primary contact fields are set', () => {
+    const { container } = render(
+      <ResumePreview
+        model={withContact({
+          email: '',
+          phone: '',
+          location: '',
+          website: '',
+          links: [{ label: 'portfolio', value: 'x.dev' }],
+        })}
+      />,
+    )
+    const lines = container.querySelectorAll('.yp-resume-contact')
+    expect(lines).toHaveLength(1)
+    expect(lines[0]).toHaveClass('yp-resume-contact-2')
+    expect(lines[0].textContent).toBe('Portfolio: x.dev')
+  })
+
+  it('renders no second contact line when the model carries no links', () => {
+    const { container } = render(
+      <ResumePreview
+        model={withContact({ email: 'a@b.com', phone: '', location: '', website: '', links: [] })}
+      />,
+    )
+    expect(container.querySelectorAll('.yp-resume-contact')).toHaveLength(1)
+    expect(container.querySelector('.yp-resume-contact-2')).toBeNull()
+  })
+
+  it('title-cases each label independently and tolerates an empty label', () => {
+    const { container } = render(
+      <ResumePreview
+        model={withContact({
+          email: '',
+          phone: '',
+          location: '',
+          website: '',
+          links: [
+            { label: 'x', value: 'a' },
+            { label: '', value: 'b' },
+          ],
+        })}
+      />,
+    )
+    expect(container.querySelector('.yp-resume-contact-2').textContent).toBe('X: a   : b')
+  })
+
+  it('leaves an already-capitalised label untouched', () => {
+    const { container } = render(
+      <ResumePreview
+        model={withContact({
+          email: '',
+          phone: '',
+          location: '',
+          website: '',
+          links: [{ label: 'GitHub', value: 'gh/x' }],
+        })}
+      />,
+    )
+    expect(container.querySelector('.yp-resume-contact-2').textContent).toBe('GitHub: gh/x')
+  })
+
+  it('renders neither contact line when contact is entirely empty', () => {
+    const { container } = render(
+      <ResumePreview
+        model={withContact({ email: '', phone: '', location: '', website: '', links: [] })}
+      />,
+    )
+    expect(container.querySelector('.yp-resume-contact')).toBeNull()
+  })
+})
+
+describe('ResumePreview — integration: multiple social links via buildResumeModel', () => {
+  it('renders every non-empty socialLinks entry on the second line, title-cased', () => {
+    const model = buildResumeModel(
+      { name: 'Multi', email: 'm@x.com', socialLinks: { linkedin: 'in/m', github: 'gh/m', twitter: '' } },
+      {},
+    )
+    const { container } = render(<ResumePreview model={model} />)
+
+    const second = container.querySelector('.yp-resume-contact-2')
+    expect(second.textContent).toBe('Linkedin: in/m   Github: gh/m')
+    // buildResumeModel drops the blank twitter value before it reaches the view
+    expect(second.textContent).not.toMatch(/Twitter/i)
+
+    const lines = container.querySelectorAll('.yp-resume-contact')
+    expect(lines[0].textContent).toBe('m@x.com')
+    expect(lines[0].className).not.toContain('yp-resume-contact-2')
+  })
+})
+
+describe('ResumePreview — contact line order, separators & raw link passthrough', () => {
+  const withContact = (contact) => ({ ...emptyModel, contact })
+
+  it('emits the primary line before the social line, each with the right class', () => {
+    const { container } = render(
+      <ResumePreview
+        model={withContact({
+          email: 'a@b.com',
+          phone: '',
+          location: '',
+          website: '',
+          links: [{ label: 'linkedin', value: 'in/a' }],
+        })}
+      />,
+    )
+    const ps = [...container.querySelectorAll('.yp-resume-contact')]
+    expect(ps.map((p) => p.textContent)).toEqual(['a@b.com', 'Linkedin: in/a'])
+    expect(ps[0].className).toBe('yp-resume-contact')
+    expect(ps[1].className).toBe('yp-resume-contact yp-resume-contact-2')
+  })
+
+  it('joins primary fields with " | " and three social links with exactly three spaces', () => {
+    const { container } = render(
+      <ResumePreview
+        model={withContact({
+          email: 'a@b.com',
+          phone: '0801',
+          location: 'Lagos',
+          website: '',
+          links: [
+            { label: 'linkedin', value: 'in/a' },
+            { label: 'github', value: 'gh/a' },
+            { label: 'portfolio', value: 'p.dev' },
+          ],
+        })}
+      />,
+    )
+    const [primary, social] = container.querySelectorAll('.yp-resume-contact')
+    expect(primary.textContent).toBe('a@b.com  |  0801  |  Lagos')
+    expect(social.textContent).toBe('Linkedin: in/a   Github: gh/a   Portfolio: p.dev')
+  })
+
+  it('renders social links verbatim from the model — the view does not filter empty values', () => {
+    const { container } = render(
+      <ResumePreview
+        model={withContact({
+          email: '',
+          phone: '',
+          location: '',
+          website: '',
+          links: [{ label: 'linkedin', value: '' }],
+        })}
+      />,
+    )
+    // buildResumeModel is what drops blank values; the presentational view trusts its input
+    expect(container.querySelector('.yp-resume-contact-2').textContent).toBe('Linkedin: ')
+  })
+
+  it('capitalises only the first character of a multi-word label', () => {
+    const { container } = render(
+      <ResumePreview
+        model={withContact({
+          email: '',
+          phone: '',
+          location: '',
+          website: '',
+          links: [{ label: 'personal site', value: 'me.dev' }],
+        })}
+      />,
+    )
+    expect(container.querySelector('.yp-resume-contact-2').textContent).toBe('Personal site: me.dev')
+  })
+
+  it('keeps the website on the primary line and never on the social line (via buildResumeModel)', () => {
+    const model = buildResumeModel(
+      { name: 'W', email: 'w@x.com', website: 'https://w.dev', socialLinks: { github: 'gh/w' } },
+      {},
+    )
+    const { container } = render(<ResumePreview model={model} />)
+    const [primary, social] = container.querySelectorAll('.yp-resume-contact')
+    expect(primary.textContent).toBe('w@x.com  |  https://w.dev')
+    expect(social.textContent).toBe('Github: gh/w')
   })
 })

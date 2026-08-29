@@ -56,19 +56,22 @@ describe('GET /api/yellowpages/listings', () => {
     expect(where.isActive).toBe(true)
   })
 
-  it('filters by category when provided', async () => {
+  it('filters by category, matching the primary OR a business extra category', async () => {
     await GET(makeGetRequest('?category=TECHNOLOGY_IT'))
     const where = prisma.yellowPagesListing.findMany.mock.calls[0][0].where
-    expect(where.category).toBe('TECHNOLOGY_IT')
+    expect(where.AND).toContainEqual({
+      OR: [{ category: 'TECHNOLOGY_IT' }, { categories: { has: 'TECHNOLOGY_IT' } }],
+    })
   })
 
   it('applies a text search across name/description/servicesOffered/subCategory/headline/skills', async () => {
     await GET(makeGetRequest('?q=plumb'))
     const where = prisma.yellowPagesListing.findMany.mock.calls[0][0].where
-    expect(where.OR).toHaveLength(6)
-    expect(where.OR[0]).toEqual({ name: { contains: 'plumb', mode: 'insensitive' } })
-    expect(where.OR).toContainEqual({ headline: { contains: 'plumb', mode: 'insensitive' } })
-    expect(where.OR).toContainEqual({ skills: { has: 'plumb' } })
+    const searchClause = where.AND.find((c) => c.OR?.some((o) => o.name))
+    expect(searchClause.OR).toHaveLength(6)
+    expect(searchClause.OR[0]).toEqual({ name: { contains: 'plumb', mode: 'insensitive' } })
+    expect(searchClause.OR).toContainEqual({ headline: { contains: 'plumb', mode: 'insensitive' } })
+    expect(searchClause.OR).toContainEqual({ skills: { has: 'plumb' } })
   })
 
   it('filters by listingType when provided', async () => {

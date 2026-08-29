@@ -887,7 +887,8 @@ model YellowPagesListing {
   phone             String
   whatsapp          String? // only if different from phone
   email             String?
-  category          YellowPagesCategory
+  category          YellowPagesCategory // primary category (required, all listing types)
+  categories        YellowPagesCategory[] @default([]) // BUSINESS: extra categories a business also operates in
   subCategory       String? // free-text profession/sub-sector, e.g. "Travel Agency"
   description       String // ~150 words; capped server-side regardless of client validation
   servicesOffered   String? // BUSINESS: main services/products, short text
@@ -1001,5 +1002,24 @@ enum YellowPagesCategory {
   HOME_SERVICES_TRADES // plumbing, carpentry, electrical, etc.
   AGRICULTURE_FOOD_PRODUCTION
   EVENTS_ENTERTAINMENT
+  // ── Added to cover the Destiny Nation "Influence Gates" sectors + requested trades ──
+  ENGINEERING_TECHNOLOGY
+  CIVIL_CONSTRUCTION_ENGINEERING
+  MANUFACTURING_INDUSTRIAL
+  ENERGY_ENVIRONMENT
+  SCIENCE_RESEARCH_INNOVATION
+  ARCHITECTURE_URBAN_PLANNING
+  GOVERNANCE_POLITICS
+  LAW_JUSTICE
+  DIPLOMACY_INTERNATIONAL_RELATIONS
+  DEFENCE_SECURITY_INTELLIGENCE
+  CIVIC_COMMUNITY_DEVELOPMENT
+  NONPROFIT_HUMANITARIAN
+  CORPORATE_CONSULTING
+  MEDIA_JOURNALISM
+  MUSIC_PERFORMING_ARTS
+  SPORTS_RECREATION
+  MENTAL_HEALTH_COUNSELLING
+  FAITH_MINISTRY
   OTHER
 }

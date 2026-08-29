@@ -26,7 +26,7 @@ describe('ProfileCompleteness', () => {
   it('lists the top empty sections, each a jump link to that part of the form', () => {
     render(<ProfileCompleteness listing={{ listingType: 'INDIVIDUAL' }} maxPrompts={2} />)
     const link = screen.getByText('Add a professional summary')
-    expect(link.closest('a')).toHaveAttribute('href', '#yp-resumeSummary')
+    expect(link.closest('a')).toHaveAttribute('href', '#yp-description')
   }, 10000)
 
   it('caps the number of prompts shown to maxPrompts', () => {

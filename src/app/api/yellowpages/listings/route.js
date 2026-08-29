@@ -31,20 +31,26 @@ export async function GET(req) {
   }
 
   const where = { isActive: true }
-  if (category) where.category = category
   if (listingType) where.listingType = listingType
   if (city) where.city = { contains: city, mode: 'insensitive' }
   if (country) where.country = { contains: country, mode: 'insensitive' }
+
+  // Category filter matches the primary OR any of a business's extra `categories`.
+  const and = []
+  if (category) and.push({ OR: [{ category }, { categories: { has: category } }] })
   if (q) {
-    where.OR = [
-      { name: { contains: q, mode: 'insensitive' } },
-      { description: { contains: q, mode: 'insensitive' } },
-      { servicesOffered: { contains: q, mode: 'insensitive' } },
-      { subCategory: { contains: q, mode: 'insensitive' } },
-      { headline: { contains: q, mode: 'insensitive' } },
-      { skills: { has: q } },
-    ]
+    and.push({
+      OR: [
+        { name: { contains: q, mode: 'insensitive' } },
+        { description: { contains: q, mode: 'insensitive' } },
+        { servicesOffered: { contains: q, mode: 'insensitive' } },
+        { subCategory: { contains: q, mode: 'insensitive' } },
+        { headline: { contains: q, mode: 'insensitive' } },
+        { skills: { has: q } },
+      ],
+    })
   }
+  if (and.length) where.AND = and
 
   try {
     if (assemblySlug) {

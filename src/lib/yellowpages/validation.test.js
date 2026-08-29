@@ -206,3 +206,48 @@ describe('isValidUrl', () => {
     expect(isValidUrl('ftp://example.com')).toBe(false)
   })
 })
+
+describe('validateListingInput — extra categories (BUSINESS)', () => {
+  const validBusiness = {
+    listingType: 'BUSINESS',
+    name: 'Acme',
+    phone: '08012345678',
+    category: 'TOURISM_TRAVEL',
+    description: 'We do things.',
+  }
+
+  it('accepts valid extra categories, de-duped and without the primary', () => {
+    const { errors, data } = validateListingInput({
+      ...validBusiness,
+      categories: ['TECHNOLOGY_IT', 'TECHNOLOGY_IT', 'TOURISM_TRAVEL', 'GOVERNANCE_POLITICS'],
+    })
+    expect(errors).toBeNull()
+    expect(data.categories).toEqual(['TECHNOLOGY_IT', 'GOVERNANCE_POLITICS'])
+  })
+
+  it('rejects an invalid extra category', () => {
+    const { errors } = validateListingInput({ ...validBusiness, categories: ['NOPE'] })
+    expect(errors.categories).toBeDefined()
+  })
+
+  it('caps the number of extra categories', () => {
+    const { errors } = validateListingInput({
+      ...validBusiness,
+      categories: ['TECHNOLOGY_IT', 'GOVERNANCE_POLITICS', 'LAW_JUSTICE', 'ENERGY_ENVIRONMENT', 'SCIENCE_RESEARCH_INNOVATION', 'CORPORATE_CONSULTING'],
+    })
+    expect(errors.categories).toMatch(/up to 5/)
+  })
+
+  it('ignores extra categories for an INDIVIDUAL listing', () => {
+    const { errors, data } = validateListingInput({
+      listingType: 'INDIVIDUAL',
+      name: 'Jane',
+      phone: '08012345678',
+      category: 'TECHNOLOGY_IT',
+      description: 'Bio.',
+      categories: ['GOVERNANCE_POLITICS'],
+    })
+    expect(errors).toBeNull()
+    expect(data.categories).toEqual([])
+  })
+})

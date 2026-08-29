@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
 import {
   LISTING_TYPES,
   PREFERRED_CONTACTS,
@@ -22,27 +24,18 @@ describe('PREFERRED_CONTACTS', () => {
 })
 
 describe('CATEGORIES', () => {
-  it('mirrors the YellowPagesCategory enum in prisma/schema.prisma', () => {
-    // Keep this list in sync with prisma/schema.prisma's YellowPagesCategory enum.
-    const expectedValues = [
-      'TOURISM_TRAVEL',
-      'CONSTRUCTION_REAL_ESTATE',
-      'EDUCATION_TRAINING',
-      'FINANCE_INSURANCE',
-      'HEALTH_WELLNESS',
-      'FOOD_HOSPITALITY',
-      'TECHNOLOGY_IT',
-      'CREATIVE_MEDIA',
-      'FASHION_BEAUTY',
-      'LEGAL_PROFESSIONAL_SERVICES',
-      'TRANSPORT_LOGISTICS',
-      'RETAIL_ECOMMERCE',
-      'HOME_SERVICES_TRADES',
-      'AGRICULTURE_FOOD_PRODUCTION',
-      'EVENTS_ENTERTAINMENT',
-      'OTHER',
-    ]
-    expect(CATEGORIES.map((c) => c.value)).toEqual(expectedValues)
+  it('mirrors the YellowPagesCategory enum in prisma/schema.prisma (same values, same order)', () => {
+    const schema = readFileSync(path.join(process.cwd(), 'prisma/schema.prisma'), 'utf8')
+    const block = schema.match(/enum YellowPagesCategory \{([\s\S]*?)\}/)[1]
+    const enumValues = block
+      .split('\n')
+      .map((l) => l.replace(/\/\/.*$/, '').trim())
+      .filter((l) => /^[A-Z0-9_]+$/.test(l))
+    expect(CATEGORIES.map((c) => c.value)).toEqual(enumValues)
+    // sanity: the Destiny Nation "Influence Gates" sectors are covered
+    for (const v of ['GOVERNANCE_POLITICS', 'ENGINEERING_TECHNOLOGY', 'CIVIL_CONSTRUCTION_ENGINEERING', 'DIPLOMACY_INTERNATIONAL_RELATIONS', 'DEFENCE_SECURITY_INTELLIGENCE']) {
+      expect(enumValues).toContain(v)
+    }
   })
 
   it('has a non-empty, unique label for every category', () => {

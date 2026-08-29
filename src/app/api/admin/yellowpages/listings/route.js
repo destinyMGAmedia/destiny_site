@@ -29,17 +29,22 @@ export async function GET(req) {
   }
 
   const where = {}
-  if (category) where.category = category
   if (status === 'active') where.isActive = true
   if (status === 'inactive') where.isActive = false
+
+  const and = []
+  if (category) and.push({ OR: [{ category }, { categories: { has: category } }] })
   if (q) {
-    where.OR = [
-      { name: { contains: q, mode: 'insensitive' } },
-      { contactPersonName: { contains: q, mode: 'insensitive' } },
-      { phone: { contains: q, mode: 'insensitive' } },
-      { email: { contains: q, mode: 'insensitive' } },
-    ]
+    and.push({
+      OR: [
+        { name: { contains: q, mode: 'insensitive' } },
+        { contactPersonName: { contains: q, mode: 'insensitive' } },
+        { phone: { contains: q, mode: 'insensitive' } },
+        { email: { contains: q, mode: 'insensitive' } },
+      ],
+    })
   }
+  if (and.length) where.AND = and
 
   const [total, listings] = await Promise.all([
     prisma.yellowPagesListing.count({ where }),

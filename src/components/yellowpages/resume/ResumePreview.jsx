@@ -19,16 +19,20 @@ function Section({ title, children }) {
   )
 }
 
+const titleCase = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s)
+
 export default function ResumePreview({ model }) {
   const c = model.contact
-  const contactBits = [c.email, c.phone, c.location, c.website, ...c.links.map((l) => `${l.label}: ${l.value}`)].filter(Boolean)
+  const primaryContact = [c.email, c.phone, c.location, c.website].filter(Boolean).join('  |  ')
+  const socialContact = c.links.map((l) => `${titleCase(l.label)}: ${l.value}`).join('   ')
 
   return (
     <div className={`yp-resume-sheet ${TEMPLATE_CLASS[model.template] || TEMPLATE_CLASS.CLASSIC}`}>
       <header className="yp-resume-head">
         <h2 className="yp-resume-name">{model.name}</h2>
         {model.headline && <p className="yp-resume-headline">{model.headline}</p>}
-        {contactBits.length > 0 && <p className="yp-resume-contact">{contactBits.join('  |  ')}</p>}
+        {primaryContact && <p className="yp-resume-contact">{primaryContact}</p>}
+        {socialContact && <p className="yp-resume-contact yp-resume-contact-2">{socialContact}</p>}
       </header>
 
       {model.summary && (

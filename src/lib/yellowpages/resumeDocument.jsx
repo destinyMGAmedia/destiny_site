@@ -7,39 +7,47 @@ import { buildResumeModel } from './resumeModel'
 
 const TEMPLATE_STYLES = {
   CLASSIC: {
-    page: { paddingTop: 44, paddingBottom: 44, paddingHorizontal: 52, fontFamily: 'Helvetica', fontSize: 10, color: '#1a1a1a', lineHeight: 1.45 },
-    name: { fontSize: 20, fontFamily: 'Helvetica-Bold' },
-    headline: { fontSize: 11, marginTop: 2, color: '#333' },
-    contactLine: { fontSize: 9, marginTop: 4, color: '#444' },
-    sectionTitle: { fontSize: 11, fontFamily: 'Helvetica-Bold', marginTop: 16, marginBottom: 4, textTransform: 'uppercase', borderBottom: '1 solid #999', paddingBottom: 2 },
-    entryHeader: { fontFamily: 'Helvetica-Bold', fontSize: 10, marginTop: 8 },
-    entryMeta: { fontSize: 9, color: '#555', marginBottom: 2 },
-    body: { fontSize: 10 },
-    bullet: { fontSize: 10, marginTop: 1, marginLeft: 10, textIndent: -10 },
+    page: { paddingTop: 42, paddingBottom: 46, paddingHorizontal: 50, fontFamily: 'Helvetica', fontSize: 10, color: '#1a1a1a', lineHeight: 1.4 },
+    header: { borderBottomWidth: 2, borderBottomColor: '#333', borderBottomStyle: 'solid', paddingBottom: 11, marginBottom: 4 },
+    name: { fontSize: 22, fontFamily: 'Helvetica-Bold', letterSpacing: 0.3 },
+    headline: { fontSize: 11, marginTop: 5, color: '#333' },
+    contactLine: { fontSize: 9, marginTop: 9, color: '#444' },
+    contactLine2: { fontSize: 9, marginTop: 3, color: '#666' },
+    sectionTitle: { fontSize: 11, fontFamily: 'Helvetica-Bold', marginTop: 17, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5, borderBottomWidth: 1, borderBottomColor: '#999', borderBottomStyle: 'solid', paddingBottom: 3 },
+    entryHeader: { fontFamily: 'Helvetica-Bold', fontSize: 10.5, marginTop: 9 },
+    entryMeta: { fontSize: 9, color: '#555', marginTop: 1.5, marginBottom: 3 },
+    body: { fontSize: 10, marginTop: 2 },
+    bullet: { fontSize: 10, marginTop: 3, marginLeft: 12, textIndent: -12 },
   },
   COMPACT: {
-    page: { paddingTop: 34, paddingBottom: 34, paddingHorizontal: 44, fontFamily: 'Helvetica', fontSize: 9, color: '#1a1a1a', lineHeight: 1.3 },
-    name: { fontSize: 16, fontFamily: 'Helvetica-Bold' },
-    headline: { fontSize: 10, marginTop: 1, color: '#333' },
-    contactLine: { fontSize: 8, marginTop: 3, color: '#444' },
-    sectionTitle: { fontSize: 10, fontFamily: 'Helvetica-Bold', marginTop: 11, marginBottom: 3, textTransform: 'uppercase' },
-    entryHeader: { fontFamily: 'Helvetica-Bold', fontSize: 9.5, marginTop: 5 },
-    entryMeta: { fontSize: 8, color: '#555', marginBottom: 1 },
-    body: { fontSize: 9 },
-    bullet: { fontSize: 9, marginTop: 0.5, marginLeft: 9, textIndent: -9 },
+    page: { paddingTop: 34, paddingBottom: 36, paddingHorizontal: 42, fontFamily: 'Helvetica', fontSize: 9, color: '#1a1a1a', lineHeight: 1.32 },
+    header: { borderBottomWidth: 1, borderBottomColor: '#444', borderBottomStyle: 'solid', paddingBottom: 8, marginBottom: 3 },
+    name: { fontSize: 17, fontFamily: 'Helvetica-Bold' },
+    headline: { fontSize: 10, marginTop: 3, color: '#333' },
+    contactLine: { fontSize: 8, marginTop: 6, color: '#444' },
+    contactLine2: { fontSize: 8, marginTop: 2, color: '#666' },
+    sectionTitle: { fontSize: 10, fontFamily: 'Helvetica-Bold', marginTop: 12, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.4 },
+    entryHeader: { fontFamily: 'Helvetica-Bold', fontSize: 9.5, marginTop: 6 },
+    entryMeta: { fontSize: 8, color: '#555', marginTop: 0.5, marginBottom: 2 },
+    body: { fontSize: 9, marginTop: 1.5 },
+    bullet: { fontSize: 9, marginTop: 2, marginLeft: 10, textIndent: -10 },
   },
   MODERN: {
-    page: { paddingTop: 48, paddingBottom: 48, paddingHorizontal: 56, fontFamily: 'Helvetica', fontSize: 10, color: '#222', lineHeight: 1.5 },
-    name: { fontSize: 24, fontFamily: 'Helvetica-Bold', letterSpacing: 0.5 },
-    headline: { fontSize: 11, marginTop: 3, color: '#444' },
-    contactLine: { fontSize: 9, marginTop: 6, color: '#555', borderBottom: '1 solid #ddd', paddingBottom: 10 },
-    sectionTitle: { fontSize: 10.5, fontFamily: 'Helvetica-Bold', marginTop: 18, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1, color: '#333' },
-    entryHeader: { fontFamily: 'Helvetica-Bold', fontSize: 10.5, marginTop: 10 },
-    entryMeta: { fontSize: 9, color: '#666', marginBottom: 3 },
-    body: { fontSize: 10 },
-    bullet: { fontSize: 10, marginTop: 2, marginLeft: 11, textIndent: -11 },
+    page: { paddingTop: 48, paddingBottom: 48, paddingHorizontal: 58, fontFamily: 'Helvetica', fontSize: 10, color: '#222', lineHeight: 1.5 },
+    header: { marginBottom: 6 },
+    name: { fontSize: 27, fontFamily: 'Helvetica-Bold', letterSpacing: 0.6 },
+    headline: { fontSize: 11.5, marginTop: 7, color: '#555' },
+    contactLine: { fontSize: 9, marginTop: 12, color: '#555', borderTopWidth: 1, borderTopColor: '#ddd', borderTopStyle: 'solid', paddingTop: 9 },
+    contactLine2: { fontSize: 9, marginTop: 3, color: '#777' },
+    sectionTitle: { fontSize: 10.5, fontFamily: 'Helvetica-Bold', marginTop: 21, marginBottom: 7, textTransform: 'uppercase', letterSpacing: 1.6, color: '#333' },
+    entryHeader: { fontFamily: 'Helvetica-Bold', fontSize: 10.5, marginTop: 12 },
+    entryMeta: { fontSize: 9, color: '#666', marginTop: 1.5, marginBottom: 4 },
+    body: { fontSize: 10, marginTop: 2 },
+    bullet: { fontSize: 10, marginTop: 3.5, marginLeft: 12, textIndent: -12 },
   },
 }
+
+const titleCase = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s)
 
 function Section({ styles, title, children }) {
   return (
@@ -59,14 +67,20 @@ function Bullets({ styles, items }) {
 export function ResumeDocument({ model }) {
   const styles = StyleSheet.create(TEMPLATE_STYLES[model.template] || TEMPLATE_STYLES.CLASSIC)
   const c = model.contact
-  const contactBits = [c.email, c.phone, c.location, c.website, ...c.links.map((l) => `${l.label}: ${l.value}`)].filter(Boolean)
+  // Line 1: the essentials. Line 2: social/profile links, kept off the primary line so it
+  // doesn't wrap into an unreadable blob.
+  const primaryContact = [c.email, c.phone, c.location, c.website].filter(Boolean).join('  |  ')
+  const socialContact = c.links.map((l) => `${titleCase(l.label)}: ${l.value}`).join('   ')
 
   return (
     <Document title={`${model.name} — ${model.docWord}`} author={model.name}>
       <Page size="A4" style={styles.page}>
-        <Text style={styles.name}>{model.name}</Text>
-        {model.headline ? <Text style={styles.headline}>{model.headline}</Text> : null}
-        {contactBits.length ? <Text style={styles.contactLine}>{contactBits.join('  |  ')}</Text> : null}
+        <View style={styles.header}>
+          <Text style={styles.name}>{model.name}</Text>
+          {model.headline ? <Text style={styles.headline}>{model.headline}</Text> : null}
+          {primaryContact ? <Text style={styles.contactLine}>{primaryContact}</Text> : null}
+          {socialContact ? <Text style={styles.contactLine2}>{socialContact}</Text> : null}
+        </View>
 
         {model.summary ? (
           <Section styles={styles} title="Summary">

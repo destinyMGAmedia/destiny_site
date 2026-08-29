@@ -18,6 +18,7 @@ function editInitialValues(l) {
     whatsapp: l.whatsapp || '',
     email: l.email || '',
     category: l.category,
+    categories: l.categories || [],
     subCategory: l.subCategory || '',
     description: l.description || '',
     servicesOffered: l.servicesOffered || '',

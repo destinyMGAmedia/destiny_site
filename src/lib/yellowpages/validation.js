@@ -5,6 +5,7 @@ import {
   LISTING_TYPES,
   PREFERRED_CONTACTS,
   CATEGORY_VALUES,
+  MAX_EXTRA_CATEGORIES,
   SOCIAL_LINK_KEYS,
   MAX_DESCRIPTION_CHARS,
   MAX_PORTFOLIO_IMAGES,
@@ -169,6 +170,28 @@ export function validateListingInput(body = {}) {
     errors.category = 'Please choose a valid category.'
   }
 
+  // Extra categories — BUSINESS only. Valid enum values, de-duped, never repeating the primary.
+  let categories = []
+  if (listingType === 'BUSINESS' && body.categories !== undefined) {
+    if (!Array.isArray(body.categories)) {
+      errors.categories = 'Invalid categories.'
+    } else {
+      const seen = new Set([category])
+      for (const c of body.categories) {
+        if (!CATEGORY_VALUES.includes(c)) {
+          errors.categories = 'One of the extra categories is not valid.'
+          break
+        }
+        if (seen.has(c)) continue
+        seen.add(c)
+        categories.push(c)
+      }
+      if (!errors.categories && categories.length > MAX_EXTRA_CATEGORIES) {
+        errors.categories = `Add up to ${MAX_EXTRA_CATEGORIES} extra categories.`
+      }
+    }
+  }
+
   const description = (body.description || '').trim()
   if (!description) {
     errors.description = 'A short description is required.'
@@ -260,6 +283,7 @@ export function validateListingInput(body = {}) {
       whatsapp: whatsapp || null,
       email: email || null,
       category,
+      categories,
       subCategory: (body.subCategory || '').trim() || null,
       description,
       servicesOffered: (body.servicesOffered || '').trim() || null,

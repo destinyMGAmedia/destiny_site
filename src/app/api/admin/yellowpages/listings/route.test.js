@@ -62,7 +62,8 @@ describe('GET /api/admin/yellowpages/listings', () => {
   it('searches name, contactPersonName, phone, and email', async () => {
     await GET(makeRequest('?q=jane'))
     const where = prisma.yellowPagesListing.findMany.mock.calls[0][0].where
-    expect(where.OR).toHaveLength(4)
+    const searchClause = where.AND.find((c) => c.OR?.some((o) => o.name))
+    expect(searchClause.OR).toHaveLength(4)
   })
 
   it('computes avgRating/ratingCount and strips the raw ratings array', async () => {

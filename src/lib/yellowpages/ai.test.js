@@ -1,4 +1,4 @@
-import { aiConfigured, aiProviderLabel, optimizeResume } from './ai'
+import { aiConfigured, aiProviderLabel, optimizeResume, parseResumeFromText } from './ai'
 
 const baseModel = {
   spelling: 'British',
@@ -346,7 +346,7 @@ describe('optimizeResume', () => {
     const cfg = JSON.parse(init.body).generationConfig
     expect(cfg.responseMimeType).toBe('application/json')
     expect(cfg.responseSchema.required).toEqual(['summary', 'skills', 'experience'])
-    expect(cfg.temperature).toBe(0.4)
+    expect(cfg.temperature).toBe(0.3)
   })
 })
 
@@ -378,6 +378,83 @@ describe('empty / minimal model handling', () => {
     )
     const out = await optimizeResume({ model: baseModel })
     expect(out.skills).toEqual(['react']) // strList('React, Node') -> [] -> model.skills
+  })
+})
+
+describe('optimizeResume — remaining branches', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+    vi.restoreAllMocks()
+  })
+
+  it('concatenates a multi-part Gemini response before parsing', async () => {
+    vi.stubEnv('AI_PROVIDER', 'gemini')
+    vi.stubEnv('GEMINI_API_KEY', 'k')
+    const halves = ['{"summary":"Split summary.","skills":["Go"],', '"experience":[]}']
+    vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      text: async () => '',
+      json: async () => ({ candidates: [{ content: { parts: halves.map((text) => ({ text })) } }] }),
+    })
+    const out = await optimizeResume({ model: baseModel })
+    expect(out.summary).toBe('Split summary.')
+    expect(out.skills).toEqual(['Go'])
+  })
+
+  it('keeps AI-supplied headline when the model reply provides one', async () => {
+    vi.stubEnv('AI_PROVIDER', 'gemini')
+    vi.stubEnv('GEMINI_API_KEY', 'k')
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      geminiReply({ headline: 'Staff Engineer', summary: 's', skills: ['x'], experience: [] }),
+    )
+    const out = await optimizeResume({ model: baseModel }) // input headline: 'Engineer'
+    expect(out.headline).toBe('Staff Engineer')
+  })
+
+  it('falls back to every input role when raw.experience is not an array', async () => {
+    vi.stubEnv('AI_PROVIDER', 'gemini')
+    vi.stubEnv('GEMINI_API_KEY', 'k')
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      geminiReply({ summary: 'Polished.', skills: ['x'], experience: 'not-an-array' }),
+    )
+    const out = await optimizeResume({ model: baseModel })
+    expect(out.experience).toHaveLength(2)
+    expect(out.experience.map((e) => e.title)).toEqual(['Dev', 'Intern'])
+    expect(out.experience[0].bullets).toEqual(['built things'])
+    expect(out.experience[1].bullets).toEqual([])
+  })
+
+  it('truncates the Gemini error body to 300 chars in the thrown message', async () => {
+    vi.stubEnv('AI_PROVIDER', 'gemini')
+    vi.stubEnv('GEMINI_API_KEY', 'k')
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: false,
+      status: 400,
+      text: async () => 'e'.repeat(500),
+    })
+    expect(await optimizeResume({ model: baseModel })).toBeNull()
+    const [, msg] = errSpy.mock.calls[0]
+    expect(msg).toMatch(/^Gemini 400: e{300}$/)
+  })
+
+  it('passes an AI-provided title/organization through even when the input role also has them', async () => {
+    vi.stubEnv('AI_PROVIDER', 'gemini')
+    vi.stubEnv('GEMINI_API_KEY', 'k')
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      geminiReply({
+        summary: 's',
+        skills: ['x'],
+        experience: [
+          { title: 'Senior Dev', organization: 'Acme Corp', bullets: ['b1'] },
+          { title: '', organization: '', bullets: [] },
+        ],
+      }),
+    )
+    const out = await optimizeResume({ model: baseModel })
+    expect(out.experience[0]).toMatchObject({ title: 'Senior Dev', organization: 'Acme Corp', bullets: ['b1'] })
+    // blank AI entry -> falls back to the input role
+    expect(out.experience[1]).toMatchObject({ title: 'Intern', organization: 'Beta', bullets: [] })
   })
 })
 
@@ -437,7 +514,7 @@ describe('AI_PROVIDER casing + Groq reply shapes', () => {
     const body = JSON.parse(fetchSpy.mock.calls[0][1].body)
     expect(body.model).toBe('llama-3.3-70b-versatile')
     expect(body.response_format).toEqual({ type: 'json_object' })
-    expect(body.temperature).toBe(0.4)
+    expect(body.temperature).toBe(0.3)
     expect(body.messages[0].role).toBe('system')
     expect(body.messages[0].content).toContain('Return a JSON object with keys')
   })
@@ -453,5 +530,66 @@ describe('AI_PROVIDER casing + Groq reply shapes', () => {
     expect(await mod.optimizeResume({ model: baseModel })).toBeNull()
     const [, msg] = errSpy.mock.calls[0]
     expect(msg).toMatch(/^Groq 503: x{300}$/)
+  })
+})
+
+// ── parseResumeFromText ──────────────────────────────────────────────────────
+
+const parseReply = (obj) => ({
+  ok: true,
+  text: async () => '',
+  json: async () => ({ candidates: [{ content: { parts: [{ text: JSON.stringify(obj) }] } }] }),
+})
+
+describe('parseResumeFromText', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+    vi.restoreAllMocks()
+  })
+
+  it('returns null when unconfigured or the text is too short', async () => {
+    vi.stubEnv('GEMINI_API_KEY', '')
+    expect(await parseResumeFromText({ text: 'x'.repeat(200) })).toBeNull()
+    vi.stubEnv('GEMINI_API_KEY', 'k')
+    expect(await parseResumeFromText({ text: 'too short' })).toBeNull()
+  })
+
+  it('shapes the model output, dropping empty rows and coercing current', async () => {
+    vi.stubEnv('AI_PROVIDER', 'gemini')
+    vi.stubEnv('GEMINI_API_KEY', 'k')
+    vi.spyOn(global, 'fetch').mockResolvedValue(
+      parseReply({
+        name: '  Jane Developer  ',
+        headline: 'Software Engineer',
+        summary: 'A decade of building web apps.',
+        email: 'jane@example.com',
+        linkedin: 'in/jane',
+        skills: ['React', '', 'React', 'Node'],
+        languages: ['English'],
+        certifications: 'AWS SA',
+        experience: [
+          { title: 'Engineer', organization: 'Acme', startDate: '2020', current: 'true', bullets: ['Built X', ''] },
+          { title: '', organization: '' }, // dropped
+        ],
+        education: [{ school: 'Unilag', degree: 'BSc', field: 'CS' }, {}],
+        projects: [{ name: 'Thing', url: 'https://t.dev' }, { role: 'Lead' }],
+      }),
+    )
+    const out = await parseResumeFromText({ text: 'x'.repeat(200) })
+    expect(out.name).toBe('Jane Developer')
+    expect(out.socialLinks).toEqual({ linkedin: 'in/jane' })
+    expect(out.skills).toEqual(['React', 'Node'])
+    expect(out.experience).toHaveLength(1)
+    expect(out.experience[0]).toMatchObject({ title: 'Engineer', current: true, bullets: ['Built X'] })
+    expect(out.education).toHaveLength(1)
+    expect(out.projects).toHaveLength(1)
+    expect(out.projects[0].name).toBe('Thing')
+    expect(out.provider).toBe('Gemini')
+  })
+
+  it('returns null when the provider errors or returns a non-object', async () => {
+    vi.stubEnv('GEMINI_API_KEY', 'k')
+    vi.spyOn(global, 'fetch').mockResolvedValue({ ok: false, status: 429, text: async () => 'rate limited' })
+    expect(await parseResumeFromText({ text: 'x'.repeat(200) })).toBeNull()
   })
 })

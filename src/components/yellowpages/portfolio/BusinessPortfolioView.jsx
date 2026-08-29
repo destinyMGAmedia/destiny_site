@@ -85,8 +85,11 @@ export default function BusinessPortfolioView({ listing, listingId, onReload }) 
             {listing.contactPersonName}{listing.position ? `, ${listing.position}` : ''}
           </p>
         )}
-        <div className="flex items-center gap-3 mt-2 flex-wrap">
+        <div className="flex items-center gap-2 mt-2 flex-wrap">
           <span className="yp-pill shrink-0">{categoryLabel(listing.category)}</span>
+          {(listing.categories || []).map((c) => (
+            <span key={c} className="yp-pill shrink-0" style={{ background: 'var(--yp-yellow-100)' }}>{categoryLabel(c)}</span>
+          ))}
           {listing.yearsInOperation != null && (
             <span className="text-sm" style={{ color: 'var(--yp-ink-soft)' }}>{listing.yearsInOperation} yrs in operation</span>
           )}

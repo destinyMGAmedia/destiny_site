@@ -5,7 +5,10 @@ export const LISTING_TYPES = ['INDIVIDUAL', 'BUSINESS']
 
 export const PREFERRED_CONTACTS = ['PHONE', 'WHATSAPP', 'EMAIL']
 
-// Mirrors the YellowPagesCategory enum in prisma/schema.prisma — keep in sync.
+// Mirrors the YellowPagesCategory enum in prisma/schema.prisma — keep in sync (same order).
+// Covers the Destiny Nation "Influence Gates" sectors (Governance, Engineering & Technology,
+// Civil & Construction, Manufacturing, Energy & Environment, Science, Diplomacy, Defence, etc.)
+// alongside the everyday trades / retail categories.
 export const CATEGORIES = [
   { value: 'TOURISM_TRAVEL', label: 'Tourism & Travel' },
   { value: 'CONSTRUCTION_REAL_ESTATE', label: 'Construction & Real Estate' },
@@ -22,10 +25,31 @@ export const CATEGORIES = [
   { value: 'HOME_SERVICES_TRADES', label: 'Home Services & Trades' },
   { value: 'AGRICULTURE_FOOD_PRODUCTION', label: 'Agriculture & Food Production' },
   { value: 'EVENTS_ENTERTAINMENT', label: 'Events & Entertainment' },
+  { value: 'ENGINEERING_TECHNOLOGY', label: 'Engineering & Technology' },
+  { value: 'CIVIL_CONSTRUCTION_ENGINEERING', label: 'Civil & Construction Engineering' },
+  { value: 'MANUFACTURING_INDUSTRIAL', label: 'Manufacturing & Industrial' },
+  { value: 'ENERGY_ENVIRONMENT', label: 'Energy, Environment & Sustainability' },
+  { value: 'SCIENCE_RESEARCH_INNOVATION', label: 'Science, Research & Innovation' },
+  { value: 'ARCHITECTURE_URBAN_PLANNING', label: 'Architecture & Urban Planning' },
+  { value: 'GOVERNANCE_POLITICS', label: 'Governance & Politics' },
+  { value: 'LAW_JUSTICE', label: 'Law & Justice' },
+  { value: 'DIPLOMACY_INTERNATIONAL_RELATIONS', label: 'Diplomacy & International Relations' },
+  { value: 'DEFENCE_SECURITY_INTELLIGENCE', label: 'Defence, Security & Intelligence' },
+  { value: 'CIVIC_COMMUNITY_DEVELOPMENT', label: 'Civic Leadership & Community Development' },
+  { value: 'NONPROFIT_HUMANITARIAN', label: 'Nonprofit & Humanitarian' },
+  { value: 'CORPORATE_CONSULTING', label: 'Corporate & Consulting' },
+  { value: 'MEDIA_JOURNALISM', label: 'Media & Journalism' },
+  { value: 'MUSIC_PERFORMING_ARTS', label: 'Music & Performing Arts' },
+  { value: 'SPORTS_RECREATION', label: 'Sports & Recreation' },
+  { value: 'MENTAL_HEALTH_COUNSELLING', label: 'Mental Health & Counselling' },
+  { value: 'FAITH_MINISTRY', label: 'Faith & Ministry' },
   { value: 'OTHER', label: 'Other' },
 ]
 
 export const CATEGORY_VALUES = CATEGORIES.map((c) => c.value)
+
+// BUSINESS listings can add extra categories beyond the primary one.
+export const MAX_EXTRA_CATEGORIES = 5
 
 export function categoryLabel(value) {
   return CATEGORIES.find((c) => c.value === value)?.label || value

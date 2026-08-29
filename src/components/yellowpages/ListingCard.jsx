@@ -61,6 +61,9 @@ export default function ListingCard({ listing }) {
 
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             <span className="yp-pill shrink-0">{categoryLabel(listing.category)}</span>
+            {!isIndividual && listing.categories?.length > 0 && (
+              <span className="yp-pill shrink-0" style={{ background: 'var(--yp-yellow-100)' }}>+{listing.categories.length}</span>
+            )}
             {isIndividual && listing.openToWork && (
               <span className="yp-pill shrink-0 flex items-center gap-1" style={{ background: 'var(--yp-yellow-200)', color: 'var(--yp-yellow-800)' }}>
                 <User size={11} /> Open to work

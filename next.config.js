@@ -22,13 +22,15 @@ const nextConfig = {
   // can't follow — so the résumé PDF route crashes on Vercel with
   // "Cannot find module '.../pdfkit/js/standard-fonts/Helvetica.cjs'".
   // Externalise the package and force-include pdfkit/fontkit assets in the lambda.
-  serverExternalPackages: ['@react-pdf/renderer'],
+  serverExternalPackages: ['@react-pdf/renderer', 'unpdf', 'mammoth'],
   outputFileTracingIncludes: {
     '/api/yellowpages/listings/[id]/resume': [
       './node_modules/pdfkit/js/**/*',
       './node_modules/fontkit/**/*',
     ],
     '/api/**/*': ['./node_modules/pdfkit/js/standard-fonts/**/*'],
+    // unpdf bundles a serverless pdfjs build; make sure its worker/cmaps assets ship.
+    '/api/yellowpages/resume/import': ['./node_modules/unpdf/dist/**/*'],
   },
 }
 

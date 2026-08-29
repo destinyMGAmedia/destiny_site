@@ -1,14 +1,63 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { AlertCircle, CheckCircle2, Loader2, ShieldCheck } from 'lucide-react'
+import { AlertCircle, CheckCircle2, Loader2, ShieldCheck, Sparkles } from 'lucide-react'
 import { CATEGORIES, PREFERRED_CONTACTS, MAX_DESCRIPTION_CHARS, MAX_EDIT_CONTACTS, fieldLabel } from '@/lib/yellowpages/constants'
 import { isValidPhone, isValidEmail } from '@/lib/yellowpages/validation'
 import { COUNTRY_NAMES } from '@/lib/yellowpages/phone'
 import ProfileCompleteness from './ProfileCompleteness'
 import IndividualFields from './forms/IndividualFields'
 import BusinessFields from './forms/BusinessFields'
+import CvImportField from './forms/CvImportField'
+import ExtraCategoriesField from './forms/ExtraCategoriesField'
 import TagInput from './forms/TagInput'
 import { FieldError } from './forms/Field'
+
+// Fields the CV importer can fill on an INDIVIDUAL listing.
+const CV_SCALARS = ['name', 'headline', 'certifications', 'email', 'phone', 'city', 'state', 'country', 'website']
+const CV_ARRAYS = ['skills', 'languages', 'experience', 'education', 'projects']
+
+const mapCvExperience = (list = []) =>
+  list.map((e) => ({
+    title: e.title || '',
+    organization: e.organization || '',
+    location: e.location || '',
+    startDate: e.startDate || '',
+    endDate: e.endDate || '',
+    current: Boolean(e.current),
+    description: (e.bullets || []).filter(Boolean).join('\n'),
+  }))
+const mapCvEducation = (list = []) =>
+  list.map((e) => ({
+    school: e.school || '',
+    degree: e.degree || '',
+    field: e.field || '',
+    startYear: e.startYear || '',
+    endYear: e.endYear || '',
+    description: e.description || '',
+  }))
+const mapCvProjects = (list = []) =>
+  list.map((p) => ({ name: p.name || '', role: p.role || '', url: p.url || '', description: p.description || '', imageUrls: [] }))
+
+/** Does the form already hold data the CV import might overwrite? */
+function formHasCvContent(form) {
+  if (form.description && form.description.trim()) return true
+  if (CV_SCALARS.some((k) => (form[k] || '').trim())) return true
+  if (CV_ARRAYS.some((k) => (form[k] || []).length > 0)) return true
+  if (Object.values(form.socialLinks || {}).some(Boolean)) return true
+  return false
+}
+
+function cvFillSummary(parsed) {
+  const bits = []
+  if (parsed.headline) bits.push('headline')
+  if (parsed.summary) bits.push('summary')
+  if (parsed.skills?.length) bits.push(`${parsed.skills.length} skills`)
+  if (parsed.experience?.length) bits.push(`${parsed.experience.length} role${parsed.experience.length === 1 ? '' : 's'}`)
+  if (parsed.education?.length) bits.push(`${parsed.education.length} qualification${parsed.education.length === 1 ? '' : 's'}`)
+  if (parsed.projects?.length) bits.push(`${parsed.projects.length} project${parsed.projects.length === 1 ? '' : 's'}`)
+  if (parsed.languages?.length) bits.push('languages')
+  return bits.length ? bits.join(', ') : 'your contact details'
+}
 
 // Absolute base for links back to the main site (member registration lives there, not on the
 // Yellow Pages subdomain). Mirrors src/components/assembly/JoinUsQR.jsx.
@@ -26,6 +75,7 @@ const EMPTY_FORM = {
   whatsapp: '',
   email: '',
   category: '',
+  categories: [],
   subCategory: '',
   description: '',
   servicesOffered: '',
@@ -113,6 +163,10 @@ export default function ListingForm({ initialValues, onSuccess, mode = 'create',
     return () => { cancelled = true; clearTimeout(timeout) }
   }, [canCheckMembership, form.assemblySlug, trimmedPhone, trimmedEmail])
 
+  // CV import (INDIVIDUAL only)
+  const [cvPending, setCvPending] = useState(null)
+  const [cvMsg, setCvMsg] = useState('')
+
   const set = (field) => (value) => {
     setForm((f) => ({ ...f, [field]: value }))
     if (formErrors[field]) setFormErrors((prev) => { const next = { ...prev }; delete next[field]; return next })
@@ -120,6 +174,49 @@ export default function ListingForm({ initialValues, onSuccess, mode = 'create',
 
   const setSocial = (key) => (value) => {
     setForm((f) => ({ ...f, socialLinks: { ...f.socialLinks, [key]: value } }))
+  }
+
+  const applyCv = (parsed, cvMode) => {
+    setForm((f) => {
+      const keep = (cur, inc) => (cvMode === 'replace' ? (inc || '') || cur : cur || (inc || ''))
+      const keepArr = (cur, inc) => {
+        const incoming = inc || []
+        return cvMode === 'replace' ? (incoming.length ? incoming : cur) : (cur && cur.length ? cur : incoming)
+      }
+      const socials =
+        cvMode === 'replace'
+          ? { ...f.socialLinks, ...(parsed.socialLinks || {}) }
+          : { ...(parsed.socialLinks || {}), ...f.socialLinks }
+      return {
+        ...f,
+        name: keep(f.name, parsed.name),
+        headline: keep(f.headline, parsed.headline),
+        description: keep(f.description, parsed.summary),
+        certifications: keep(f.certifications, parsed.certifications),
+        email: keep(f.email, parsed.email),
+        phone: keep(f.phone, parsed.phone),
+        city: keep(f.city, parsed.city),
+        state: keep(f.state, parsed.state),
+        country: keep(f.country, parsed.country),
+        website: keep(f.website, parsed.website),
+        socialLinks: socials,
+        skills: keepArr(f.skills, parsed.skills),
+        languages: keepArr(f.languages, parsed.languages),
+        experience: keepArr(f.experience, mapCvExperience(parsed.experience)),
+        education: keepArr(f.education, mapCvEducation(parsed.education)),
+        projects: keepArr(f.projects, mapCvProjects(parsed.projects)),
+      }
+    })
+    setFormErrors({})
+    setCvPending(null)
+    setCvMsg(`Filled from your CV: ${cvFillSummary(parsed)}. Review below and add anything missing.`)
+  }
+
+  const handleCvParsed = (parsed) => {
+    if (!parsed) return
+    setCvMsg('')
+    if (formHasCvContent(form)) setCvPending(parsed)
+    else applyCv(parsed, 'replace')
   }
 
   const validateBeforeSubmit = () => {
@@ -211,6 +308,40 @@ export default function ListingForm({ initialValues, onSuccess, mode = 'create',
         </div>
       </div>
 
+      {!isBusiness && (
+        <div className="space-y-3">
+          <CvImportField onParsed={handleCvParsed} />
+
+          {cvPending && (
+            <div className="yp-card p-4" style={{ borderColor: 'var(--yp-yellow-600)' }}>
+              <p className="text-sm font-semibold" style={{ color: 'var(--yp-ink)' }}>
+                Your form already has some details
+              </p>
+              <p className="text-xs mt-1" style={{ color: 'var(--yp-ink-soft)' }}>
+                How should we use what we read from your CV?
+              </p>
+              <div className="flex flex-wrap gap-2 mt-3">
+                <button type="button" onClick={() => applyCv(cvPending, 'replace')} className="yp-btn-primary !py-1.5 !px-3 text-sm">
+                  Replace with the CV
+                </button>
+                <button type="button" onClick={() => applyCv(cvPending, 'fillBlanks')} className="yp-btn-outline !py-1.5 !px-3 text-sm">
+                  Only fill empty fields
+                </button>
+                <button type="button" onClick={() => setCvPending(null)} className="text-sm underline px-2" style={{ color: 'var(--yp-ink-soft)' }}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+
+          {cvMsg && (
+            <p className="flex items-start gap-1.5 text-sm" style={{ color: 'var(--yp-yellow-700)' }}>
+              <Sparkles size={14} className="mt-px shrink-0" /> {cvMsg}
+            </p>
+          )}
+        </div>
+      )}
+
       <div>
         <label className="yp-label" htmlFor="yp-name">{fieldLabel(form.listingType, 'name', 'Name')} *</label>
         <input id="yp-name" className="yp-input" value={form.name} onChange={(e) => set('name')(e.target.value)} />
@@ -253,6 +384,15 @@ export default function ListingForm({ initialValues, onSuccess, mode = 'create',
           </div>
         )}
       </div>
+
+      {isBusiness && (
+        <ExtraCategoriesField
+          primary={form.category}
+          values={form.categories || []}
+          onChange={set('categories')}
+          error={formErrors.categories}
+        />
+      )}
 
       <div>
         <label className="yp-label" htmlFor="yp-description">

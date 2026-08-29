@@ -1,6 +1,25 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import ListingForm from './ListingForm'
 
+// Stub the CV importer with a button that fires onParsed with a fixed payload, so the merge
+// logic in ListingForm can be exercised without touching the upload/AI pipeline.
+const CV_FIXTURE = {
+  name: 'CV Name',
+  headline: 'CV Headline',
+  summary: 'A summary pulled from the CV.',
+  skills: ['Go', 'Rust'],
+  languages: ['French'],
+  experience: [{ title: 'Staff Engineer', organization: 'CvCorp', startDate: '2021', current: true, bullets: ['Did A', 'Did B'] }],
+  education: [{ school: 'CV University', degree: 'MSc', field: 'CS' }],
+  projects: [],
+  socialLinks: { github: 'gh/cv' },
+  certifications: 'CKA',
+  email: 'cv@example.com',
+}
+vi.mock('./forms/CvImportField', () => ({
+  default: ({ onParsed }) => <button type="button" onClick={() => onParsed(CV_FIXTURE)}>fake-cv-parse</button>,
+}))
+
 function mockFetch({ assemblies = [], postResponse, memberLookup } = {}) {
   global.fetch = vi.fn((url, options) => {
     if (String(url).includes('/api/assemblies')) {
@@ -283,5 +302,80 @@ describe('ListingForm — membership association (create mode)', () => {
     await new Promise((r) => setTimeout(r, 800))
     expect(screen.queryByText(/We found your membership/)).not.toBeInTheDocument()
     expect(screen.queryByText(/No membership record found/)).not.toBeInTheDocument()
+  }, 10000)
+})
+
+describe('ListingForm — CV import (individual only)', () => {
+  beforeEach(() => mockFetch())
+
+  it('is not offered on the business form', () => {
+    render(<ListingForm />)
+    fireEvent.click(screen.getByText('A business / organization'))
+    expect(screen.queryByText('fake-cv-parse')).not.toBeInTheDocument()
+  })
+
+  it('fills a blank form directly (no confirm prompt) and maps nested rows', async () => {
+    render(<ListingForm />)
+    fireEvent.click(screen.getByText('fake-cv-parse'))
+
+    expect(screen.queryByText('Your form already has some details')).not.toBeInTheDocument()
+    await waitFor(() => expect(screen.getByLabelText(INDIVIDUAL_NAME)).toHaveValue('CV Name'))
+    expect(screen.getByLabelText('Professional Headline')).toHaveValue('CV Headline')
+    expect(screen.getByLabelText(/^Professional Summary/)).toHaveValue('A summary pulled from the CV.')
+    // an experience row was created from the CV, bullets joined into its "what you did" field
+    expect(screen.getByLabelText('Title')).toHaveValue('Staff Engineer')
+    expect(screen.getByLabelText('Organization')).toHaveValue('CvCorp')
+    expect(screen.getByLabelText('What you did').value).toBe('Did A\nDid B')
+    // an education row too
+    expect(screen.getByLabelText('Degree')).toHaveValue('MSc')
+    expect(screen.getByText(/Filled from your CV/)).toBeInTheDocument()
+  })
+
+  it('asks before touching a form that already has content; "only fill empty" keeps typed values', async () => {
+    render(<ListingForm />)
+    fireEvent.change(screen.getByLabelText(INDIVIDUAL_NAME), { target: { value: 'My Own Name' } })
+
+    fireEvent.click(screen.getByText('fake-cv-parse'))
+    expect(await screen.findByText('Your form already has some details')).toBeInTheDocument()
+    expect(screen.getByLabelText(INDIVIDUAL_NAME)).toHaveValue('My Own Name') // not applied yet
+
+    fireEvent.click(screen.getByText('Only fill empty fields'))
+    await waitFor(() => expect(screen.getByLabelText('Professional Headline')).toHaveValue('CV Headline'))
+    expect(screen.getByLabelText(INDIVIDUAL_NAME)).toHaveValue('My Own Name') // kept
+  })
+
+  it('"Replace with the CV" overwrites the existing value', async () => {
+    render(<ListingForm />)
+    fireEvent.change(screen.getByLabelText(INDIVIDUAL_NAME), { target: { value: 'My Own Name' } })
+    fireEvent.click(screen.getByText('fake-cv-parse'))
+    fireEvent.click(await screen.findByText('Replace with the CV'))
+    await waitFor(() => expect(screen.getByLabelText(INDIVIDUAL_NAME)).toHaveValue('CV Name'))
+  })
+})
+
+describe('ListingForm — extra categories (business only)', () => {
+  beforeEach(() => mockFetch())
+
+  it('is hidden for individuals, shown for businesses, and submitted', async () => {
+    mockFetch({ postResponse: { ok: true, json: () => Promise.resolve({ listing: { id: 'b1' } }) } })
+    render(<ListingForm onSuccess={vi.fn()} />)
+    expect(screen.queryByLabelText(/Additional categories/)).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByText('A business / organization'))
+    fireEvent.change(screen.getByLabelText(BUSINESS_NAME), { target: { value: 'Acme' } })
+    fireEvent.change(screen.getByLabelText('Phone *'), { target: { value: '08012345678' } })
+    fireEvent.change(screen.getByLabelText('Category *'), { target: { value: 'TOURISM_TRAVEL' } })
+    fireEvent.change(screen.getByLabelText(/^About the Business/), { target: { value: 'We do things.' } })
+
+    fireEvent.change(screen.getByLabelText(/Additional categories/), { target: { value: 'GOVERNANCE_POLITICS' } })
+    await waitFor(() => expect(screen.getByLabelText('Remove Governance & Politics')).toBeInTheDocument())
+    fireEvent.change(screen.getByLabelText(/Additional categories/), { target: { value: 'ENGINEERING_TECHNOLOGY' } })
+    await waitFor(() => expect(screen.getByLabelText('Remove Engineering & Technology')).toBeInTheDocument())
+
+    fireEvent.click(screen.getByText(SUBMIT_BUSINESS))
+    await waitFor(() => {
+      const call = global.fetch.mock.calls.find(([, o]) => o?.method === 'POST' && String(o.body).includes('categories'))
+      expect(JSON.parse(call[1].body).categories).toEqual(['GOVERNANCE_POLITICS', 'ENGINEERING_TECHNOLOGY'])
+    })
   }, 10000)
 })

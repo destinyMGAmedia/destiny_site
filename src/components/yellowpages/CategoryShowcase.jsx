@@ -1,6 +1,8 @@
 import {
   Plane, HardHat, GraduationCap, Landmark, HeartPulse, UtensilsCrossed,
   Cpu, Palette, Scissors, Scale, Truck, ShoppingBag, Wrench, Wheat, PartyPopper, Tag,
+  Cog, Ruler, Factory, Leaf, FlaskConical, Building2, Vote, Handshake, ShieldCheck,
+  Users, HeartHandshake, Briefcase, Newspaper, Music, Trophy, Brain, Church,
 } from 'lucide-react'
 import { CATEGORIES } from '@/lib/yellowpages/constants'
 
@@ -20,6 +22,24 @@ const ICONS = {
   HOME_SERVICES_TRADES: Wrench,
   AGRICULTURE_FOOD_PRODUCTION: Wheat,
   EVENTS_ENTERTAINMENT: PartyPopper,
+  ENGINEERING_TECHNOLOGY: Cog,
+  CIVIL_CONSTRUCTION_ENGINEERING: Ruler,
+  MANUFACTURING_INDUSTRIAL: Factory,
+  ENERGY_ENVIRONMENT: Leaf,
+  SCIENCE_RESEARCH_INNOVATION: FlaskConical,
+  ARCHITECTURE_URBAN_PLANNING: Building2,
+  GOVERNANCE_POLITICS: Vote,
+  LAW_JUSTICE: Scale,
+  DIPLOMACY_INTERNATIONAL_RELATIONS: Handshake,
+  DEFENCE_SECURITY_INTELLIGENCE: ShieldCheck,
+  CIVIC_COMMUNITY_DEVELOPMENT: Users,
+  NONPROFIT_HUMANITARIAN: HeartHandshake,
+  CORPORATE_CONSULTING: Briefcase,
+  MEDIA_JOURNALISM: Newspaper,
+  MUSIC_PERFORMING_ARTS: Music,
+  SPORTS_RECREATION: Trophy,
+  MENTAL_HEALTH_COUNSELLING: Brain,
+  FAITH_MINISTRY: Church,
   OTHER: Tag,
 }
 
